@@ -4,101 +4,220 @@
     "name": "Buka Hut Lagos",
     "city": "Lagos",
     "area": "Yaba",
-    "cuisine_tags": ["Yoruba", "Street Food"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1500, "max": 5000 },
+    "price_range_naira": {
+      "min": 1500,
+      "max": 5000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Amala and Ewedu", "Gbegiri soup", "Abula", "Eba and Egusi"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Amala and Ewedu",
+      "Gbegiri soup",
+      "Abula",
+      "Eba and Egusi"
+    ],
     "average_rating": 4.3,
     "review_count": 214,
-    "dietary_options": ["none", "no_pork"],
-    "description": "A classic Yoruba buka in the heart of Yaba. Known for the best Abula in Lagos — amala so smooth it slides down easy. Loud, bustling, no-nonsense. Real Lagos energy."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "A classic Yoruba buka in the heart of Yaba. Known for the best Abula in Lagos \u2014 amala so smooth it slides down easy. Loud, bustling, no-nonsense. Real Lagos energy."
   },
   {
     "restaurant_id": "r002",
     "name": "Nkoyo Restaurant",
     "city": "Lagos",
     "area": "Victoria Island",
-    "cuisine_tags": ["Efik", "Delta", "Afro-fusion"],
+    "cuisine_tags": [
+      "Efik",
+      "Delta",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 15000, "max": 60000 },
+    "price_range_naira": {
+      "min": 15000,
+      "max": 60000
+    },
     "spice_profile": "medium",
-    "social_tags": ["date_night", "business_lunch"],
-    "signature_dishes": ["Afang Soup", "Edikang Ikong", "Pepper Soup", "Banga Rice", "Grilled Tilapia"],
+    "social_tags": [
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Afang Soup",
+      "Edikang Ikong",
+      "Pepper Soup",
+      "Banga Rice",
+      "Grilled Tilapia"
+    ],
     "average_rating": 4.7,
     "review_count": 389,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Upscale Southern Nigerian cuisine on Victoria Island. Nkoyo elevates traditional Efik and Delta dishes into fine dining experiences. Stunning ambience, impeccable service, and flavours that remind you of grandmother's kitchen — but make it luxury."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Upscale Southern Nigerian cuisine on Victoria Island. Nkoyo elevates traditional Efik and Delta dishes into fine dining experiences. Stunning ambience, impeccable service, and flavours that remind you of grandmother's kitchen \u2014 but make it luxury."
   },
   {
     "restaurant_id": "r003",
     "name": "Suya Republic",
     "city": "Lagos",
     "area": "Lekki Phase 1",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills",
+      "Street Food"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "budget",
-    "price_range_naira": { "min": 2000, "max": 8000 },
+    "price_range_naira": {
+      "min": 2000,
+      "max": 8000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "owambe_crew", "date_night"],
-    "signature_dishes": ["Beef Suya", "Chicken Suya", "Kilishi", "Ram Suya", "Suya Wrap"],
+    "social_tags": [
+      "solo",
+      "owambe_crew",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Beef Suya",
+      "Chicken Suya",
+      "Kilishi",
+      "Ram Suya",
+      "Suya Wrap"
+    ],
     "average_rating": 4.6,
     "review_count": 512,
-    "dietary_options": ["none", "halal", "no_pork"],
-    "description": "The suya spot that Lekki residents swear by. Open-air grilling, smoky atmosphere, and that signature yaji spice blend that hits different after midnight. The mallam here has been grilling for 15 years — it shows."
+    "dietary_options": [
+      "none",
+      "halal",
+      "no_pork"
+    ],
+    "description": "The suya spot that Lekki residents swear by. Open-air grilling, smoky atmosphere, and that signature yaji spice blend that hits different after midnight. The mallam here has been grilling for 15 years \u2014 it shows."
   },
   {
     "restaurant_id": "r004",
     "name": "Yellow Chilli Lagos",
     "city": "Lagos",
     "area": "Ikeja GRA",
-    "cuisine_tags": ["Lagos Contemporary", "Afro-fusion"],
+    "cuisine_tags": [
+      "Lagos Contemporary",
+      "Afro-fusion"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 8000, "max": 25000 },
+    "price_range_naira": {
+      "min": 8000,
+      "max": 25000
+    },
     "spice_profile": "medium",
-    "social_tags": ["family_outing", "date_night", "business_lunch"],
-    "signature_dishes": ["Jollof Rice", "Pepper Soup", "Grilled Chicken", "Plantain Medley", "Asun"],
+    "social_tags": [
+      "family_outing",
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Jollof Rice",
+      "Pepper Soup",
+      "Grilled Chicken",
+      "Plantain Medley",
+      "Asun"
+    ],
     "average_rating": 4.4,
     "review_count": 301,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Yellow Chilli is the go-to for Lagos middle class dining done right. Consistent food, great portions, family-friendly atmosphere. Their jollof rice has won awards — and the pepper soup is a cure for everything."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Yellow Chilli is the go-to for Lagos middle class dining done right. Consistent food, great portions, family-friendly atmosphere. Their jollof rice has won awards \u2014 and the pepper soup is a cure for everything."
   },
   {
     "restaurant_id": "r005",
     "name": "Mama Cass",
     "city": "Lagos",
     "area": "Multiple Locations",
-    "cuisine_tags": ["Yoruba", "Street Food", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Street Food",
+      "Lagos Contemporary"
+    ],
     "ambience": "casual_dining",
     "price_tier": "budget",
-    "price_range_naira": { "min": 2500, "max": 7000 },
+    "price_range_naira": {
+      "min": 2500,
+      "max": 7000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Eba and Okra", "Jollof Rice", "Fried Rice", "Moin Moin", "Stew and Rice"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Eba and Okra",
+      "Jollof Rice",
+      "Fried Rice",
+      "Moin Moin",
+      "Stew and Rice"
+    ],
     "average_rating": 4.1,
     "review_count": 478,
-    "dietary_options": ["none", "no_pork", "vegetarian"],
-    "description": "A Lagos institution. Mama Cass has been feeding Lagos since forever — students, workers, families. No pretense, just good Nigerian food at prices that make sense. The Moin Moin alone is worth the trip."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "vegetarian"
+    ],
+    "description": "A Lagos institution. Mama Cass has been feeding Lagos since forever \u2014 students, workers, families. No pretense, just good Nigerian food at prices that make sense. The Moin Moin alone is worth the trip."
   },
   {
     "restaurant_id": "r006",
     "name": "Jevenik Restaurant",
     "city": "Lagos",
     "area": "Surulere",
-    "cuisine_tags": ["Yoruba", "Igbo", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Igbo",
+      "Lagos Contemporary"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 4000, "max": 15000 },
+    "price_range_naira": {
+      "min": 4000,
+      "max": 15000
+    },
     "spice_profile": "medium",
-    "social_tags": ["family_outing", "solo", "date_night"],
-    "signature_dishes": ["Ofe Onugbu", "Oha Soup", "Egusi", "Catfish Pepper Soup", "Fried Plantain"],
+    "social_tags": [
+      "family_outing",
+      "solo",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Ofe Onugbu",
+      "Oha Soup",
+      "Egusi",
+      "Catfish Pepper Soup",
+      "Fried Plantain"
+    ],
     "average_rating": 4.2,
     "review_count": 267,
-    "dietary_options": ["none", "no_pork", "low_oil"],
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
     "description": "Jevenik brings together the best of Yoruba and Igbo cuisine under one roof. A reliable mid-range option for Lagos diners who want variety without breaking the bank."
   },
   {
@@ -106,16 +225,34 @@
     "name": "Ile Eko Buka",
     "city": "Lagos",
     "area": "Agege",
-    "cuisine_tags": ["Yoruba", "Street Food"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 800, "max": 3000 },
+    "price_range_naira": {
+      "min": 800,
+      "max": 3000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Amala", "Ewedu", "Abula", "Eba", "Agbado"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Amala",
+      "Ewedu",
+      "Abula",
+      "Eba",
+      "Agbado"
+    ],
     "average_rating": 4.0,
     "review_count": 189,
-    "dietary_options": ["none", "no_pork"],
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
     "description": "Deep in Agege, this no-frills buka is where the real Lagos eats. Cheapest Abula in town, cooked fresh every morning. Cash only, benches only, flavour unlimited."
   },
   {
@@ -123,16 +260,37 @@
     "name": "Craft Grill Lagos",
     "city": "Lagos",
     "area": "Lekki Phase 2",
-    "cuisine_tags": ["Lagos Contemporary", "Afro-fusion", "Suya-Grills"],
+    "cuisine_tags": [
+      "Lagos Contemporary",
+      "Afro-fusion",
+      "Suya-Grills"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 20000, "max": 80000 },
+    "price_range_naira": {
+      "min": 20000,
+      "max": 80000
+    },
     "spice_profile": "mild",
-    "social_tags": ["date_night", "business_lunch", "owambe_crew"],
-    "signature_dishes": ["Wagyu Suya", "Lobster Pepper Soup", "Grilled Sea Bass", "Truffle Jollof", "Asun Crostini"],
+    "social_tags": [
+      "date_night",
+      "business_lunch",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Wagyu Suya",
+      "Lobster Pepper Soup",
+      "Grilled Sea Bass",
+      "Truffle Jollof",
+      "Asun Crostini"
+    ],
     "average_rating": 4.8,
     "review_count": 445,
-    "dietary_options": ["none", "low_oil", "no_pork"],
+    "dietary_options": [
+      "none",
+      "low_oil",
+      "no_pork"
+    ],
     "description": "Where Nigerian flavours meet global technique. Craft Grill is Lagos's most ambitious contemporary Nigerian restaurant. Think suya-spiced wagyu and lobster pepper soup. For the Lagos elite who want something to post and something to savour."
   },
   {
@@ -140,101 +298,218 @@
     "name": "Tantalizors",
     "city": "Lagos",
     "area": "Festac Town",
-    "cuisine_tags": ["Lagos Contemporary", "Street Food"],
+    "cuisine_tags": [
+      "Lagos Contemporary",
+      "Street Food"
+    ],
     "ambience": "casual_dining",
     "price_tier": "budget",
-    "price_range_naira": { "min": 2000, "max": 6000 },
+    "price_range_naira": {
+      "min": 2000,
+      "max": 6000
+    },
     "spice_profile": "medium",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Jollof Rice", "Fried Chicken", "Puff Puff", "Chapman", "Meat Pie"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Jollof Rice",
+      "Fried Chicken",
+      "Puff Puff",
+      "Chapman",
+      "Meat Pie"
+    ],
     "average_rating": 3.9,
     "review_count": 623,
-    "dietary_options": ["none", "no_pork"],
-    "description": "A Lagos fast-food classic. Tantalizors is where you go when you want familiar Nigerian fast food — quick, affordable, and consistent enough. The puff puff hits different at 3pm."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "A Lagos fast-food classic. Tantalizors is where you go when you want familiar Nigerian fast food \u2014 quick, affordable, and consistent enough. The puff puff hits different at 3pm."
   },
   {
     "restaurant_id": "r010",
     "name": "Spice Route Lagos",
     "city": "Lagos",
     "area": "Victoria Island",
-    "cuisine_tags": ["Afro-fusion", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Afro-fusion",
+      "Lagos Contemporary"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 18000, "max": 70000 },
+    "price_range_naira": {
+      "min": 18000,
+      "max": 70000
+    },
     "spice_profile": "medium",
-    "social_tags": ["date_night", "business_lunch"],
-    "signature_dishes": ["Jollof Risotto", "Suya Tacos", "Egusi Velouté", "Pepper Soup Consommé", "Ofada Arancini"],
+    "social_tags": [
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Jollof Risotto",
+      "Suya Tacos",
+      "Egusi Velout\u00e9",
+      "Pepper Soup Consomm\u00e9",
+      "Ofada Arancini"
+    ],
     "average_rating": 4.6,
     "review_count": 334,
-    "dietary_options": ["none", "vegetarian", "low_oil", "no_pork"],
+    "dietary_options": [
+      "none",
+      "vegetarian",
+      "low_oil",
+      "no_pork"
+    ],
     "description": "Spice Route blends West African culinary tradition with international fine dining. Every dish tells a story of Nigerian ingredients reimagined. Perfect for impressing clients or a special date."
   },
   {
     "restaurant_id": "r011",
     "name": "Wakkis",
     "city": "Abuja",
-    "area": "Wuse 2",
-    "cuisine_tags": ["Hausa-Fulani", "Lagos Contemporary"],
+    "area": "Aminu Kano Crescent, Wuse 2",
+    "cuisine_tags": [
+      "Indian",
+      "Continental"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 18000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 22000
+    },
     "spice_profile": "medium",
-    "social_tags": ["family_outing", "business_lunch", "solo"],
-    "signature_dishes": ["Tuwo Shinkafa", "Miyan Kuka", "Kilishi", "Pepper Soup", "Jollof Rice"],
+    "social_tags": [
+      "date_night",
+      "family_outing",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Butter Chicken",
+      "Chicken Biryani",
+      "Paneer Tikka Masala",
+      "Lamb Curry",
+      "Mango Lassi"
+    ],
     "average_rating": 4.3,
     "review_count": 412,
-    "dietary_options": ["none", "halal", "no_pork", "no_alcohol"],
-    "description": "Abuja's most beloved Northern Nigerian restaurant. Wakkis is where Abuja's power class comes to eat real Hausa-Fulani food. The Tuwo Shinkafa with Miyan Kuka is legendary. Fully halal, family-friendly, and consistently excellent."
+    "dietary_options": [
+      "none",
+      "vegetarian",
+      "no_pork"
+    ],
+    "description": "Wakkis has been Abuja's most beloved Indian restaurant since 2000, originally located opposite the Sheraton before moving to Aminu Kano Crescent, Wuse 2. A consistent favourite of Abuja's expat and upper-class Nigerian community. The Butter Chicken is a crowd favourite, the service is famously fast and warm, and the overall vibe is that rare thing in Abuja \u2014 reliably excellent. Rated 3.9 on TripAdvisor with 239 reviews."
   },
   {
     "restaurant_id": "r012",
     "name": "BBoys Restaurant Abuja",
     "city": "Abuja",
     "area": "Garki",
-    "cuisine_tags": ["Lagos Contemporary", "Afro-fusion"],
+    "cuisine_tags": [
+      "Lagos Contemporary",
+      "Afro-fusion"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 6000, "max": 20000 },
+    "price_range_naira": {
+      "min": 6000,
+      "max": 20000
+    },
     "spice_profile": "medium",
-    "social_tags": ["family_outing", "date_night", "owambe_crew"],
-    "signature_dishes": ["Grilled Catfish", "Jollof Rice", "Fried Plantain", "Pepper Soup", "Asun"],
+    "social_tags": [
+      "family_outing",
+      "date_night",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Grilled Catfish",
+      "Jollof Rice",
+      "Fried Plantain",
+      "Pepper Soup",
+      "Asun"
+    ],
     "average_rating": 4.2,
     "review_count": 298,
-    "dietary_options": ["none", "no_pork"],
-    "description": "A reliable Abuja favourite for Nigerian comfort food. Bboys does everything well — generous portions, good atmosphere, fair prices. The grilled catfish is the stuff of Abuja legend."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "A reliable Abuja favourite for Nigerian comfort food. Bboys does everything well \u2014 generous portions, good atmosphere, fair prices. The grilled catfish is the stuff of Abuja legend."
   },
   {
     "restaurant_id": "r013",
     "name": "Zuma Rock Grill",
     "city": "Abuja",
     "area": "Maitama",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills", "Afro-fusion"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 15000, "max": 55000 },
+    "price_range_naira": {
+      "min": 15000,
+      "max": 55000
+    },
     "spice_profile": "hot",
-    "social_tags": ["business_lunch", "date_night", "owambe_crew"],
-    "signature_dishes": ["Suya Platter", "Grilled Ram", "Pepper Soup", "Nkwobi", "Chapman"],
+    "social_tags": [
+      "business_lunch",
+      "date_night",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Suya Platter",
+      "Grilled Ram",
+      "Pepper Soup",
+      "Nkwobi",
+      "Chapman"
+    ],
     "average_rating": 4.5,
     "review_count": 367,
-    "dietary_options": ["none", "halal", "no_pork"],
-    "description": "Named after Abuja's iconic landmark, Zuma Rock Grill is the city's premier grilling destination. The suya platter is a work of art. The ambience — upscale outdoor with views — makes every meal feel like an occasion."
+    "dietary_options": [
+      "none",
+      "halal",
+      "no_pork"
+    ],
+    "description": "Named after Abuja's iconic landmark, Zuma Rock Grill is the city's premier grilling destination. The suya platter is a work of art. The ambience \u2014 upscale outdoor with views \u2014 makes every meal feel like an occasion."
   },
   {
     "restaurant_id": "r014",
     "name": "Abuja Sheraton Kitchen",
     "city": "Abuja",
     "area": "Central Business District",
-    "cuisine_tags": ["Lagos Contemporary", "Afro-fusion"],
+    "cuisine_tags": [
+      "Lagos Contemporary",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 25000, "max": 100000 },
+    "price_range_naira": {
+      "min": 25000,
+      "max": 100000
+    },
     "spice_profile": "mild",
-    "social_tags": ["business_lunch", "date_night"],
-    "signature_dishes": ["Seafood Platter", "Nigerian Mezze", "Pepper Steak", "Jollof Paella", "Chocolate Fondant"],
+    "social_tags": [
+      "business_lunch",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Seafood Platter",
+      "Nigerian Mezze",
+      "Pepper Steak",
+      "Jollof Paella",
+      "Chocolate Fondant"
+    ],
     "average_rating": 4.4,
     "review_count": 289,
-    "dietary_options": ["none", "vegetarian", "low_oil"],
+    "dietary_options": [
+      "none",
+      "vegetarian",
+      "low_oil"
+    ],
     "description": "Hotel fine dining that actually delivers. The Sheraton kitchen serves a curated Nigerian-international menu that impresses foreign dignitaries and local executives alike. The Nigerian Mezze board is a masterclass in West African small chops."
   },
   {
@@ -242,33 +517,73 @@
     "name": "Bukka Hut Abuja",
     "city": "Abuja",
     "area": "Utako",
-    "cuisine_tags": ["Yoruba", "Igbo", "Hausa-Fulani"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Igbo",
+      "Hausa-Fulani"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1500, "max": 5000 },
+    "price_range_naira": {
+      "min": 1500,
+      "max": 5000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Amala", "Egusi", "Oha Soup", "Tuwo", "Eba"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Amala",
+      "Egusi",
+      "Oha Soup",
+      "Tuwo",
+      "Eba"
+    ],
     "average_rating": 4.0,
     "review_count": 231,
-    "dietary_options": ["none", "no_pork", "halal"],
-    "description": "Abuja's answer to the classic Lagos buka. Bukka Hut serves all the Nigerian staples — Amala, Egusi, Tuwo — at prices that civil servants and students can stomach. No fuss, just food."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "halal"
+    ],
+    "description": "Abuja's answer to the classic Lagos buka. Bukka Hut serves all the Nigerian staples \u2014 Amala, Egusi, Tuwo \u2014 at prices that civil servants and students can stomach. No fuss, just food."
   },
   {
     "restaurant_id": "r016",
     "name": "Malabi Suya Spot",
     "city": "Abuja",
     "area": "Wuse Market",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills",
+      "Street Food"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1500, "max": 6000 },
+    "price_range_naira": {
+      "min": 1500,
+      "max": 6000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "owambe_crew"],
-    "signature_dishes": ["Beef Suya", "Liver Suya", "Kidney Suya", "Kilishi", "Masa"],
+    "social_tags": [
+      "solo",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Beef Suya",
+      "Liver Suya",
+      "Kidney Suya",
+      "Kilishi",
+      "Masa"
+    ],
     "average_rating": 4.5,
     "review_count": 478,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
     "description": "The real deal suya experience in Abuja. Malabi's mallam has been perfecting his yaji blend since 1998. The liver suya here is genuinely life-changing. Open from 5pm till the charcoal runs out."
   },
   {
@@ -276,16 +591,35 @@
     "name": "Nile Restaurant Abuja",
     "city": "Abuja",
     "area": "Asokoro",
-    "cuisine_tags": ["Afro-fusion", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Afro-fusion",
+      "Lagos Contemporary"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 20000, "max": 75000 },
+    "price_range_naira": {
+      "min": 20000,
+      "max": 75000
+    },
     "spice_profile": "mild",
-    "social_tags": ["business_lunch", "date_night"],
-    "signature_dishes": ["Oxtail Stew", "Grilled Lobster", "Truffle Egusi", "Jollof Quinoa", "Panna Cotta"],
+    "social_tags": [
+      "business_lunch",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Oxtail Stew",
+      "Grilled Lobster",
+      "Truffle Egusi",
+      "Jollof Quinoa",
+      "Panna Cotta"
+    ],
     "average_rating": 4.6,
     "review_count": 312,
-    "dietary_options": ["none", "vegetarian", "low_oil"],
+    "dietary_options": [
+      "none",
+      "vegetarian",
+      "low_oil"
+    ],
     "description": "Asokoro's finest. Nile caters to Abuja's diplomatic and political class with a menu that fuses Nigerian boldness with Mediterranean refinement. If you have a serious business dinner or a very special date, this is the place."
   },
   {
@@ -293,16 +627,35 @@
     "name": "Genesis Restaurant Abuja",
     "city": "Abuja",
     "area": "Jabi",
-    "cuisine_tags": ["Lagos Contemporary", "Igbo"],
+    "cuisine_tags": [
+      "Lagos Contemporary",
+      "Igbo"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 16000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 16000
+    },
     "spice_profile": "medium",
-    "social_tags": ["family_outing", "solo", "date_night"],
-    "signature_dishes": ["Ofe Onugbu", "Catfish Pepper Soup", "Jollof Rice", "Fried Plantain", "Nkwobi"],
+    "social_tags": [
+      "family_outing",
+      "solo",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Ofe Onugbu",
+      "Catfish Pepper Soup",
+      "Jollof Rice",
+      "Fried Plantain",
+      "Nkwobi"
+    ],
     "average_rating": 4.1,
     "review_count": 245,
-    "dietary_options": ["none", "no_pork"],
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
     "description": "A solid mid-range option in Jabi that serves Nigerian comfort food with consistency. Genesis is popular with Abuja's young professionals and families who want good food without the premium price tag."
   },
   {
@@ -310,16 +663,36 @@
     "name": "Papyrus Restaurant",
     "city": "Port Harcourt",
     "area": "GRA Phase 2",
-    "cuisine_tags": ["Delta", "Efik", "Afro-fusion"],
+    "cuisine_tags": [
+      "Delta",
+      "Efik",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 12000, "max": 50000 },
+    "price_range_naira": {
+      "min": 12000,
+      "max": 50000
+    },
     "spice_profile": "hot",
-    "social_tags": ["date_night", "business_lunch"],
-    "signature_dishes": ["Banga Soup", "Starch and Banga", "Pepper Soup", "Grilled Tilapia", "Ofe Akwu"],
+    "social_tags": [
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Banga Soup",
+      "Starch and Banga",
+      "Pepper Soup",
+      "Grilled Tilapia",
+      "Ofe Akwu"
+    ],
     "average_rating": 4.5,
     "review_count": 278,
-    "dietary_options": ["none", "no_pork", "low_oil"],
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
     "description": "Port Harcourt's finest Delta cuisine restaurant. Papyrus elevates the rich, palm-oil-forward flavours of the Niger Delta into a fine dining experience. The Banga soup here is a religious experience."
   },
   {
@@ -327,33 +700,73 @@
     "name": "Obalende Suya PH",
     "city": "Port Harcourt",
     "area": "Old GRA",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills",
+      "Street Food"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "budget",
-    "price_range_naira": { "min": 2000, "max": 7000 },
+    "price_range_naira": {
+      "min": 2000,
+      "max": 7000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "owambe_crew", "date_night"],
-    "signature_dishes": ["Beef Suya", "Chicken Suya", "Ram Parts", "Gizdodo", "Kilishi"],
+    "social_tags": [
+      "solo",
+      "owambe_crew",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Beef Suya",
+      "Chicken Suya",
+      "Ram Parts",
+      "Gizdodo",
+      "Kilishi"
+    ],
     "average_rating": 4.4,
     "review_count": 356,
-    "dietary_options": ["halal", "no_pork"],
-    "description": "PH's most talked-about suya spot. The charcoal smoke hits you from a block away. Obalende's suya is extra hot by default — ask for medium if you're not ready. Late night vibes, cold drinks, good company."
+    "dietary_options": [
+      "halal",
+      "no_pork"
+    ],
+    "description": "PH's most talked-about suya spot. The charcoal smoke hits you from a block away. Obalende's suya is extra hot by default \u2014 ask for medium if you're not ready. Late night vibes, cold drinks, good company."
   },
   {
     "restaurant_id": "r021",
     "name": "Deramus Restaurant",
     "city": "Port Harcourt",
     "area": "Trans Amadi",
-    "cuisine_tags": ["Delta", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Delta",
+      "Lagos Contemporary"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 18000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 18000
+    },
     "spice_profile": "hot",
-    "social_tags": ["family_outing", "business_lunch", "solo"],
-    "signature_dishes": ["Afang Soup", "Banga Rice", "Pepper Soup", "Fried Plantain", "Grilled Catfish"],
+    "social_tags": [
+      "family_outing",
+      "business_lunch",
+      "solo"
+    ],
+    "signature_dishes": [
+      "Afang Soup",
+      "Banga Rice",
+      "Pepper Soup",
+      "Fried Plantain",
+      "Grilled Catfish"
+    ],
     "average_rating": 4.3,
     "review_count": 291,
-    "dietary_options": ["none", "no_pork", "low_oil"],
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
     "description": "A Port Harcourt staple for Delta cuisine done properly. Deramus is where oil workers and locals converge for honest, flavourful food. The Afang soup is thick, the portions generous, the prices fair."
   },
   {
@@ -361,33 +774,72 @@
     "name": "White House Restaurant PH",
     "city": "Port Harcourt",
     "area": "Peter Odili Road",
-    "cuisine_tags": ["Lagos Contemporary", "Delta", "Afro-fusion"],
+    "cuisine_tags": [
+      "Lagos Contemporary",
+      "Delta",
+      "Afro-fusion"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 4000, "max": 14000 },
+    "price_range_naira": {
+      "min": 4000,
+      "max": 14000
+    },
     "spice_profile": "medium",
-    "social_tags": ["family_outing", "date_night", "owambe_crew"],
-    "signature_dishes": ["Jollof Rice", "Pepper Soup", "Grilled Fish", "Asun", "Small Chops"],
+    "social_tags": [
+      "family_outing",
+      "date_night",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Jollof Rice",
+      "Pepper Soup",
+      "Grilled Fish",
+      "Asun",
+      "Small Chops"
+    ],
     "average_rating": 4.1,
     "review_count": 312,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Port Harcourt's popular gathering spot. White House does Lagos Contemporary with a Delta twist. The small chops are the best in PH — every owambe pre-party starts here."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Port Harcourt's popular gathering spot. White House does Lagos Contemporary with a Delta twist. The small chops are the best in PH \u2014 every owambe pre-party starts here."
   },
   {
     "restaurant_id": "r023",
     "name": "Buka Central PH",
     "city": "Port Harcourt",
     "area": "Rumuola",
-    "cuisine_tags": ["Delta", "Igbo", "Street Food"],
+    "cuisine_tags": [
+      "Delta",
+      "Igbo",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1200, "max": 4000 },
+    "price_range_naira": {
+      "min": 1200,
+      "max": 4000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Banga Soup", "Starch", "Oha Soup", "Eba", "Ofe Onugbu"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Banga Soup",
+      "Starch",
+      "Oha Soup",
+      "Eba",
+      "Ofe Onugbu"
+    ],
     "average_rating": 4.2,
     "review_count": 198,
-    "dietary_options": ["none", "no_pork"],
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
     "description": "The realest buka experience in Port Harcourt. Buka Central PH serves traditional Delta and Igbo soups that taste like they came straight from a village kitchen. Cheap, filling, authentic."
   },
   {
@@ -395,16 +847,35 @@
     "name": "360 Degrees Bistro PH",
     "city": "Port Harcourt",
     "area": "GRA Phase 1",
-    "cuisine_tags": ["Afro-fusion", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Afro-fusion",
+      "Lagos Contemporary"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 15000, "max": 60000 },
+    "price_range_naira": {
+      "min": 15000,
+      "max": 60000
+    },
     "spice_profile": "mild",
-    "social_tags": ["date_night", "business_lunch"],
-    "signature_dishes": ["Seafood Platter", "Grilled Lobster", "Fusion Pepper Soup", "Wagyu Burger", "Lava Cake"],
+    "social_tags": [
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Seafood Platter",
+      "Grilled Lobster",
+      "Fusion Pepper Soup",
+      "Wagyu Burger",
+      "Lava Cake"
+    ],
     "average_rating": 4.5,
     "review_count": 267,
-    "dietary_options": ["none", "vegetarian", "low_oil"],
+    "dietary_options": [
+      "none",
+      "vegetarian",
+      "low_oil"
+    ],
     "description": "Port Harcourt's most sophisticated dining address. 360 Degrees combines Nigerian ingredients with international culinary techniques. The rooftop view over GRA and the fusion pepper soup alone justify the price tag."
   },
   {
@@ -412,50 +883,109 @@
     "name": "Iya Basira Buka",
     "city": "Lagos",
     "area": "Mushin",
-    "cuisine_tags": ["Yoruba", "Street Food"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 700, "max": 2500 },
+    "price_range_naira": {
+      "min": 700,
+      "max": 2500
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Ewa Agoyin", "Agege Bread", "Amala", "Gbegiri", "Ogi"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Ewa Agoyin",
+      "Agege Bread",
+      "Amala",
+      "Gbegiri",
+      "Ogi"
+    ],
     "average_rating": 4.4,
     "review_count": 341,
-    "dietary_options": ["none", "no_pork", "vegetarian"],
-    "description": "Iya Basira is a Mushin legend. Her Ewa Agoyin — black-eyed beans with the most perfectly caramelised pepper sauce — has been drawing Lagos people from across town since 1995. Budget doesn't mean basic here."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "vegetarian"
+    ],
+    "description": "Iya Basira is a Mushin legend. Her Ewa Agoyin \u2014 black-eyed beans with the most perfectly caramelised pepper sauce \u2014 has been drawing Lagos people from across town since 1995. Budget doesn't mean basic here."
   },
   {
     "restaurant_id": "r026",
     "name": "Elegushi Beach Suya",
     "city": "Lagos",
     "area": "Elegushi Beach, Lekki",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills",
+      "Street Food"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 3000, "max": 10000 },
+    "price_range_naira": {
+      "min": 3000,
+      "max": 10000
+    },
     "spice_profile": "hot",
-    "social_tags": ["date_night", "owambe_crew", "family_outing"],
-    "signature_dishes": ["Beef Suya", "Chicken Suya", "Gizdodo", "Pepper Soup", "Fresh Coconut"],
+    "social_tags": [
+      "date_night",
+      "owambe_crew",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Beef Suya",
+      "Chicken Suya",
+      "Gizdodo",
+      "Pepper Soup",
+      "Fresh Coconut"
+    ],
     "average_rating": 4.3,
     "review_count": 489,
-    "dietary_options": ["halal", "no_pork"],
-    "description": "Suya on the beach. That's the entire pitch and it's enough. Elegushi Beach Suya combines the smoky perfection of Hausa-Fulani grilling with the Lagos beach atmosphere. Sunset, ocean breeze, suya in hand — this is the Lagos experience."
+    "dietary_options": [
+      "halal",
+      "no_pork"
+    ],
+    "description": "Suya on the beach. That's the entire pitch and it's enough. Elegushi Beach Suya combines the smoky perfection of Hausa-Fulani grilling with the Lagos beach atmosphere. Sunset, ocean breeze, suya in hand \u2014 this is the Lagos experience."
   },
   {
     "restaurant_id": "r027",
     "name": "Hausa Koko Spot",
     "city": "Abuja",
     "area": "Karu",
-    "cuisine_tags": ["Hausa-Fulani", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 500, "max": 2500 },
+    "price_range_naira": {
+      "min": 500,
+      "max": 2500
+    },
     "spice_profile": "mild",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Koko", "Masa", "Tuwo Shinkafa", "Dan Wake", "Kosai"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Koko",
+      "Masa",
+      "Tuwo Shinkafa",
+      "Dan Wake",
+      "Kosai"
+    ],
     "average_rating": 4.2,
     "review_count": 167,
-    "dietary_options": ["halal", "no_pork", "no_alcohol", "vegetarian"],
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol",
+      "vegetarian"
+    ],
     "description": "An authentic Northern Nigerian breakfast and lunch spot in Karu. Hausa Koko Spot is where Abuja's Northern Nigerian population comes for a taste of home. The Koko and Kosai breakfast combo is unmatched at that price point."
   },
   {
@@ -463,288 +993,623 @@
     "name": "Calabar Kitchen Lagos",
     "city": "Lagos",
     "area": "Ikeja",
-    "cuisine_tags": ["Efik", "Delta"],
+    "cuisine_tags": [
+      "Efik",
+      "Delta"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 16000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 16000
+    },
     "spice_profile": "hot",
-    "social_tags": ["family_outing", "solo", "date_night"],
-    "signature_dishes": ["Afang Soup", "Edikang Ikong", "Ekpang Nkukwo", "White Soup", "Pepper Soup"],
+    "social_tags": [
+      "family_outing",
+      "solo",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Afang Soup",
+      "Edikang Ikong",
+      "Ekpang Nkukwo",
+      "White Soup",
+      "Pepper Soup"
+    ],
     "average_rating": 4.5,
     "review_count": 223,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "The best Efik cuisine in Lagos, period. Calabar Kitchen brings authentic Cross River flavours to Ikeja — the Edikang Ikong is made with fresh waterleaf and periwinkle the traditional way. No shortcuts, no compromises."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "The best Efik cuisine in Lagos, period. Calabar Kitchen brings authentic Cross River flavours to Ikeja \u2014 the Edikang Ikong is made with fresh waterleaf and periwinkle the traditional way. No shortcuts, no compromises."
   },
   {
     "restaurant_id": "r029",
     "name": "Otigba Tech Buka",
     "city": "Lagos",
     "area": "Computer Village, Ikeja",
-    "cuisine_tags": ["Yoruba", "Lagos Contemporary", "Street Food"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Lagos Contemporary",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1000, "max": 4000 },
+    "price_range_naira": {
+      "min": 1000,
+      "max": 4000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo"],
-    "signature_dishes": ["Jollof Rice", "Eba and Egusi", "Amala", "Fried Fish", "Dodo"],
+    "social_tags": [
+      "solo"
+    ],
+    "signature_dishes": [
+      "Jollof Rice",
+      "Eba and Egusi",
+      "Amala",
+      "Fried Fish",
+      "Dodo"
+    ],
     "average_rating": 3.8,
     "review_count": 143,
-    "dietary_options": ["none", "no_pork"],
-    "description": "The unofficial canteen of Computer Village. Quick, cheap, no-nonsense Nigerian food for the tech traders and hustlers of Otigba. Don't come for the ambience — come for the fast service and the price."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "The unofficial canteen of Computer Village. Quick, cheap, no-nonsense Nigerian food for the tech traders and hustlers of Otigba. Don't come for the ambience \u2014 come for the fast service and the price."
   },
   {
     "restaurant_id": "r030",
     "name": "Igbo Ukwu Restaurant",
     "city": "Abuja",
     "area": "Area 1",
-    "cuisine_tags": ["Igbo"],
+    "cuisine_tags": [
+      "Igbo"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 4000, "max": 14000 },
+    "price_range_naira": {
+      "min": 4000,
+      "max": 14000
+    },
     "spice_profile": "hot",
-    "social_tags": ["family_outing", "solo"],
-    "signature_dishes": ["Ofe Onugbu", "Oha Soup", "Nkwobi", "Ugba", "Catfish Pepper Soup"],
+    "social_tags": [
+      "family_outing",
+      "solo"
+    ],
+    "signature_dishes": [
+      "Ofe Onugbu",
+      "Oha Soup",
+      "Nkwobi",
+      "Ugba",
+      "Catfish Pepper Soup"
+    ],
     "average_rating": 4.3,
     "review_count": 189,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Authentic Igbo cuisine in the heart of Abuja. Igbo Ukwu Restaurant is where the Igbo diaspora in Abuja comes to reconnect with home cooking. The Ofe Onugbu is bitter, bold, and beautiful — exactly how it should be."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Authentic Igbo cuisine in the heart of Abuja. Igbo Ukwu Restaurant is where the Igbo diaspora in Abuja comes to reconnect with home cooking. The Ofe Onugbu is bitter, bold, and beautiful \u2014 exactly how it should be."
   },
   {
     "restaurant_id": "r031",
     "name": "Kokodome Restaurant",
     "city": "Ibadan",
     "area": "Cocoa House, Dugbe",
-    "cuisine_tags": ["Yoruba", "Lagos Contemporary", "Afro-fusion"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Lagos Contemporary",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 12000, "max": 45000 },
+    "price_range_naira": {
+      "min": 12000,
+      "max": 45000
+    },
     "spice_profile": "medium",
-    "social_tags": ["date_night", "business_lunch", "owambe_crew"],
-    "signature_dishes": ["Gbegiri and Ewedu", "Grilled Catfish", "Asun", "Jollof Rice", "Pepper Soup"],
+    "social_tags": [
+      "date_night",
+      "business_lunch",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Gbegiri and Ewedu",
+      "Grilled Catfish",
+      "Asun",
+      "Jollof Rice",
+      "Pepper Soup"
+    ],
     "average_rating": 4.6,
     "review_count": 334,
-    "dietary_options": ["none", "no_pork", "low_oil"],
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
     "description": "Ibadan's most iconic restaurant, perched inside the legendary Cocoa House at Dugbe. Kokodome has been hosting Ibadan's elite, politicians, and business class for decades. The Gbegiri and Ewedu is a Yoruba masterclass and the city view from the upper floor is unmatched."
   },
   {
     "restaurant_id": "r032",
     "name": "Ibachi Restaurant",
     "city": "Ibadan",
-    "area": "Bodija",
-    "cuisine_tags": ["Yoruba", "Afro-fusion", "Lagos Contemporary"],
-    "ambience": "casual_dining",
+    "area": "New Bodija",
+    "cuisine_tags": [
+      "Chinese",
+      "Asian",
+      "Continental"
+    ],
+    "ambience": "fine_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 6000, "max": 22000 },
-    "spice_profile": "hot",
-    "social_tags": ["family_outing", "date_night", "business_lunch"],
-    "signature_dishes": ["Ofada Rice and Ayamase", "Grilled Tilapia", "Efo Riro", "Pounded Yam", "Asun"],
+    "price_range_naira": {
+      "min": 5000,
+      "max": 20000
+    },
+    "spice_profile": "mild",
+    "social_tags": [
+      "family_outing",
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Singapore Noodles",
+      "Chicken Fried Rice",
+      "Beef Teppanyaki",
+      "Spring Rolls",
+      "Sweet and Sour Chicken"
+    ],
     "average_rating": 4.4,
     "review_count": 278,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Ibachi is Ibadan's go-to for contemporary Yoruba cuisine that doesn't compromise on authenticity. Their Ofada rice with Ayamase stew is the stuff of Bodija legend. Clean environment, attentive service, great for family Sunday lunches."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Rated #1 restaurant in Ibadan on TripAdvisor, Ibachi is the city's finest Chinese restaurant. Located in New Bodija with a stunning teppanyaki grill section, the culinary team behind the famous Kabachi partnered with Cantonese Executive Chef Zhu to bring world-class oriental dining to Ibadan. The ambience is breathtaking, the portions are generous, and the Singapore Noodles are legendary."
   },
   {
     "restaurant_id": "r033",
     "name": "Five Continents Restaurant",
     "city": "Ibadan",
-    "area": "Jericho GRA",
-    "cuisine_tags": ["Afro-fusion", "Lagos Contemporary"],
+    "area": "Golden Tulip, Jericho GRA",
+    "cuisine_tags": [
+      "Chinese",
+      "Continental",
+      "Afro-fusion",
+      "Lagos Contemporary"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 15000, "max": 55000 },
+    "price_range_naira": {
+      "min": 10000,
+      "max": 155000
+    },
     "spice_profile": "mild",
-    "social_tags": ["business_lunch", "date_night"],
-    "signature_dishes": ["Grilled Prawns", "Nigerian Seafood Platter", "Pepper Soup", "Jollof Pasta", "Chocolate Cake"],
+    "social_tags": [
+      "business_lunch",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Festival Platter",
+      "Three Dragons Chinese Dim Sum",
+      "Tulip Grill BBQ",
+      "Shawarma",
+      "Cocktails"
+    ],
     "average_rating": 4.5,
     "review_count": 201,
-    "dietary_options": ["none", "vegetarian", "low_oil"],
-    "description": "Five Continents brings international fine dining to Ibadan's Jericho GRA. The ambience is sophisticated, the menu eclectic but rooted in Nigerian flavours. A favourite of UI professors, top lawyers, and visiting executives."
+    "dietary_options": [
+      "none",
+      "vegetarian",
+      "low_oil"
+    ],
+    "description": "Five Continents is Ibadan's most spectacular dining destination \u2014 a 5-star luxury complex inside Golden Tulip Hotel housing five venues: Three Dragons Chinese Restaurant, Tulip Grill BBQ, Pacific Lounge, Vibe Lounge, and Nucleus Restaurant. Surrounded by fountains and water features, the artificial island setting is unlike anything else in Ibadan. Ranked #7 of 52 Ibadan restaurants on TripAdvisor."
   },
   {
     "restaurant_id": "r034",
     "name": "Tamberma Restaurant",
     "city": "Ibadan",
-    "area": "Ring Road",
-    "cuisine_tags": ["Yoruba", "Street Food", "Lagos Contemporary"],
+    "area": "Iyaganku GRA",
+    "cuisine_tags": [
+      "Indian",
+      "Chinese",
+      "Nigerian",
+      "Afro-fusion"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 4000, "max": 14000 },
-    "spice_profile": "hot",
-    "social_tags": ["family_outing", "solo", "owambe_crew"],
-    "signature_dishes": ["Amala and Abula", "Pounded Yam and Egusi", "Fried Rice", "Grilled Chicken", "Moin Moin"],
+    "price_range_naira": {
+      "min": 5000,
+      "max": 18000
+    },
+    "spice_profile": "medium",
+    "social_tags": [
+      "family_outing",
+      "solo",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Butter Chicken",
+      "Singapore Noodles",
+      "Amala and Ewedu",
+      "BBQ Grills",
+      "Cocktails"
+    ],
     "average_rating": 4.2,
     "review_count": 312,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Tamberma is where Ibadan's working and middle class eats well without stress. Solid Yoruba food, generous portions, and a lively atmosphere. The Amala and Abula combo is priced fairly and cooked properly."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Tamberma is Ibadan's most beloved multi-cuisine restaurant, set in a serene nature-infused outdoor space in Iyaganku GRA. The menu spans Indian curries, Chinese noodles, Nigerian classics, and BBQ grills. The string-light outdoor patio, live music on weekends, and exceptional cocktails make it the top date spot in Ibadan. Best visited at night when the ambience is magical."
   },
   {
     "restaurant_id": "r035",
     "name": "Ose Olorun Food Canteen",
     "city": "Ibadan",
     "area": "UI Campus",
-    "cuisine_tags": ["Yoruba", "Street Food"],
+    "cuisine_tags": [
+      "Yoruba",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 600, "max": 2500 },
+    "price_range_naira": {
+      "min": 600,
+      "max": 2500
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Eba and Egusi", "Amala and Ewedu", "Ewa Agoyin", "Rice and Stew", "Akara"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Eba and Egusi",
+      "Amala and Ewedu",
+      "Ewa Agoyin",
+      "Rice and Stew",
+      "Akara"
+    ],
     "average_rating": 4.1,
     "review_count": 523,
-    "dietary_options": ["none", "no_pork", "vegetarian"],
-    "description": "The most beloved canteen on the University of Ibadan campus. Ose Olorun has fed generations of UI students, lecturers, and staff. The Ewa Agoyin breakfast is an institution. Come early or meet an empty pot — it sells out before noon every day."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "vegetarian"
+    ],
+    "description": "The most beloved canteen on the University of Ibadan campus. Ose Olorun has fed generations of UI students, lecturers, and staff. The Ewa Agoyin breakfast is an institution. Come early or meet an empty pot \u2014 it sells out before noon every day."
   },
   {
     "restaurant_id": "r036",
     "name": "Bubble Plaza Restaurant",
     "city": "Enugu",
     "area": "Independence Layout",
-    "cuisine_tags": ["Igbo", "Lagos Contemporary", "Afro-fusion"],
+    "cuisine_tags": [
+      "Continental",
+      "Chinese",
+      "Lebanese"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 10000, "max": 40000 },
+    "price_range_naira": {
+      "min": 10000,
+      "max": 40000
+    },
     "spice_profile": "medium",
-    "social_tags": ["date_night", "business_lunch", "owambe_crew"],
-    "signature_dishes": ["Ofe Onugbu", "Nkwobi", "Grilled Tilapia", "Abacha and Ugba", "Pepper Soup"],
+    "social_tags": [
+      "date_night",
+      "business_lunch",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Shawarma",
+      "Spring Rolls",
+      "Grilled Chicken",
+      "Pasta",
+      "Fresh Juice"
+    ],
     "average_rating": 4.5,
     "review_count": 267,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Enugu's premier dining destination in the heart of Independence Layout. Bubble Plaza delivers authentic Igbo cuisine in an upscale setting without losing its soul. The Nkwobi is dangerously good and the Abacha is prepared the true Enugu way — fresh, tangy, and generous with ugba."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Bubble Plaza is one of Enugu's most popular upscale hangout spots in Independence Layout. The multi-cuisine menu spans Continental, Chinese, and Lebanese dishes making it a favourite for Enugu's young professionals, students from nearby universities, and families. Known for great shawarma, refreshing drinks, and a lively modern atmosphere. A go-to for Enugu residents who want quality food in a stylish setting."
   },
   {
     "restaurant_id": "r037",
     "name": "Onyinye's Kitchen",
     "city": "Enugu",
     "area": "New Haven",
-    "cuisine_tags": ["Igbo", "Street Food"],
+    "cuisine_tags": [
+      "Igbo",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1000, "max": 4000 },
+    "price_range_naira": {
+      "min": 1000,
+      "max": 4000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Oha Soup", "Eba", "Abacha", "Ofe Onugbu", "Palm Wine"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Oha Soup",
+      "Eba",
+      "Abacha",
+      "Ofe Onugbu",
+      "Palm Wine"
+    ],
     "average_rating": 4.4,
     "review_count": 389,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Onyinye's is what Enugu buka culture is all about. Cooked fresh every morning, the Oha soup here uses real ora leaves from the village. The palm wine arrives cold in a calabash. No pretense — just the food your Enugu grandmother would approve of."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Onyinye's is what Enugu buka culture is all about. Cooked fresh every morning, the Oha soup here uses real ora leaves from the village. The palm wine arrives cold in a calabash. No pretense \u2014 just the food your Enugu grandmother would approve of."
   },
   {
     "restaurant_id": "r038",
     "name": "Coal City Chophouse",
     "city": "Enugu",
     "area": "GRA Enugu",
-    "cuisine_tags": ["Igbo", "Afro-fusion", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Igbo",
+      "Afro-fusion",
+      "Lagos Contemporary"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 18000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 18000
+    },
     "spice_profile": "hot",
-    "social_tags": ["family_outing", "date_night", "business_lunch"],
-    "signature_dishes": ["Nkwobi", "Catfish Pepper Soup", "Abacha and Ugba", "Ofe Onugbu", "Jollof Rice"],
+    "social_tags": [
+      "family_outing",
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Nkwobi",
+      "Catfish Pepper Soup",
+      "Abacha and Ugba",
+      "Ofe Onugbu",
+      "Jollof Rice"
+    ],
     "average_rating": 4.3,
     "review_count": 234,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Coal City Chophouse is named after Enugu's identity as Nigeria's coal city. The menu is proudly Igbo — heavy on soups, nkwobi, and abacha — with enough contemporary options to keep the younger crowd happy. Reliable and well-priced."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Coal City Chophouse is named after Enugu's identity as Nigeria's coal city. The menu is proudly Igbo \u2014 heavy on soups, nkwobi, and abacha \u2014 with enough contemporary options to keep the younger crowd happy. Reliable and well-priced."
   },
   {
     "restaurant_id": "r039",
     "name": "Enugu Presidential Chop Bar",
     "city": "Enugu",
     "area": "Trans Ekulu",
-    "cuisine_tags": ["Igbo", "Street Food"],
+    "cuisine_tags": [
+      "Igbo",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 800, "max": 3500 },
+    "price_range_naira": {
+      "min": 800,
+      "max": 3500
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Ofe Akwu", "Starch", "Abacha", "Eba and Egusi", "Palm Wine"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Ofe Akwu",
+      "Starch",
+      "Abacha",
+      "Eba and Egusi",
+      "Palm Wine"
+    ],
     "average_rating": 4.1,
     "review_count": 176,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Don't let the name fool you — this is a proper no-frills Enugu chop bar. The Ofe Akwu with starch is cooked with fresh palm fruit the traditional way. Palm wine is always available. Budget-friendly and genuinely satisfying."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Don't let the name fool you \u2014 this is a proper no-frills Enugu chop bar. The Ofe Akwu with starch is cooked with fresh palm fruit the traditional way. Palm wine is always available. Budget-friendly and genuinely satisfying."
   },
   {
     "restaurant_id": "r040",
     "name": "Ogige Market Kitchen",
     "city": "Enugu",
     "area": "Ogige Market",
-    "cuisine_tags": ["Igbo", "Street Food"],
+    "cuisine_tags": [
+      "Igbo",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 500, "max": 2000 },
+    "price_range_naira": {
+      "min": 500,
+      "max": 2000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo"],
-    "signature_dishes": ["Abacha", "Ugba", "Oha Soup", "Eba", "Akara"],
+    "social_tags": [
+      "solo"
+    ],
+    "signature_dishes": [
+      "Abacha",
+      "Ugba",
+      "Oha Soup",
+      "Eba",
+      "Akara"
+    ],
     "average_rating": 4.0,
     "review_count": 298,
-    "dietary_options": ["none", "no_pork", "vegetarian"],
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "vegetarian"
+    ],
     "description": "Hidden inside Ogige Market, this kitchen has been feeding Enugu traders and market workers for over 20 years. The Abacha is made fresh every morning and the Akara is fried to order. Cash only, fast service, zero waste."
   },
   {
     "restaurant_id": "r041",
     "name": "Cilantro Restaurant",
     "city": "Kano",
-    "area": "67 Sultan Road",
-    "cuisine_tags": ["Hausa-Fulani", "Afro-fusion", "Lagos Contemporary"],
+    "area": "23 Sultan Road",
+    "cuisine_tags": [
+      "Indian",
+      "Continental"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 12000, "max": 50000 },
+    "price_range_naira": {
+      "min": 8000,
+      "max": 40000
+    },
     "spice_profile": "medium",
-    "social_tags": ["business_lunch", "date_night", "family_outing"],
-    "signature_dishes": ["Tuwo Shinkafa and Miyan Taushe", "Kilishi Platter", "Grilled Suya", "Dan Wake", "Fura da Nono"],
+    "social_tags": [
+      "business_lunch",
+      "date_night",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Butter Chicken",
+      "Chicken Tikka Masala",
+      "Vegetable Biryani",
+      "Tandoori Grill",
+      "Naan Bread"
+    ],
     "average_rating": 4.7,
     "review_count": 412,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
-    "description": "Kano's finest restaurant on the prestigious Sultan Road. Cilantro serves elevated Northern Nigerian cuisine in an environment that matches its ambition. The Tuwo Shinkafa with Miyan Taushe is a benchmark dish and the Kilishi platter sources directly from Kano's best kilishi makers. Fully halal, impeccably run."
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol",
+      "vegetarian"
+    ],
+    "description": "Cilantro is Kano's most celebrated fine dining restaurant, located at 23 Sultan Road (formerly 67). Part of the national Cilantro chain, it is the sister restaurant of Cilantro Abuja, serving elevated Indian and Pakistani cuisine in a beautiful outdoor terrace setting. Fully halal, making it a natural fit for Kano's Muslim majority. Praised for curries, tandoori grills and professional service. Rated 84/100 on Sluurpy from 1,462 reviews."
   },
   {
     "restaurant_id": "r042",
     "name": "Fagge Suya Corner",
     "city": "Kano",
     "area": "Fagge",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills",
+      "Street Food"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1500, "max": 5000 },
+    "price_range_naira": {
+      "min": 1500,
+      "max": 5000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "owambe_crew"],
-    "signature_dishes": ["Beef Suya", "Ram Suya", "Kilishi", "Tsire", "Masa"],
+    "social_tags": [
+      "solo",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Beef Suya",
+      "Ram Suya",
+      "Kilishi",
+      "Tsire",
+      "Masa"
+    ],
     "average_rating": 4.6,
     "review_count": 534,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
-    "description": "The most authentic suya experience in Kano. Fagge Suya Corner operates from dusk with charcoal pits that have been burning for generations. The mallam's yaji recipe is a closely guarded family secret. This is where Kano residents bring visitors to show off — and rightly so."
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
+    "description": "The most authentic suya experience in Kano. Fagge Suya Corner operates from dusk with charcoal pits that have been burning for generations. The mallam's yaji recipe is a closely guarded family secret. This is where Kano residents bring visitors to show off \u2014 and rightly so."
   },
   {
     "restaurant_id": "r043",
     "name": "Sabon Gari Food Street",
     "city": "Kano",
     "area": "Sabon Gari",
-    "cuisine_tags": ["Hausa-Fulani", "Street Food", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Street Food",
+      "Lagos Contemporary"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 800, "max": 3500 },
+    "price_range_naira": {
+      "min": 800,
+      "max": 3500
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Tuwo Masara", "Miyan Kuka", "Suya", "Dan Wake", "Koko and Kosai"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Tuwo Masara",
+      "Miyan Kuka",
+      "Suya",
+      "Dan Wake",
+      "Koko and Kosai"
+    ],
     "average_rating": 4.2,
     "review_count": 367,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
-    "description": "The vibrant food street of Sabon Gari where Kano's diverse population — Northern Nigerians, Southerners, and expatriates — all eat together. Multiple food stalls serving Tuwo, Miyan Kuka, and fresh Suya from morning till night. Halal throughout."
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
+    "description": "The vibrant food street of Sabon Gari where Kano's diverse population \u2014 Northern Nigerians, Southerners, and expatriates \u2014 all eat together. Multiple food stalls serving Tuwo, Miyan Kuka, and fresh Suya from morning till night. Halal throughout."
   },
   {
     "restaurant_id": "r044",
     "name": "Durbar Restaurant Kano",
     "city": "Kano",
     "area": "Nasarawa GRA",
-    "cuisine_tags": ["Hausa-Fulani", "Afro-fusion"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Afro-fusion"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 20000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 20000
+    },
     "spice_profile": "medium",
-    "social_tags": ["family_outing", "business_lunch", "date_night"],
-    "signature_dishes": ["Tuwo Shinkafa", "Miyan Taushe", "Grilled Chicken", "Kilishi", "Fura da Nono"],
+    "social_tags": [
+      "family_outing",
+      "business_lunch",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Tuwo Shinkafa",
+      "Miyan Taushe",
+      "Grilled Chicken",
+      "Kilishi",
+      "Fura da Nono"
+    ],
     "average_rating": 4.3,
     "review_count": 289,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
     "description": "Named after Kano's famous Durbar festival, this restaurant celebrates Northern Nigerian food culture with pride. Durbar Restaurant serves consistently excellent Hausa-Fulani food in a clean, family-friendly environment. The Miyan Taushe pumpkin soup is exceptional."
   },
   {
@@ -752,33 +1617,71 @@
     "name": "Kano Pillars Chop House",
     "city": "Kano",
     "area": "Bompai",
-    "cuisine_tags": ["Hausa-Fulani", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 700, "max": 3000 },
+    "price_range_naira": {
+      "min": 700,
+      "max": 3000
+    },
     "spice_profile": "medium",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Tuwo Shinkafa", "Miyan Kuka", "Masa", "Dan Wake", "Suya"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Tuwo Shinkafa",
+      "Miyan Kuka",
+      "Masa",
+      "Dan Wake",
+      "Suya"
+    ],
     "average_rating": 4.1,
     "review_count": 234,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
-    "description": "A solid everyday buka in Bompai serving Kano's workers and residents. The Tuwo Shinkafa is cooked to the proper consistency — not too firm, not too soft — and the Miyan Kuka has real depth. Fully halal, budget-friendly, open from 7am."
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
+    "description": "A solid everyday buka in Bompai serving Kano's workers and residents. The Tuwo Shinkafa is cooked to the proper consistency \u2014 not too firm, not too soft \u2014 and the Miyan Kuka has real depth. Fully halal, budget-friendly, open from 7am."
   },
   {
     "restaurant_id": "r046",
     "name": "Gidan Kilishi",
     "city": "Kano",
     "area": "Kurmi Market",
-    "cuisine_tags": ["Hausa-Fulani", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Street Food"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "budget",
-    "price_range_naira": { "min": 2000, "max": 8000 },
+    "price_range_naira": {
+      "min": 2000,
+      "max": 8000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "owambe_crew"],
-    "signature_dishes": ["Kilishi", "Dried Beef Suya", "Tsire", "Spiced Ram", "Kunu"],
+    "social_tags": [
+      "solo",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Kilishi",
+      "Dried Beef Suya",
+      "Tsire",
+      "Spiced Ram",
+      "Kunu"
+    ],
     "average_rating": 4.8,
     "review_count": 678,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
     "description": "The original Kilishi experience. Gidan Kilishi at Kurmi Market is where Kano's famous spiced dried beef is made and sold at the source. People travel from Lagos and Abuja specifically for this kilishi. The paper-thin, perfectly spiced sheets of beef are a Kano heritage product."
   },
   {
@@ -786,67 +1689,148 @@
     "name": "Arewa Suya Palace",
     "city": "Kano",
     "area": "Tarauni",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1500, "max": 6000 },
+    "price_range_naira": {
+      "min": 1500,
+      "max": 6000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "owambe_crew", "family_outing"],
-    "signature_dishes": ["Beef Suya", "Chicken Suya", "Liver Suya", "Kilishi", "Kunu Aya"],
+    "social_tags": [
+      "solo",
+      "owambe_crew",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Beef Suya",
+      "Chicken Suya",
+      "Liver Suya",
+      "Kilishi",
+      "Kunu Aya"
+    ],
     "average_rating": 4.4,
     "review_count": 423,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
-    "description": "Arewa Suya Palace is Tarauni's most celebrated evening suya spot. The grilling starts at 6pm sharp and the crowd builds fast. Known for a yaji blend that is aggressively spiced — extra hot is not a warning here, it's a promise. All halal, open till midnight."
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
+    "description": "Arewa Suya Palace is Tarauni's most celebrated evening suya spot. The grilling starts at 6pm sharp and the crowd builds fast. Known for a yaji blend that is aggressively spiced \u2014 extra hot is not a warning here, it's a promise. All halal, open till midnight."
   },
   {
     "restaurant_id": "r048",
     "name": "Sultan Road Buka",
     "city": "Kano",
     "area": "Sultan Road",
-    "cuisine_tags": ["Hausa-Fulani", "Street Food"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 600, "max": 2800 },
+    "price_range_naira": {
+      "min": 600,
+      "max": 2800
+    },
     "spice_profile": "mild",
-    "social_tags": ["solo", "business_lunch"],
-    "signature_dishes": ["Tuwo Shinkafa", "Miyan Taushe", "Dan Wake", "Masa", "Fura da Nono"],
+    "social_tags": [
+      "solo",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Tuwo Shinkafa",
+      "Miyan Taushe",
+      "Dan Wake",
+      "Masa",
+      "Fura da Nono"
+    ],
     "average_rating": 4.0,
     "review_count": 198,
-    "dietary_options": ["halal", "no_pork", "no_alcohol", "vegetarian"],
-    "description": "A no-frills buka on Sultan Road serving Kano's office workers and traders. The lunch rush is intense — arrive before 1pm or risk missing the Miyan Taushe. Mild spice profile makes it accessible to visitors not yet initiated into Kano heat. Always halal."
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol",
+      "vegetarian"
+    ],
+    "description": "A no-frills buka on Sultan Road serving Kano's office workers and traders. The lunch rush is intense \u2014 arrive before 1pm or risk missing the Miyan Taushe. Mild spice profile makes it accessible to visitors not yet initiated into Kano heat. Always halal."
   },
   {
     "restaurant_id": "r049",
     "name": "Kano Grand Palace Restaurant",
     "city": "Kano",
     "area": "Emir's Palace Road",
-    "cuisine_tags": ["Hausa-Fulani", "Afro-fusion"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 15000, "max": 60000 },
+    "price_range_naira": {
+      "min": 15000,
+      "max": 60000
+    },
     "spice_profile": "medium",
-    "social_tags": ["business_lunch", "date_night", "family_outing"],
-    "signature_dishes": ["Royal Tuwo Platter", "Kilishi Appetiser", "Grilled Ram Shoulder", "Miyan Taushe", "Kunu Aya"],
+    "social_tags": [
+      "business_lunch",
+      "date_night",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Royal Tuwo Platter",
+      "Kilishi Appetiser",
+      "Grilled Ram Shoulder",
+      "Miyan Taushe",
+      "Kunu Aya"
+    ],
     "average_rating": 4.6,
     "review_count": 312,
-    "dietary_options": ["halal", "no_pork", "no_alcohol"],
-    "description": "Adjacent to Kano's historic Emir's Palace, Grand Palace Restaurant is the city's most prestigious dining address. The Royal Tuwo Platter — a feast of Tuwo Shinkafa with three rotating soups — is served in traditional calabash. Fully halal, impeccably presented, the definitive Kano fine dining experience."
+    "dietary_options": [
+      "halal",
+      "no_pork",
+      "no_alcohol"
+    ],
+    "description": "Adjacent to Kano's historic Emir's Palace, Grand Palace Restaurant is the city's most prestigious dining address. The Royal Tuwo Platter \u2014 a feast of Tuwo Shinkafa with three rotating soups \u2014 is served in traditional calabash. Fully halal, impeccably presented, the definitive Kano fine dining experience."
   },
   {
     "restaurant_id": "r050",
     "name": "Tinapa Lakeside Restaurant",
     "city": "Calabar",
     "area": "Tinapa Business Resort",
-    "cuisine_tags": ["Efik", "Delta", "Afro-fusion"],
+    "cuisine_tags": [
+      "Efik",
+      "Delta",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 12000, "max": 50000 },
+    "price_range_naira": {
+      "min": 12000,
+      "max": 50000
+    },
     "spice_profile": "hot",
-    "social_tags": ["date_night", "business_lunch", "family_outing"],
-    "signature_dishes": ["Edikang Ikong", "Pepper Soup", "Fresh Tilapia", "Afang Soup", "Ekpang Nkukwo"],
+    "social_tags": [
+      "date_night",
+      "business_lunch",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Edikang Ikong",
+      "Pepper Soup",
+      "Fresh Tilapia",
+      "Afang Soup",
+      "Ekpang Nkukwo"
+    ],
     "average_rating": 4.7,
     "review_count": 423,
-    "dietary_options": ["none", "no_pork", "low_oil"],
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
     "description": "Set on the stunning Tinapa lakeside, this is the crown jewel of Calabar dining. The view across the lake pairs perfectly with the finest Efik cuisine in Cross River State. The Edikang Ikong is made with freshly harvested waterleaf and periwinkle. Fresh fish is sourced from the lake daily. The experience here is Calabar at its most majestic."
   },
   {
@@ -854,33 +1838,72 @@
     "name": "Obufa Esuk Restaurant",
     "city": "Calabar",
     "area": "Calabar South",
-    "cuisine_tags": ["Efik", "Street Food"],
+    "cuisine_tags": [
+      "Efik",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1200, "max": 4500 },
+    "price_range_naira": {
+      "min": 1200,
+      "max": 4500
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Afang Soup", "Eba", "Fresh Fish Pepper Soup", "Edikang Ikong", "Fufu"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Afang Soup",
+      "Eba",
+      "Fresh Fish Pepper Soup",
+      "Edikang Ikong",
+      "Fufu"
+    ],
     "average_rating": 4.5,
     "review_count": 312,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Calabar South's most authentic Efik buka. Obufa Esuk — meaning 'waterside' in Efik — serves traditional Cross River soups in their most honest form. The Afang here is thick with leaves, heavy with seafood, and made the way Calabar grandmothers taught. Budget price, premium flavour."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Calabar South's most authentic Efik buka. Obufa Esuk \u2014 meaning 'waterside' in Efik \u2014 serves traditional Cross River soups in their most honest form. The Afang here is thick with leaves, heavy with seafood, and made the way Calabar grandmothers taught. Budget price, premium flavour."
   },
   {
     "restaurant_id": "r052",
     "name": "Aqua Vista Calabar",
     "city": "Calabar",
     "area": "Marina, Calabar",
-    "cuisine_tags": ["Efik", "Afro-fusion", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Efik",
+      "Afro-fusion",
+      "Lagos Contemporary"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 6000, "max": 22000 },
+    "price_range_naira": {
+      "min": 6000,
+      "max": 22000
+    },
     "spice_profile": "medium",
-    "social_tags": ["date_night", "family_outing", "owambe_crew"],
-    "signature_dishes": ["Pepper Soup", "Grilled Fresh Fish", "Edikang Ikong", "Plantain and Fish", "Chapman"],
+    "social_tags": [
+      "date_night",
+      "family_outing",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Pepper Soup",
+      "Grilled Fresh Fish",
+      "Edikang Ikong",
+      "Plantain and Fish",
+      "Chapman"
+    ],
     "average_rating": 4.4,
     "review_count": 267,
-    "dietary_options": ["none", "no_pork", "low_oil"],
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
     "description": "Aqua Vista sits on the Calabar Marina waterfront with views of the Cross River that make every meal feel like a mini-holiday. The grilled fresh fish is caught locally and the Pepper Soup is spiced to Efik tradition. One of Calabar's most romantic dining spots."
   },
   {
@@ -888,135 +1911,290 @@
     "name": "Efik Heritage Kitchen",
     "city": "Calabar",
     "area": "State Housing, Calabar",
-    "cuisine_tags": ["Efik"],
+    "cuisine_tags": [
+      "Efik"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 18000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 18000
+    },
     "spice_profile": "hot",
-    "social_tags": ["family_outing", "solo", "business_lunch"],
-    "signature_dishes": ["Afang Soup", "Ekpang Nkukwo", "Edikang Ikong", "Fresh Fish Pepper Soup", "Afia Efere"],
+    "social_tags": [
+      "family_outing",
+      "solo",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Afang Soup",
+      "Ekpang Nkukwo",
+      "Edikang Ikong",
+      "Fresh Fish Pepper Soup",
+      "Afia Efere"
+    ],
     "average_rating": 4.6,
     "review_count": 234,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Efik Heritage Kitchen is on a mission to preserve authentic Cross River cuisine. Every dish on the menu traces back to a specific Efik village tradition. The Ekpang Nkukwo — cocoyam dumplings in a seafood broth — is prepared with the patience and skill it demands. A cultural experience as much as a meal."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Efik Heritage Kitchen is on a mission to preserve authentic Cross River cuisine. Every dish on the menu traces back to a specific Efik village tradition. The Ekpang Nkukwo \u2014 cocoyam dumplings in a seafood broth \u2014 is prepared with the patience and skill it demands. A cultural experience as much as a meal."
   },
   {
     "restaurant_id": "r054",
     "name": "Calabar Carnival Chop House",
     "city": "Calabar",
     "area": "Watt Market Area",
-    "cuisine_tags": ["Efik", "Street Food", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Efik",
+      "Street Food",
+      "Lagos Contemporary"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1000, "max": 4000 },
+    "price_range_naira": {
+      "min": 1000,
+      "max": 4000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "owambe_crew"],
-    "signature_dishes": ["Afang Soup", "Fresh Fish Pepper Soup", "Eba", "Edikang Ikong", "Periwinkle Soup"],
+    "social_tags": [
+      "solo",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Afang Soup",
+      "Fresh Fish Pepper Soup",
+      "Eba",
+      "Edikang Ikong",
+      "Periwinkle Soup"
+    ],
     "average_rating": 4.2,
     "review_count": 189,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Named after Calabar's world-famous December Carnival, this chop house captures the city's festive energy year-round. Affordable, very spicy, and packed with locals. The Periwinkle Soup here is a specialty you won't find easily elsewhere — briny, rich, and deeply Calabar."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Named after Calabar's world-famous December Carnival, this chop house captures the city's festive energy year-round. Affordable, very spicy, and packed with locals. The Periwinkle Soup here is a specialty you won't find easily elsewhere \u2014 briny, rich, and deeply Calabar."
   },
   {
     "restaurant_id": "r055",
     "name": "Oba Palace Restaurant",
     "city": "Benin City",
     "area": "Oba's Palace Road",
-    "cuisine_tags": ["Bini", "Afro-fusion"],
+    "cuisine_tags": [
+      "Bini",
+      "Afro-fusion"
+    ],
     "ambience": "fine_dining",
     "price_tier": "premium",
-    "price_range_naira": { "min": 12000, "max": 48000 },
+    "price_range_naira": {
+      "min": 12000,
+      "max": 48000
+    },
     "spice_profile": "hot",
-    "social_tags": ["business_lunch", "date_night", "owambe_crew"],
-    "signature_dishes": ["Banga Soup", "Starch", "Owo Soup", "Native Soup", "Grilled Catfish"],
+    "social_tags": [
+      "business_lunch",
+      "date_night",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Banga Soup",
+      "Starch",
+      "Owo Soup",
+      "Native Soup",
+      "Grilled Catfish"
+    ],
     "average_rating": 4.6,
     "review_count": 289,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Adjacent to Benin City's historic Oba's Palace, this restaurant carries the weight of Edo culinary heritage with pride. The Banga Soup and Starch combo is prepared with fresh palm fruit from Edo State farms. The Owo Soup — a unique peppery Edo specialty — is a revelation."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Adjacent to Benin City's historic Oba's Palace, this restaurant carries the weight of Edo culinary heritage with pride. The Banga Soup and Starch combo is prepared with fresh palm fruit from Edo State farms. The Owo Soup \u2014 a unique peppery Edo specialty \u2014 is a revelation."
   },
   {
     "restaurant_id": "r056",
     "name": "Emotan Restaurant",
     "city": "Benin City",
     "area": "Ring Road",
-    "cuisine_tags": ["Bini", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Bini",
+      "Lagos Contemporary"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 5000, "max": 18000 },
+    "price_range_naira": {
+      "min": 5000,
+      "max": 18000
+    },
     "spice_profile": "hot",
-    "social_tags": ["family_outing", "date_night", "business_lunch"],
-    "signature_dishes": ["Owo Soup", "Starch", "Banga Rice", "Native Soup", "Grilled Tilapia"],
+    "social_tags": [
+      "family_outing",
+      "date_night",
+      "business_lunch"
+    ],
+    "signature_dishes": [
+      "Owo Soup",
+      "Starch",
+      "Banga Rice",
+      "Native Soup",
+      "Grilled Tilapia"
+    ],
     "average_rating": 4.4,
     "review_count": 312,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Named after Benin's legendary heroine Emotan, this restaurant serves Edo State cuisine with the confidence of a city that knows its food is underrated. The Owo Soup here is the benchmark version — peppery, palm-oil-rich, and deeply satisfying with starch. A Benin City institution."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Named after Benin's legendary heroine Emotan, this restaurant serves Edo State cuisine with the confidence of a city that knows its food is underrated. The Owo Soup here is the benchmark version \u2014 peppery, palm-oil-rich, and deeply satisfying with starch. A Benin City institution."
   },
   {
     "restaurant_id": "r057",
     "name": "Igun Street Chop Bar",
     "city": "Benin City",
     "area": "Igun Street",
-    "cuisine_tags": ["Bini", "Street Food"],
+    "cuisine_tags": [
+      "Bini",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 800, "max": 3500 },
+    "price_range_naira": {
+      "min": 800,
+      "max": 3500
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Banga Soup", "Starch", "Eba and Egusi", "Native Soup", "Fried Fish"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Banga Soup",
+      "Starch",
+      "Eba and Egusi",
+      "Native Soup",
+      "Fried Fish"
+    ],
     "average_rating": 4.3,
     "review_count": 256,
-    "dietary_options": ["none", "no_pork"],
-    "description": "On the UNESCO-listed Igun Street — home of Benin's ancient bronze casting guilds — this chop bar has been fuelling artisans and traders for decades. The Banga Soup with Starch is prepared with fresh palm fruit the old Benin way. Cheap, authentic, and worth every kobo."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "On the UNESCO-listed Igun Street \u2014 home of Benin's ancient bronze casting guilds \u2014 this chop bar has been fuelling artisans and traders for decades. The Banga Soup with Starch is prepared with fresh palm fruit the old Benin way. Cheap, authentic, and worth every kobo."
   },
   {
     "restaurant_id": "r058",
     "name": "Benin Bronze Grill",
     "city": "Benin City",
     "area": "GRA Benin City",
-    "cuisine_tags": ["Bini", "Afro-fusion", "Lagos Contemporary"],
+    "cuisine_tags": [
+      "Bini",
+      "Afro-fusion",
+      "Lagos Contemporary"
+    ],
     "ambience": "casual_dining",
     "price_tier": "mid_range",
-    "price_range_naira": { "min": 6000, "max": 22000 },
+    "price_range_naira": {
+      "min": 6000,
+      "max": 22000
+    },
     "spice_profile": "medium",
-    "social_tags": ["date_night", "family_outing", "owambe_crew"],
-    "signature_dishes": ["Grilled Catfish", "Native Soup", "Banga Rice", "Asun", "Jollof Rice"],
+    "social_tags": [
+      "date_night",
+      "family_outing",
+      "owambe_crew"
+    ],
+    "signature_dishes": [
+      "Grilled Catfish",
+      "Native Soup",
+      "Banga Rice",
+      "Asun",
+      "Jollof Rice"
+    ],
     "average_rating": 4.3,
     "review_count": 198,
-    "dietary_options": ["none", "no_pork", "low_oil"],
-    "description": "Benin Bronze Grill brings Edo cuisine into a contemporary space without losing its roots. The Native Soup — a complex, deeply flavoured Bini specialty — is the standout dish. Great for Benin City's young professional crowd who want quality food in a relaxed atmosphere."
+    "dietary_options": [
+      "none",
+      "no_pork",
+      "low_oil"
+    ],
+    "description": "Benin Bronze Grill brings Edo cuisine into a contemporary space without losing its roots. The Native Soup \u2014 a complex, deeply flavoured Bini specialty \u2014 is the standout dish. Great for Benin City's young professional crowd who want quality food in a relaxed atmosphere."
   },
   {
     "restaurant_id": "r059",
     "name": "Uwagboe Buka",
     "city": "Benin City",
     "area": "Uselu",
-    "cuisine_tags": ["Bini", "Street Food"],
+    "cuisine_tags": [
+      "Bini",
+      "Street Food"
+    ],
     "ambience": "buka",
     "price_tier": "budget",
-    "price_range_naira": { "min": 700, "max": 3000 },
+    "price_range_naira": {
+      "min": 700,
+      "max": 3000
+    },
     "spice_profile": "hot",
-    "social_tags": ["solo", "family_outing"],
-    "signature_dishes": ["Owo Soup", "Starch", "Banga Soup", "Native Soup", "Eba"],
+    "social_tags": [
+      "solo",
+      "family_outing"
+    ],
+    "signature_dishes": [
+      "Owo Soup",
+      "Starch",
+      "Banga Soup",
+      "Native Soup",
+      "Eba"
+    ],
     "average_rating": 4.2,
     "review_count": 234,
-    "dietary_options": ["none", "no_pork"],
-    "description": "Uselu's most dependable buka for authentic Edo home cooking. Uwagboe's soups rotate daily — Owo on Monday, Banga on Wednesday, Native Soup on Friday — and regulars plan their week around the schedule. Old Benin recipes, fresh ingredients, honest prices."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "Uselu's most dependable buka for authentic Edo home cooking. Uwagboe's soups rotate daily \u2014 Owo on Monday, Banga on Wednesday, Native Soup on Friday \u2014 and regulars plan their week around the schedule. Old Benin recipes, fresh ingredients, honest prices."
   },
   {
     "restaurant_id": "r060",
     "name": "Benin City Suya and Grill",
     "city": "Benin City",
     "area": "New Benin Market",
-    "cuisine_tags": ["Hausa-Fulani", "Suya-Grills", "Bini"],
+    "cuisine_tags": [
+      "Hausa-Fulani",
+      "Suya-Grills",
+      "Bini"
+    ],
     "ambience": "outdoor_suya_spot",
     "price_tier": "budget",
-    "price_range_naira": { "min": 1500, "max": 6000 },
+    "price_range_naira": {
+      "min": 1500,
+      "max": 6000
+    },
     "spice_profile": "extra_hot",
-    "social_tags": ["solo", "owambe_crew", "date_night"],
-    "signature_dishes": ["Beef Suya", "Chicken Suya", "Native Pepper Soup", "Banga Soup", "Kilishi"],
+    "social_tags": [
+      "solo",
+      "owambe_crew",
+      "date_night"
+    ],
+    "signature_dishes": [
+      "Beef Suya",
+      "Chicken Suya",
+      "Native Pepper Soup",
+      "Banga Soup",
+      "Kilishi"
+    ],
     "average_rating": 4.1,
     "review_count": 167,
-    "dietary_options": ["none", "no_pork"],
-    "description": "A unique Benin City hybrid — Northern Nigerian suya technique meets Edo flavour sensibilities. The mallam here uses a yaji blend that incorporates local Edo spices, creating a suya experience you won't find anywhere else in Nigeria. The Native Pepper Soup served alongside is a Benin City touch that elevates the whole experience."
+    "dietary_options": [
+      "none",
+      "no_pork"
+    ],
+    "description": "A unique Benin City hybrid \u2014 Northern Nigerian suya technique meets Edo flavour sensibilities. The mallam here uses a yaji blend that incorporates local Edo spices, creating a suya experience you won't find anywhere else in Nigeria. The Native Pepper Soup served alongside is a Benin City touch that elevates the whole experience."
   }
 ]
