@@ -18,7 +18,7 @@ and push to `origin/master`. Never push if any Done criterion fails; stop and re
 
 | Plan | Title | Priority | Effort | Depends on | Status |
 |------|-------|----------|--------|------------|--------|
-| 001 | Restore backend dependency manifest | P1 | S | — | TODO |
+| 001 | Restore backend dependency manifest | P1 | S | — | DONE |
 | 002 | Verification baseline: lint gate, test harness, CI | P1 | M | 001 | TODO |
 | 003 | Error contract + correct status codes (layers 19/20/26/27) | P1 | M | 002 | TODO |
 | 004 | Structured logging, request id, graceful shutdown (layers 16/21/22/23) | P1 | M | 003 | TODO |
