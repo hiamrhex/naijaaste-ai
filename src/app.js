@@ -41,6 +41,7 @@ app.use("/", personaRoutes);
 app.use("/", recommendRoutes);
 app.use("/", reviewRoutes);
 app.use("/", chatRoutes);
+app.use(express.static('public'))
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
