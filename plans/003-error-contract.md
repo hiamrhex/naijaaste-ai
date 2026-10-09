@@ -526,30 +526,41 @@ describe('error contract (layers 19/20/26/27)', () => {
   });
 
   it('maps ApiError and upstream errors correctly (unit)', () => {
-    const fakeRes = {
+    const makeRes = () => ({
       statusCode: 0,
       body: null,
       status(c) { this.statusCode = c; return this; },
       json(b) { this.body = b; return this; },
-    };
-    const req = { id: 'test-req-123' };
-    // simulate the exported handler's logic via a real error handler import
-    // (call errorHandler directly with a fake 4-arg signature)
-    // eslint-disable-next-line no-undef
-    // NOTE: import errorHandler in this file and invoke it directly:
-    // errorHandler(badRequest('bad'), req, fakeRes, () => {});
+    });
+    const noop = () => {};
+
+    const r1 = makeRes();
+    errorHandler(badRequest('bad field'), { id: 'x' }, r1, noop);
+    expect(r1.statusCode).toBe(400);
+    expect(r1.body.error.code).toBe('VALIDATION_ERROR');
+
+    const r2 = makeRes();
+    errorHandler(notFound('NO_MATCHES', 'nope'), { id: 'x' }, r2, noop);
+    expect(r2.statusCode).toBe(404);
+    expect(r2.body.error.code).toBe('NO_MATCHES');
+
+    const r3 = makeRes();
+    errorHandler(Object.assign(new Error('boom'), { status: 503 }), { id: 'x' }, r3, noop);
+    expect(r3.statusCode).toBe(502);
+    expect(r3.body.error.code).toBe('UPSTREAM_FAILURE');
+    expect(r3.body.error.message).not.toBe('boom');   // no upstream leak
+
+    const r4 = makeRes();
+    errorHandler(new Error('boom'), { id: 'x' }, r4, noop);
+    expect(r4.statusCode).toBe(500);
+    expect(r4.body.error.code).toBe('INTERNAL');
+    expect(r4.body.error.message).toBe('Internal server error');   // no message leak
   });
 });
 ```
 
-Replace the last stub test with the direct invocation (it must be a real test,
-not a comment): import `errorHandler` from `../src/middleware/errorHandler.js`,
-call `errorHandler(badRequest('bad field'), { id: 'x' }, fakeRes, () => {})`
-→ expect `fakeRes.statusCode === 400` and
-`fakeRes.body.error.code === 'VALIDATION_ERROR'`; then repeat with
-`notFound('NO_MATCHES', 'nope')` → 404; then with a plain `new Error('boom')`
-plus a fake `status` property `502`/`UPSTREAM_FAILURE` and without →
-500/`INTERNAL` with message `'Internal server error'` (never `'boom'`).
+with the import line at the top of the file extended to
+`import { errorHandler } from '../src/middleware/errorHandler.js';`.
 
 **Verify**: `npm test` → exit 0; count ≥ 12 tests total (4 baseline + ≥8 new).
 
