@@ -6,8 +6,7 @@ import { recommendRoutes } from "./routes/recommend.routes.js";
 import { reviewRoutes } from "./routes/review.routes.js";
 import { chatRoutes } from "./routes/chat.routes.js";
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+export const app = express();
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json({ limit: "10kb" })); // prevent oversized payloads
@@ -68,14 +67,4 @@ app.use((err, _req, res, _next) => {
     success: false,
     error: err.message || "Internal server error",
   });
-});
-
-app.listen(PORT, () => {
-  console.log(`
-╔══════════════════════════════════════╗
-║       NaijaTaste AI — Online         ║
-║       Port: ${PORT}                     ║
-║       DSN x BCT Hackathon 3.0        ║
-╚══════════════════════════════════════╝
-  `);
 });

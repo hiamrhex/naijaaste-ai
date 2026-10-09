@@ -1,12 +1,10 @@
-import { useState } from 'react';
 import { MapPin, Sparkles, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { Tag } from './Tag';
 import { SpiceBar } from './SpiceBar';
 import { StarBar } from './StarBar';
 import { PRICE_MAP } from '../constants';
 
-export function RestaurantCard({ rec, index, onReview, persona }) {
-  const [expanded, setExpanded] = useState(false);
+export function RestaurantCard({ rec, index, onReview }) {
   const matchPct = Math.round((rec.match_score || 0) * 100);
   const price = PRICE_MAP[rec.price_tier?.toLowerCase()] || "₦₦";
 

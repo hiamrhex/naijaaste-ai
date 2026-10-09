@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Send, Sun, Moon, ChefHat, Utensils, Zap, Users, TrendingUp,
+  Send, Sun, Moon, ChefHat, Utensils, Zap,
   RefreshCw, ChevronDown, Globe, Clock, BarChart3, MessageSquare, ArrowRight, MapPin, Sparkles, CheckCircle, Flame,
 } from 'lucide-react';
 
 import './styles/global.css';
 import { API, HERO_PHRASES, QUICK_PROMPTS, STAGES, STAGE_LABELS, STAGE_TIPS } from './constants/index';
 import {
-  SpiceBar, StarBar, Tag, PersonaCard, RestaurantCard, ReviewModal, ThinkingDots
+  Tag, PersonaCard, RestaurantCard, ReviewModal, ThinkingDots
 } from './components';
 
 /* ── MAIN APP ─────────────────────────────────────────────────── */
@@ -18,7 +18,6 @@ export default function NaijaTasteAI() {
   const [messages, setMessages] = useState([{
     role: "assistant",
     content: "Welcome! I'm NaijaTaste AI — your personal guide to the best restaurants across Nigeria. Tell me about yourself — your city, your budget, what you're craving — and I'll find the perfect spot for you.",
-    ts: Date.now(),
   }]);
   const [sessionId, setSessionId] = useState(null);
   const [inputVal, setInputVal] = useState("");
@@ -103,7 +102,7 @@ export default function NaijaTasteAI() {
     if (!txt || loading) return;
     setInputVal("");
     setShowQuickPrompts(false);
-    setMessages((prev) => [...prev, { role: "user", content: txt, ts: Date.now() }]);
+    setMessages((prev) => [...prev, { role: "user", content: txt }]);
     setLoading(true);
 
     try {
@@ -128,13 +127,11 @@ export default function NaijaTasteAI() {
       setMessages((prev) => [...prev, {
         role: "assistant",
         content: data.message || "No response received.",
-        ts: Date.now(),
       }]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [...prev, {
         role: "assistant",
         content: "Connection issue — please try again.",
-        ts: Date.now(),
         error: true,
       }]);
     } finally {
@@ -171,7 +168,6 @@ export default function NaijaTasteAI() {
     setMessages([{
       role: "assistant",
       content: "Welcome! I'm NaijaTaste AI — your personal guide to the best restaurants across Nigeria. Tell me about yourself — your city, your budget, what you're craving — and I'll find the perfect spot for you.",
-      ts: Date.now(),
     }]);
     setSessionId(null);
     setStage("gather");
