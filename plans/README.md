@@ -20,12 +20,18 @@ and push to `origin/master`. Never push if any Done criterion fails; stop and re
 |------|-------|----------|--------|------------|--------|
 | 001 | Restore backend dependency manifest | P1 | S | — | DONE |
 | 002 | Verification baseline: lint gate, test harness, CI | P1 | M | 001 | DONE |
-| 003 | Error contract + correct status codes (layers 19/20/26/27) | P1 | M | 002 | TODO |
-| 004 | Structured logging, request id, graceful shutdown (layers 16/21/22/23) | P1 | M | 003 | TODO |
-| 005 | Zod contracts: fail-fast env + request validation (layers 2/18) | P1 | M | 003 | TODO |
-| 006 | Rate limiting + CORS allowlist (layer 1 + production config) | P1 | S | 005 | TODO |
+| 003 | Error contract + correct status codes (layers 19/20/26/27) | P1 | M | 002 | DEFERRED |
+| 004 | Structured logging, request id, graceful shutdown (layers 16/21/22/23) | P1 | M | 003 | DEFERRED |
+| 005 | Zod contracts: fail-fast env + request validation (layers 2/18) | P1 | M | 003 | DEFERRED |
+| 006 | Rate limiting + CORS allowlist (layer 1 + production config) | P1 | S | 005 | DEFERRED |
 
-Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale).
+Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale) | DEFERRED (with reason).
+
+**Deferral note (2026-10-09):** plans 003–006 are deferred per PRD v1.0 §20 —
+"fix the broken manifest and Docker start first; defer the other refactors until
+pilots are live." Plans 001–002 covered exactly the manifest/Docker/verification
+baseline work; the remaining plans pick up after the WhatsApp reservations MVP
+ships and pilots run.
 
 ## 25-layer coverage map
 
