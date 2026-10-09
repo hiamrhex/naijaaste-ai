@@ -24,7 +24,7 @@ and push to `origin/master`. Never push if any Done criterion fails; stop and re
 | 004 | Structured logging, request id, graceful shutdown (layers 16/21/22/23) | P1 | M | 003 | DEFERRED |
 | 005 | Zod contracts: fail-fast env + request validation (layers 2/18) | P1 | M | 003 | DEFERRED |
 | 006 | Rate limiting + CORS allowlist (layer 1 + production config) | P1 | S | 005 | DEFERRED |
-| 007 | PRD Phase 0 foundation: TS agent server, Postgres, model seam, CI, staging | P0 | L | PRD v1.0 | TODO |
+| 007 | PRD Phase 0 foundation: TS agent server, Postgres, model seam, CI, staging | P0 | L | PRD v1.0 | IN PROGRESS |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale) | DEFERRED (with reason).
 
@@ -35,8 +35,8 @@ baseline work; the remaining plans pick up after the WhatsApp reservations MVP
 ships and pilots run.
 
 **Active track:** plan 007 is the PRD Phase 0 program (new `server/` code — it
-does not depend on the deferred plans and they do not block it). Awaiting
-operator approval of its Decisions section.
+does not depend on the deferred plans and they do not block it). Decisions
+section approved by the operator 2026-10-09 — executing.
 
 ## 25-layer coverage map
 
