@@ -6,7 +6,7 @@ across 8 Nigerian cities, generates reviews, and remembers the session.
 
 One repo, two processes:
 
-- **API** — Express 4 (`src/server.js`): persona extraction, preferences, recommendations, review generation, and chat, with Groq (llama-3.3-70b-versatile) behind `src/services/llm.service.js`.
+- **API** — Express 4 (`src/server.js`): persona extraction, preferences, recommendations, review generation, and chat, with Gemini (`gemini-3.8-flash`) behind `src/services/llm.service.js`.
 - **UI** — React 19 + Vite single-page app (`src/NaijaTasteAI.jsx`).
 
 ## Quickstart
@@ -14,7 +14,7 @@ One repo, two processes:
 Prerequisites: Node 20.19+ (or 22 LTS), npm.
 
 ```bash
-cp .env.example .env      # then set GROQ_API_KEY
+cp .env.example .env      # then set GEMINI_API_KEY
 npm install
 
 npm run dev:server        # API on http://localhost:3000
@@ -54,7 +54,8 @@ npm run dev               # UI on http://localhost:5173 (separate terminal)
 
 | Variable | Required | Notes |
 |----------|----------|-------|
-| `GROQ_API_KEY` | yes | Groq API key — `.env` is git-ignored, never commit it |
+| `GEMINI_API_KEY` | yes | Google AI Studio key — `.env` is git-ignored, never commit it |
+| `GEMINI_MODEL` | no | Defaults to `gemini-3.8-flash` |
 | `PORT` | no | Defaults to 3000 |
 
 ## Testing & CI
@@ -68,7 +69,7 @@ npm run dev               # UI on http://localhost:5173 (separate terminal)
 docker compose up --build    # API on http://localhost:3000
 ```
 
-The image runs `node src/server.js` directly; pass `GROQ_API_KEY` via the
+The image runs `node src/server.js` directly; pass `GEMINI_API_KEY` via the
 environment (compose reads it from your shell).
 
 ## Project structure

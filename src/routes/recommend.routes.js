@@ -24,6 +24,15 @@ router.post('/recommend', async (req, res) => {
       });
     }
 
+    const arrayFields = ['preferred_cuisines', 'dietary_flags'];
+    const badArrays = arrayFields.filter(f => !Array.isArray(persona[f]));
+    if (badArrays.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Persona fields must be arrays: ${badArrays.join(', ')}`
+      });
+    }
+
     const result = await getRecommendations(persona);
     return res.status(result.success === false ? 404 : 200).json(result);
 

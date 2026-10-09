@@ -5,9 +5,9 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.js'],
     env: {
-      // Dummy so the eager Groq client constructor at src/services/llm.service.js:3
+      // Dummy so the eager Gemini client constructor at src/services/llm.service.js:3
       // succeeds in tests. Never a real key; no test performs an LLM call.
-      GROQ_API_KEY: 'test-key-not-a-real-secret',
+      GEMINI_API_KEY: 'test-key-not-a-real-secret',
       NODE_ENV: 'test',
     },
   },

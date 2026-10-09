@@ -28,7 +28,7 @@ Layer 2: every request body is validated by scattered, hand-rolled checks with
 **three different required-field lists**, no type checking (a `rating` of `4.5`
 or `message: 123` sails through some paths), and a route/service threshold
 mismatch (`raw_text` ≥10 at the route, ≥5 in the service). Layer 18: config
-fail-late — a missing `GROQ_API_KEY` surfaces as a cryptic SDK error (or a
+fail-late — a missing `GEMINI_API_KEY` surfaces as a cryptic SDK error (or a
 mid-request failure), `PORT=abc` explodes at `listen`, and there is no env
 schema at all. This plan introduces **one zod dependency serving both layers**:
 an env module that validates and freezes config at boot (exit 1 with field
@@ -43,19 +43,19 @@ through plan 003's error helpers.
 // src/app.js:10 — after plan 002 this moved to src/server.js
 const PORT = process.env.PORT || 3000;
 // src/services/llm.service.js:3 — eager client, no validation
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 ```
 
 - `.env.example` (complete file):
 
 ```
-GROQ_API_KEY=your_groq_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 PORT=3000
 ```
 
 - Env-load ordering bug: `src/evaluate.js` imports services (lines 9-10) **then**
   `import "dotenv/config"` (line 11) — ESM evaluates imports in declaration
-  order, so `llm.service.js:3` constructs the Groq client **before** dotenv runs.
+  order, so `llm.service.js:3` constructs the Gemini client **before** dotenv runs.
   It only works when the key is already in the process environment.
 - Validation today (all in-route, all manual, divergent):
 
@@ -95,7 +95,7 @@ const requiredRestaurant = ['restaurant_id', 'name', 'city', 'ambience', 'spice_
 | Install | `npm install zod` | exit 0 |
 | Lint | `npm run lint` | exit 0 |
 | Tests | `npm test` | exit 0 |
-| Fail-fast smoke | see Step 6 | exit code 1, message names `GROQ_API_KEY` |
+| Fail-fast smoke | see Step 6 | exit code 1, message names `GEMINI_API_KEY` |
 | Boot smoke | plan 001 block (with `src/server.js`) | `HTTP 200` |
 
 ## Scope
@@ -105,7 +105,7 @@ const requiredRestaurant = ['restaurant_id', 'name', 'city', 'ambience', 'spice_
   `src/middleware/validate.js` (create)
 - `src/app.js` (drop `dotenv/config` import), `src/server.js` (use `env.PORT`),
   `src/evaluate.js` (line 11 dotenv → env import), `src/services/llm.service.js`
-  (use `env.GROQ_API_KEY`), `src/services/persona.service.js` (threshold const),
+  (use `env.GEMINI_API_KEY`), `src/services/persona.service.js` (threshold const),
   `src/lib/logger.js` (LOG_LEVEL line only)
 - `src/routes/*.js` (4 files — replace manual checks with `validate(...)` only)
 - `.env.example`, `package.json`, `package-lock.json`
@@ -113,8 +113,9 @@ const requiredRestaurant = ['restaurant_id', 'name', 'city', 'ambience', 'spice_
 
 **Out of scope** (do NOT touch, even though they look related):
 - Response shapes and status codes (003 owns the contract).
-- `GROQ_MODEL` / making the model configurable — hardcoded at
-  `src/services/llm.service.js:5`; deferred (maintenance note below).
+- Model choice — already env-overridable via `GEMINI_MODEL` (default
+  `gemini-3.8-flash`, `llm.service.js:5`); the env schema registers it, no other
+  changes.
 - Any `.jsx` file; `src/constants/**`; `src/evaluate.js` beyond line 11.
 - The 500-char guard inside `processChat` (`chat.service.js:76-82`) — stays as
   a defense-in-depth layer below the HTTP boundary; do not remove it.
@@ -141,7 +142,7 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const EnvSchema = z.object({
-  GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
   PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
@@ -171,7 +172,7 @@ code post-004.)
 
 ```js
 import { env } from '../env.js';
-const groq = new Groq({ apiKey: env.GROQ_API_KEY });
+const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 ```
 
    Because the *service* imports `env`, dotenv+validation run before the client
@@ -198,7 +199,7 @@ const PORT = env.PORT;
    `env.LOG_LEVEL` (add `import { env } from '../env.js';`).
 
 **Verify**: `npm run lint` → 0; `npm test` → all pass (vitest env provides a
-dummy `GROQ_API_KEY`, so schema passes).
+dummy `GEMINI_API_KEY`, so schema passes).
 
 ### Step 4: Create `src/schemas/index.js`
 
@@ -322,15 +323,15 @@ In `src/services/persona.service.js`: change line 89's `< 5` to
 PowerShell (runs server with an empty key — must exit 1 **before** listen):
 
 ```powershell
-$env:GROQ_API_KEY = ''
+$env:GEMINI_API_KEY = ''
 node src/server.js
 "exit: $LASTEXITCODE"
 ```
 
-POSIX: `GROQ_API_KEY= node src/server.js; echo "exit: $?"`
+POSIX: `GEMINI_API_KEY= node src/server.js; echo "exit: $?"`
 
 **Verify**: prints `Invalid environment configuration:`, a line naming
-`GROQ_API_KEY` (no value echoed), `exit: 1`. (dotenv does not override an
+`GEMINI_API_KEY` (no value echoed), `exit: 1`. (dotenv does not override an
 existing-but-empty var, so this holds even when a `.env` file exists.)
 
 ### Step 7: `.env.example` update
@@ -410,13 +411,13 @@ describe('HTTP validation failures use the 003 contract', () => {
 });
 
 describe('fail-fast env (layer 18)', () => {
-  it('exits 1 with a field-level message when GROQ_API_KEY is empty', () => {
+  it('exits 1 with a field-level message when GEMINI_API_KEY is empty', () => {
     let out = '';
     let status = 0;
     try {
       execFileSync(process.execPath, ['src/server.js'], {
         cwd: process.cwd(),
-        env: { ...process.env, GROQ_API_KEY: '' },
+        env: { ...process.env, GEMINI_API_KEY: '' },
         stdio: 'pipe',
       });
     } catch (e) {
@@ -424,8 +425,8 @@ describe('fail-fast env (layer 18)', () => {
       out = String(e.stderr);
     }
     expect(status).toBe(1);
-    expect(out).toContain('GROQ_API_KEY');
-    expect(out).not.toContain(process.env.GROQ_API_KEY); // never echo the real value if present
+    expect(out).toContain('GEMINI_API_KEY');
+    expect(out).not.toContain(process.env.GEMINI_API_KEY); // never echo the real value if present
   });
 });
 ```
@@ -451,9 +452,9 @@ empty-string override wins (dotenv does not replace defined vars).
 - [ ] `Select-String -Path src\routes\*.js -Pattern '\.filter\(f =>'` → no matches (manual required-lists gone)
 - [ ] `Select-String -Path src\app.js,src\evaluate.js -Pattern 'dotenv/config'` → no matches
 - [ ] `grep` equivalent: `Select-String -Path src\*.js,src\services\*.js,src\lib\*.js,src\server.js -Pattern 'process\.env\.'` → no matches in server code (only `src/env.js` reads `process.env`)
-- [ ] Fail-fast smoke exits 1 naming `GROQ_API_KEY`, echoing no value
+- [ ] Fail-fast smoke exits 1 naming `GEMINI_API_KEY`, echoing no value
 - [ ] Boot smoke returns `HTTP 200`
-- [ ] `.env.example` lists `GROQ_API_KEY`, `PORT`, `NODE_ENV`, `LOG_LEVEL`
+- [ ] `.env.example` lists `GEMINI_API_KEY`, `PORT`, `NODE_ENV`, `LOG_LEVEL`
 - [ ] No files outside the in-scope list are modified (`git status`)
 - [ ] Committed and pushed (operator standing instruction) or reported green
 - [ ] `plans/README.md` status row updated to DONE
@@ -481,8 +482,8 @@ Stop and report back (do not improvise) if:
 - `src/env.js` is the **only** place `process.env` is read; new config keys
   belong in its schema + `.env.example`. Plans 006 adds `CORS_ORIGIN`,
   `TRUST_PROXY`, `RATE_LIMIT_*` there.
-- `GROQ_MODEL` is still hardcoded (`llm.service.js:5`) — natural next key
-  (deferred on purpose to keep this diff reviewable).
+- `GEMINI_MODEL` is read directly at `llm.service.js:5` (env-overridable, default
+  `gemini-3.8-flash`) — the one exception `src/env.js` should absorb.
 - The 500-char guard in `processChat` is intentionally redundant with
   `chatBodySchema.max(500)` — service-level callers (future scripts) must stay
   protected.

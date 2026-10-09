@@ -738,7 +738,7 @@ export default function NaijaTasteAI() {
           <span style={{ color: "var(--text-hint)" }}>DSN × BCT LLM Agent Challenge 3.0 · 2026</span>
         </p>
         <p style={{ fontSize: 11, color: "var(--text-hint)", margin: 0, opacity: 0.6 }}>
-          Powered by Groq API (llama-3.3-70b-versatile) · 63 Nigerian Restaurants across 8 Cities
+          Powered by Gemini API (gemini-3.8-flash) · 63 Nigerian Restaurants across 8 Cities
         </p>
       </footer>
 

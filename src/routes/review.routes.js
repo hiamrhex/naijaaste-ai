@@ -35,6 +35,32 @@ router.post('/generate-review', async (req, res) => {
       });
     }
 
+    const personaArrayFields = ['preferred_cuisines', 'dietary_flags'];
+    const badPersonaArrays = personaArrayFields.filter(f => !Array.isArray(persona[f]));
+    if (badPersonaArrays.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Persona fields must be arrays: ${badPersonaArrays.join(', ')}`
+      });
+    }
+
+    const restaurantArrayFields = ['cuisine_tags', 'signature_dishes', 'social_tags'];
+    const badRestaurantArrays = restaurantArrayFields.filter(f => !Array.isArray(restaurant[f]));
+    if (badRestaurantArrays.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Restaurant fields must be arrays: ${badRestaurantArrays.join(', ')}`
+      });
+    }
+
+    const priceRange = restaurant.price_range_naira;
+    if (!priceRange || typeof priceRange.min !== 'number' || typeof priceRange.max !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: 'price_range_naira must be an object with numeric min and max'
+      });
+    }
+
     const result = await generateReview(persona, restaurant);
     return res.status(200).json(result);
 

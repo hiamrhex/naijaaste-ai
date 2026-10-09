@@ -23,9 +23,10 @@ to retrofit in week 2 under pilot pressure.
    pilots are live. npm workspaces (`"workspaces": ["server"]`, one lockfile, CI
    installs once). Fallback if workspaces fight the Docker build: per-package
    `npm --prefix server ci` (STOP condition covers the switch).
-2. **Runtime**: Node **24** (active LTS; local machine is `v24.12.0`). CI
-   (`node-version: 20`) and `Dockerfile` (`node:20-alpine`) are **EOL since Apr
-   2026** → both bumped to 24 in this plan. `engines: ">=22.12"`.
+2. **Runtime**: Node **24** (active LTS; local machine is `v24.12.0`). CI and
+   `Dockerfile` were on EOL Node 20 (EOL Apr 2026) → both **already bumped to 24
+   during the Gemini provider switch (2026-10-09)**; keep at 24 and verify.
+   `engines: ">=22.12"`.
 3. **Tooling**: TypeScript ESM (`module: NodeNext`), `tsx` dev watch, `tsc`
    build + `--noEmit` typecheck, Vitest (same harness family as existing), root
    `eslint.config.js` extended with a `typescript-eslint` block for `server/**/*.ts`.
@@ -36,9 +37,9 @@ to retrofit in week 2 under pilot pressure.
    Alternative rejected for now: Prisma (heavier, awkward RLS story). Local DB =
    new compose service; CI = `postgres:16-alpine` service container; staging =
    managed Postgres on the host.
-5. **Model seam** (PRD §20: keep Groq as one provider, fixture adapter for offline
-   tests): `ModelAdapter` interface + `GroqAdapter` (groq-sdk, default model
-   `llama-3.3-70b-versatile` — the model the live app already uses) +
+5. **Model seam** (PRD §20: model behind one interface with a fixture adapter
+   for offline tests): `ModelAdapter` interface + `GeminiAdapter` (@google/genai,
+   default model `gemini-3.8-flash` — chosen in the 2026-10-09 Gemini switch) +
    `FixtureAdapter` (deterministic JSON fixtures, zero network) + factory keyed on
    `MODEL_PROVIDER`. Second-provider failover is an interface slot only — PRD open
    question ("which second provider") → decided in Phase 1.
@@ -62,16 +63,18 @@ to retrofit in week 2 under pilot pressure.
 
 - `package.json`: workspaces absent; scripts `start`/`dev:server` = legacy JS API;
   `test` = `vitest run` (root config includes only `tests/**/*.test.js`, env stubs
-  `GROQ_API_KEY`); lint 0 errors; 4 tests green.
-- CI (`.github/workflows/ci.yml`): single `verify` job — checkout, **Node 20**,
-  `npm ci`, lint, test, build. No Postgres, no typecheck, no server job.
-- `Dockerfile`: `node:20-alpine`, `COPY package*.json ./`, `npm ci --omit=dev`,
+  `GEMINI_API_KEY`); lint 0 errors; 4 tests green.
+- CI (`.github/workflows/ci.yml`): single `verify` job — checkout, **Node 24**
+  (bumped 2026-10-09 with the Gemini switch), `npm ci`, lint, test, build. No
+  Postgres, no typecheck, no server job.
+- `Dockerfile`: `node:24-alpine` (bumped 2026-10-09), `COPY package*.json ./`,
+  `npm ci --omit=dev`,
   `CMD ["node","src/server.js"]`. Note: once `server/` joins the workspace,
   `npm ci` requires `server/package*.json` present too — COPY line must change.
 - `docker-compose.yml`: one legacy service (`naijaaste-ai`, :3000). No database.
 - `eslint.config.js`: flat config covering `**/*.{js,jsx}` only — no TS parser yet.
 - No TypeScript anywhere (only `@types/react*` for JSX tooling).
-- `.env.example`: `GROQ_API_KEY`, `PORT`. No `DATABASE_URL`.
+- `.env.example`: `GEMINI_API_KEY`, `GEMINI_MODEL`, `PORT`. No `DATABASE_URL`.
 - Local toolchain: Node `v24.12.0`, npm `11.6.2`. Docker CLI hung once during this
   session — preflight must bound-check it.
 - No staging environment exists; production Railway URL must remain untouched.
@@ -90,7 +93,7 @@ to retrofit in week 2 under pilot pressure.
 | Dev server | `npm run server:dev` then `curl :4000/health` | 200, `db:"up"` |
 | Build server | `npm run -w server build` | `server/dist/` emitted |
 | Legacy image | `docker build -t naijataste-legacy .` | exit 0 |
-| Live adapter smoke (optional) | `GROQ_API_KEY=... npm run -w server test` | groq suite unskipped |
+| Live adapter smoke (optional) | `GEMINI_API_KEY=... npm run -w server test` | Gemini suite unskipped |
 
 ## Scope
 
@@ -99,7 +102,7 @@ to retrofit in week 2 under pilot pressure.
 - `package.json` + `package-lock.json` (workspaces, scripts, engines)
 - `eslint.config.js` (TS block for `server/**/*.ts`)
 - `.github/workflows/ci.yml` (Node 24, server job + postgres service)
-- `Dockerfile` (base bump + workspace COPY fix), `docker-compose.yml` (postgres)
+- `Dockerfile` (base already node:24 — verify; workspace COPY fix), `docker-compose.yml` (postgres)
 - `.env.example` (DATABASE_URL, MODEL_PROVIDER, LOG_LEVEL)
 - `railway.json` (new — staging deploy config)
 - `README.md` (server + staging section), `plans/007-phase0-foundation.md` (this
@@ -131,7 +134,7 @@ to retrofit in week 2 under pilot pressure.
    untouched. Add `typescript-eslint` to root devDependencies (root eslint config
    imports it).
 2. `server/package.json`: `"type": "module"`; deps: `express@^4`, `zod`, `pg`,
-   `drizzle-orm`, `groq-sdk`, `pino`, `pino-http`, `dotenv`; devDeps: `typescript`,
+   `drizzle-orm`, `@google/genai`, `pino`, `pino-http`, `dotenv`; devDeps: `typescript`,
    `tsx`, `vitest`, `drizzle-kit`, `@types/express`, `@types/node`, `@types/pg`.
    Scripts: `dev` = `tsx watch src/index.ts`, `build` = `tsc`, `typecheck` =
    `tsc --noEmit`, `start` = `node dist/index.js`, `test` = `vitest run`,
@@ -145,7 +148,7 @@ to retrofit in week 2 under pilot pressure.
    same `no-unused-vars` shape adapted for TS (`@typescript-eslint/no-unused-vars`
    with the same ignore patterns).
 5. `server/vitest.config.ts`: node environment, `include: ['src/**/*.test.ts',
-   'tests/**/*.test.ts']`, `env` stubs (`GROQ_API_KEY` dummy, `NODE_ENV: 'test'`).
+   'tests/**/*.test.ts']`, `env` stubs (`GEMINI_API_KEY` dummy, `NODE_ENV: 'test'`).
 6. Minimal `server/src/index.ts` that just imports config (Step 2) — or a
    placeholder that logs "phase0" — until Step 5.
 7. **Verify**: `npm install` (lockfile committed), `npm run lint` (legacy results
@@ -157,10 +160,10 @@ to retrofit in week 2 under pilot pressure.
    - `NODE_ENV` ∈ development|test|staging|production (default development)
    - `PORT` coerce number, **default 4000** (never collide with legacy :3000)
    - `DATABASE_URL` — url, required unless pure unit-test context
-   - `MODEL_PROVIDER` ∈ groq|fixture (default groq); `GROQ_API_KEY` required iff
-     provider = groq (clear aggregated error message listing missing vars —
+   - `MODEL_PROVIDER` ∈ gemini|fixture (default gemini); `GEMINI_API_KEY` required iff
+     provider = gemini (clear aggregated error message listing missing vars —
      fail fast on boot)
-   - `MODEL` default `llama-3.3-70b-versatile`; `LOG_LEVEL` default `info`
+   - `GEMINI_MODEL` default `gemini-3.8-flash`; `LOG_LEVEL` default `info`
 2. `server/src/lib/errors.ts`: `AppError(status, code, message, details?)` +
    `badRequest`/`notFound`/`internal` helpers using plan 003's code vocabulary
    (`VALIDATION_ERROR`, `SESSION_NOT_FOUND`-style fixed codes, `INTERNAL`).
@@ -200,10 +203,13 @@ export interface ModelAdapter {
 }
 ```
 
-2. `GroqAdapter`: wraps `groq-sdk` chat.completions; maps usage/latency; `json`
-   → `response_format: { type: 'json_object' }`; timeout via
-   `AbortSignal.timeout`; map SDK failures to `AppError(502, 'UPSTREAM_FAILURE',
-   ...)`; logs provider/model/latency/tokens only — never content.
+2. `GeminiAdapter`: wraps `@google/genai` `ai.models.generateContent`; maps
+   `usageMetadata` to usage and captures latency; `json` →
+   `config.responseMimeType: 'application/json'`; timeout via SDK
+   `HttpOptions.timeout`; map SDK `ApiError` to
+   `AppError(502, 'UPSTREAM_FAILURE', ...)`; `temperature` is deprecated for
+   Gemini 3 models — accept it on the interface but do not send it; logs
+   provider/model/latency/tokens only — never content.
 3. `FixtureAdapter`: `scenario` → JSON file under
    `server/src/adapters/fixtures/`; unknown scenario → throw (fail loud, no
    silent guess); zero network.
@@ -211,12 +217,12 @@ export interface ModelAdapter {
    (provider switch; the failover decorator is a documented empty slot for
    Phase 1).
 5. **Shared contract test** (`server/src/adapters/contract.test.ts`) run against
-   every adapter: fixture — always; groq — `describe.skipIf(!GROQ_API_KEY)` live
+   every adapter: fixture — always; gemini — `describe.skipIf(!GEMINI_API_KEY)` live
    single-completion smoke (CI runs green without secrets; operator can run it
    locally with the real key). Tests assert result shape, usage ≥ 0, non-empty
    content, and that fixture mode performs no network I/O (by construction:
-   no groq client constructed when provider=fixture).
-6. **Verify**: `npm run -w server test` offline green; with real key, groq suite
+   no Gemini client constructed when provider=fixture).
+6. **Verify**: `npm run -w server test` offline green; with real key, Gemini suite
    unskips.
 
 ### Step 4: Postgres, migrations, health
@@ -288,8 +294,8 @@ export const tenants = pgTable('tenants', {
      3 samples each) → pick region (PRD §12).
    - Create Railway project `naijataste-staging` → new service from this repo
      (master), region chosen above; add managed Postgres; set env:
-     `NODE_ENV=staging`, `DATABASE_URL`, `GROQ_API_KEY`, `MODEL_PROVIDER=groq`,
-     `LOG_LEVEL=info`.
+      `NODE_ENV=staging`, `DATABASE_URL`, `GEMINI_API_KEY`, `MODEL_PROVIDER=gemini`,
+      `LOG_LEVEL=info`.
    - Verify from outside: `curl https://<staging-host>/health` → 200 with
      `db:"up"`; record URL + chosen region in README.
    - Regression guard: production `https://naijaaste-ai-production.up.railway.app/health`
@@ -313,8 +319,8 @@ Machine-checkable. ALL must hold:
 - [ ] `docker compose up -d postgres` → `npm run db:migrate` → `tenants` table
       exists (assert via `psql`/test)
 - [ ] `GET :4000/health` → 200 `{db:"up"}` with DB up; 503 with DB down
-- [ ] Fixture adapter contract suite passes with **zero** network calls; groq live
-      suite skips without `GROQ_API_KEY`, passes with it (operator spot-check)
+- [ ] Fixture adapter contract suite passes with **zero** network calls; gemini live
+      suite skips without `GEMINI_API_KEY`, passes with it (operator spot-check)
 - [ ] CI defines `verify` (Node 24) + `server` (typecheck/build/test against
       Postgres service) jobs; all their commands reproduce locally; master push
       shows green after merge

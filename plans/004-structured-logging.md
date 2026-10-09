@@ -136,7 +136,7 @@ export const logger = pino({
   redact: {
     paths: [
       'apiKey',
-      'GROQ_API_KEY',
+      'GEMINI_API_KEY',
       '*.apiKey',
       'req.headers.authorization',
       'req.headers.cookie',

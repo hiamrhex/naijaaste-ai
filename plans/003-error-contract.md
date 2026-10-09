@@ -252,7 +252,7 @@ export const errorHandler = (err, req, res, _next) => {
     message = err.message;
     details = err.details;
   } else if (typeof err?.status === 'number') {
-    // Groq SDK errors carry .status — anything unexpected from the LLM
+    // LLM SDK errors (GoogleGenAI ApiError) carry .status — anything unexpected from the LLM
     // upstream is a 502, never a leak of the SDK message (layers 19/26).
     status = 502;
     code = 'UPSTREAM_FAILURE';

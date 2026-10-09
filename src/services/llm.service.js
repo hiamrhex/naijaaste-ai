@@ -1,8 +1,8 @@
-import Groq from "groq-sdk";
+import { GoogleGenAI } from "@google/genai";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 // Token limits per endpoint — review needs less, recommend needs more
 const TOKEN_LIMITS = {
@@ -12,7 +12,7 @@ const TOKEN_LIMITS = {
   default: 1500
 };
 
-// Clean all known Groq markdown fence variations
+// Clean markdown fence variations (models occasionally wrap JSON in ``` fences)
 const cleanJSON = (raw) => {
   return raw
     .replace(/^```(?:json|JSON)?\s*/m, '')
@@ -29,8 +29,12 @@ const withRetry = async (fn, retries = 3, baseDelay = 1000) => {
     try {
       return await fn();
     } catch (error) {
-      const isRateLimit = error?.status === 429;
-      const isRetryable = isRateLimit || error?.status === 422 || error?.status >= 500;
+      // GoogleGenAI ApiError exposes .status; fall back to message sniffing
+      const status = typeof error?.status === "number" ? error.status : 0;
+      const message = String(error?.message || "");
+      const isRateLimit =
+        status === 429 || /resource[_ ]exhausted|rate limit|429/i.test(message);
+      const isRetryable = isRateLimit || status === 422 || status >= 500;
 
       if (!isRetryable || attempt === retries) {
         throw error;
@@ -46,27 +50,27 @@ const withRetry = async (fn, retries = 3, baseDelay = 1000) => {
 
 /**
  * Core LLM call — single combined prompt goes as user message.
- * System message sets JSON-only behaviour globally.
+ * System instruction sets JSON-only behaviour globally.
  */
 export const callLLM = async (prompt, tokenLimit = TOKEN_LIMITS.default) => {
   return withRetry(async () => {
-    const completion = await groq.chat.completions.create({
+    const response = await ai.models.generateContent({
       model: MODEL,
-      max_tokens: tokenLimit,
-      temperature: 0.7,
-      messages: [
-        {
-          role: "system",
-          content: "You are an elite AI assistant. You ALWAYS return valid JSON only. No markdown. No explanation. No preamble. Raw JSON only."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ]
+      contents: prompt,
+      config: {
+        maxOutputTokens: tokenLimit,
+        systemInstruction:
+          "You are an elite AI assistant. You ALWAYS return valid JSON only. No markdown. No explanation. No preamble. Raw JSON only."
+      }
     });
 
-    return completion.choices[0].message.content.trim();
+    const text = response.text;
+    if (!text) {
+      const reason = response.candidates?.[0]?.finishReason ?? "unknown";
+      throw new Error(`Gemini returned no text (finishReason=${reason})`);
+    }
+
+    return text.trim();
   });
 };
 

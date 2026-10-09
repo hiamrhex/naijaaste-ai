@@ -8,7 +8,7 @@
 >
 > **Drift check (run first)**: `git diff --stat b739eff..HEAD -- src/app.js src/env.js .env.example package.json`
 > Expected: changes from plans 001–005 only (exports/middleware in `app.js`,
-> `src/env.js` created in 005 with `GROQ_API_KEY/PORT/NODE_ENV/LOG_LEVEL`).
+> `src/env.js` created in 005 with `GEMINI_API_KEY/PORT/NODE_ENV/LOG_LEVEL`).
 > Re-anchor by symbol; changes beyond 001–005 scopes → STOP.
 
 ## Status
@@ -25,7 +25,7 @@
 ## Why this matters
 
 Layer 1: there is **no rate limiting anywhere**. Every endpoint that reaches
-`callLLMJson` spends real Groq quota, and `src/app.js:14` mounts `cors()` —
+`callLLMJson` spends real Gemini quota, and `src/app.js:14` mounts `cors()` —
 the default, which reflects **any** Origin with `Access-Control-Allow-Origin`.
 The server is deployed publicly (hardcoded Railway URL in
 `src/constants/index.js:3`), so anyone can script the API and burn the API
@@ -51,7 +51,7 @@ app.use(requestId);                 // added by 003/004
 
 ```js
 const EnvSchema = z.object({
-  GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
   PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
