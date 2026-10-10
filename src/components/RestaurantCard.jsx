@@ -1,10 +1,10 @@
-import { MapPin, Sparkles, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
+import { MapPin, Sparkles, TrendingUp, AlertCircle, CheckCircle, Heart, Navigation } from 'lucide-react';
 import { Tag } from './Tag';
 import { SpiceBar } from './SpiceBar';
 import { StarBar } from './StarBar';
 import { PRICE_MAP } from '../constants';
 
-export function RestaurantCard({ rec, index, onReview }) {
+export function RestaurantCard({ rec, index, onReview, distanceKm, directionsUrl, isFavorite, onToggleFavorite }) {
   const matchPct = Math.round((rec.match_score || 0) * 100);
   const price = PRICE_MAP[rec.price_tier?.toLowerCase()] || "₦₦";
 
@@ -55,6 +55,15 @@ export function RestaurantCard({ rec, index, onReview }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
                   <MapPin size={11} color="var(--text-muted)" />
                   <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{rec.location}</span>
+                  {typeof distanceKm === 'number' && (
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color: "var(--green)",
+                      background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)",
+                      padding: '1px 6px', borderRadius: 20, marginLeft: 2,
+                    }}>
+                      {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm} km`}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -105,24 +114,65 @@ export function RestaurantCard({ rec, index, onReview }) {
           </div>
         )}
 
-        {/* Generate review button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onReview(rec); }}
-          style={{
-            width: "100%", marginTop: 4,
-            background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.25)",
-            borderRadius: 10, padding: "8px 14px",
-            fontSize: 12, fontWeight: 600, color: "var(--orange)",
-            cursor: "pointer", fontFamily: "inherit",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            transition: "background 0.15s",
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(249,115,22,0.16)"}
-          onMouseLeave={(e) => e.currentTarget.style.background = "rgba(249,115,22,0.08)"}
-        >
-          <Sparkles size={13} />
-          Generate AI Review for Me
-        </button>
+        {/* Actions: review + directions + favorite */}
+        <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onReview(rec); }}
+            style={{
+              flex: 1,
+              background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.25)",
+              borderRadius: 10, padding: "8px 14px",
+              fontSize: 12, fontWeight: 600, color: "var(--orange)",
+              cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "rgba(249,115,22,0.16)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "rgba(249,115,22,0.08)"}
+          >
+            <Sparkles size={13} />
+            Generate AI Review for Me
+          </button>
+          {directionsUrl && (
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title="Open directions in Google Maps"
+              style={{
+                background: "var(--bg-card-hover)", border: "1px solid var(--border)",
+                borderRadius: 10, padding: "8px 12px",
+                fontSize: 12, fontWeight: 600, color: "var(--text-secondary)",
+                cursor: "pointer", fontFamily: "inherit",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                textDecoration: "none", transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(249,115,22,0.4)"; e.currentTarget.style.color = "var(--orange)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+            >
+              <Navigation size={13} />
+            </a>
+          )}
+          {onToggleFavorite && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite(rec.restaurant_id); }}
+              title={isFavorite ? 'Remove from saved' : 'Save spot'}
+              aria-label={isFavorite ? 'Remove from saved' : 'Save spot'}
+              style={{
+                background: isFavorite ? "rgba(239,68,68,0.1)" : "var(--bg-card-hover)",
+                border: `1px solid ${isFavorite ? "rgba(239,68,68,0.4)" : "var(--border)"}`,
+                borderRadius: 10, padding: "8px 12px",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => { if (!isFavorite) e.currentTarget.style.borderColor = "rgba(239,68,68,0.4)"; }}
+              onMouseLeave={(e) => { if (!isFavorite) e.currentTarget.style.borderColor = "var(--border)"; }}
+            >
+              <Heart size={14} color={isFavorite ? "#F87171" : "var(--text-muted)"} fill={isFavorite ? "#F87171" : "none"} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

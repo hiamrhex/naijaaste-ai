@@ -37,6 +37,7 @@ export const createUser = ({ email, passwordHash, name }) => {
     created_at: now,
     last_login: null,
     refresh_tokens: {},
+    favorites: [],
   };
   persist();
   return sanitize(store[id]);
@@ -77,10 +78,48 @@ export const hasRefreshToken = (userId, jti) => {
   return !!store[userId]?.refresh_tokens?.[jti];
 };
 
+export const revokeAllRefreshTokens = (userId) => {
+  if (!store[userId]) return;
+  store[userId].refresh_tokens = {};
+  persist();
+};
+
+export const setPasswordHash = (userId, passwordHash) => {
+  if (!store[userId]) return null;
+  store[userId].password_hash = passwordHash;
+  persist();
+  return sanitize(store[userId]);
+};
+
+const MAX_FAVORITES = 50;
+
+export const getFavorites = (userId) => store[userId]?.favorites || [];
+
+export const addFavorite = (userId, restaurantId) => {
+  if (!store[userId]) return { ok: false, error: 'USER_NOT_FOUND' };
+  const favs = store[userId].favorites || (store[userId].favorites = []);
+  if (favs.includes(restaurantId)) return { ok: true, favorites: favs, added: false };
+  if (favs.length >= MAX_FAVORITES) return { ok: false, error: 'FAVORITES_FULL' };
+  favs.push(restaurantId);
+  persist();
+  return { ok: true, favorites: favs, added: true };
+};
+
+export const removeFavorite = (userId, restaurantId) => {
+  if (!store[userId]) return { ok: false, error: 'USER_NOT_FOUND' };
+  const favs = store[userId].favorites || [];
+  const idx = favs.indexOf(restaurantId);
+  if (idx === -1) return { ok: true, favorites: favs, removed: false };
+  favs.splice(idx, 1);
+  persist();
+  return { ok: true, favorites: favs, removed: true };
+};
+
 export const sanitize = (user) => ({
   id: user.id,
   email: user.email,
   name: user.name,
   created_at: user.created_at,
   last_login: user.last_login,
+  favorites: user.favorites || [],
 });

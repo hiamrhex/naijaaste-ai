@@ -62,6 +62,53 @@ export const signout = async () => {
   }
 };
 
+// Returns { message, dev_otp? } — dev_otp only present outside production.
+export const forgotPassword = async ({ email }) => {
+  const res = await fetch(`${API}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message || 'Request failed');
+  return data;
+};
+
+export const resetPassword = async ({ email, otp, newPassword }) => {
+  const res = await fetch(`${API}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp, new_password: newPassword }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message || 'Request failed');
+  return data;
+};
+
+export const getFavorites = async () => {
+  const res = await authFetch('/auth/favorites');
+  if (!res.ok) throw new Error('Could not load favorites');
+  return (await res.json()).favorites || [];
+};
+
+export const addFavorite = async (restaurantId) => {
+  const res = await authFetch('/auth/favorites', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurant_id: restaurantId }),
+  });
+  if (!res.ok) throw new Error('Could not save favorite');
+  return (await res.json()).favorites || [];
+};
+
+export const removeFavorite = async (restaurantId) => {
+  const res = await authFetch(`/auth/favorites/${encodeURIComponent(restaurantId)}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Could not remove favorite');
+  return (await res.json()).favorites || [];
+};
+
 export const tryRefresh = async () => {
   if (!current) return false;
   try {

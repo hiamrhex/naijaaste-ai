@@ -11,6 +11,7 @@ import { reviewRoutes } from "./routes/review.routes.js";
 import { chatRoutes } from "./routes/chat.routes.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { agentRoutes } from "./routes/agent.routes.js";
+import { nearbyRoutes } from "./routes/nearby.routes.js";
 
 export const app = express();
 
@@ -48,6 +49,12 @@ app.get("/health", (_req, res) => {
       "POST /auth/refresh",
       "POST /auth/signout",
       "GET  /auth/me",
+      "POST /auth/forgot-password",
+      "POST /auth/reset-password",
+      "GET  /auth/favorites",
+      "POST /auth/favorites",
+      "DELETE /auth/favorites/:restaurant_id",
+      "GET  /nearby",
       "POST /agent",
       "POST /extract-persona",
       "POST /update-preference",
@@ -63,6 +70,7 @@ app.get("/health", (_req, res) => {
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/", authRoutes);
 app.use("/", agentRoutes);
+app.use("/", nearbyRoutes);
 app.use("/", personaRoutes);
 app.use("/", recommendRoutes);
 app.use("/", reviewRoutes);
@@ -81,6 +89,12 @@ app.use((req, res) => {
       "POST /auth/refresh",
       "POST /auth/signout",
       "GET  /auth/me",
+      "POST /auth/forgot-password",
+      "POST /auth/reset-password",
+      "GET  /auth/favorites",
+      "POST /auth/favorites",
+      "DELETE /auth/favorites/:restaurant_id",
+      "GET  /nearby",
       "POST /agent",
       "POST /extract-persona",
       "POST /update-preference",

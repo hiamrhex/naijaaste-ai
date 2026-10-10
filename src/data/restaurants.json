@@ -31,7 +31,9 @@
       "none",
       "no_pork"
     ],
-    "description": "A classic Yoruba buka in the heart of Yaba. Known for the best Abula in Lagos \u2014 amala so smooth it slides down easy. Loud, bustling, no-nonsense. Real Lagos energy."
+    "description": "A classic Yoruba buka in the heart of Yaba. Known for the best Abula in Lagos — amala so smooth it slides down easy. Loud, bustling, no-nonsense. Real Lagos energy.",
+    "lat": 6.5095,
+    "lng": 3.3711
   },
   {
     "restaurant_id": "r002",
@@ -68,7 +70,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Upscale Southern Nigerian cuisine on Victoria Island. Nkoyo elevates traditional Efik and Delta dishes into fine dining experiences. Stunning ambience, impeccable service, and flavours that remind you of grandmother's kitchen \u2014 but make it luxury."
+    "description": "Upscale Southern Nigerian cuisine on Victoria Island. Nkoyo elevates traditional Efik and Delta dishes into fine dining experiences. Stunning ambience, impeccable service, and flavours that remind you of grandmother's kitchen — but make it luxury.",
+    "lat": 6.4281,
+    "lng": 3.4219
   },
   {
     "restaurant_id": "r003",
@@ -106,7 +110,9 @@
       "halal",
       "no_pork"
     ],
-    "description": "The suya spot that Lekki residents swear by. Open-air grilling, smoky atmosphere, and that signature yaji spice blend that hits different after midnight. The mallam here has been grilling for 15 years \u2014 it shows."
+    "description": "The suya spot that Lekki residents swear by. Open-air grilling, smoky atmosphere, and that signature yaji spice blend that hits different after midnight. The mallam here has been grilling for 15 years — it shows.",
+    "lat": 6.4478,
+    "lng": 3.4723
   },
   {
     "restaurant_id": "r004",
@@ -143,7 +149,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Yellow Chilli is the go-to for Lagos middle class dining done right. Consistent food, great portions, family-friendly atmosphere. Their jollof rice has won awards \u2014 and the pepper soup is a cure for everything."
+    "description": "Yellow Chilli is the go-to for Lagos middle class dining done right. Consistent food, great portions, family-friendly atmosphere. Their jollof rice has won awards — and the pepper soup is a cure for everything.",
+    "lat": 6.5876,
+    "lng": 3.3431
   },
   {
     "restaurant_id": "r005",
@@ -180,7 +188,9 @@
       "no_pork",
       "vegetarian"
     ],
-    "description": "A Lagos institution. Mama Cass has been feeding Lagos since forever \u2014 students, workers, families. No pretense, just good Nigerian food at prices that make sense. The Moin Moin alone is worth the trip."
+    "description": "A Lagos institution. Mama Cass has been feeding Lagos since forever — students, workers, families. No pretense, just good Nigerian food at prices that make sense. The Moin Moin alone is worth the trip.",
+    "lat": 6.4541,
+    "lng": 3.3947
   },
   {
     "restaurant_id": "r006",
@@ -218,7 +228,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Jevenik brings together the best of Yoruba and Igbo cuisine under one roof. A reliable mid-range option for Lagos diners who want variety without breaking the bank."
+    "description": "Jevenik brings together the best of Yoruba and Igbo cuisine under one roof. A reliable mid-range option for Lagos diners who want variety without breaking the bank.",
+    "lat": 6.4969,
+    "lng": 3.3481
   },
   {
     "restaurant_id": "r007",
@@ -247,13 +259,15 @@
       "Eba",
       "Agbado"
     ],
-    "average_rating": 4.0,
+    "average_rating": 4,
     "review_count": 189,
     "dietary_options": [
       "none",
       "no_pork"
     ],
-    "description": "Deep in Agege, this no-frills buka is where the real Lagos eats. Cheapest Abula in town, cooked fresh every morning. Cash only, benches only, flavour unlimited."
+    "description": "Deep in Agege, this no-frills buka is where the real Lagos eats. Cheapest Abula in town, cooked fresh every morning. Cash only, benches only, flavour unlimited.",
+    "lat": 6.6277,
+    "lng": 3.3166
   },
   {
     "restaurant_id": "r008",
@@ -291,7 +305,9 @@
       "low_oil",
       "no_pork"
     ],
-    "description": "Where Nigerian flavours meet global technique. Craft Grill is Lagos's most ambitious contemporary Nigerian restaurant. Think suya-spiced wagyu and lobster pepper soup. For the Lagos elite who want something to post and something to savour."
+    "description": "Where Nigerian flavours meet global technique. Craft Grill is Lagos's most ambitious contemporary Nigerian restaurant. Think suya-spiced wagyu and lobster pepper soup. For the Lagos elite who want something to post and something to savour.",
+    "lat": 6.4405,
+    "lng": 3.486
   },
   {
     "restaurant_id": "r009",
@@ -326,7 +342,9 @@
       "none",
       "no_pork"
     ],
-    "description": "A Lagos fast-food classic. Tantalizors is where you go when you want familiar Nigerian fast food \u2014 quick, affordable, and consistent enough. The puff puff hits different at 3pm."
+    "description": "A Lagos fast-food classic. Tantalizors is where you go when you want familiar Nigerian fast food — quick, affordable, and consistent enough. The puff puff hits different at 3pm.",
+    "lat": 6.4737,
+    "lng": 3.2849
   },
   {
     "restaurant_id": "r010",
@@ -351,8 +369,8 @@
     "signature_dishes": [
       "Jollof Risotto",
       "Suya Tacos",
-      "Egusi Velout\u00e9",
-      "Pepper Soup Consomm\u00e9",
+      "Egusi Velouté",
+      "Pepper Soup Consommé",
       "Ofada Arancini"
     ],
     "average_rating": 4.6,
@@ -363,7 +381,9 @@
       "low_oil",
       "no_pork"
     ],
-    "description": "Spice Route blends West African culinary tradition with international fine dining. Every dish tells a story of Nigerian ingredients reimagined. Perfect for impressing clients or a special date."
+    "description": "Spice Route blends West African culinary tradition with international fine dining. Every dish tells a story of Nigerian ingredients reimagined. Perfect for impressing clients or a special date.",
+    "lat": 6.4281,
+    "lng": 3.4219
   },
   {
     "restaurant_id": "r011",
@@ -400,7 +420,9 @@
       "vegetarian",
       "no_pork"
     ],
-    "description": "Wakkis has been Abuja's most beloved Indian restaurant since 2000, originally located opposite the Sheraton before moving to Aminu Kano Crescent, Wuse 2. A consistent favourite of Abuja's expat and upper-class Nigerian community. The Butter Chicken is a crowd favourite, the service is famously fast and warm, and the overall vibe is that rare thing in Abuja \u2014 reliably excellent. Rated 3.9 on TripAdvisor with 239 reviews."
+    "description": "Wakkis has been Abuja's most beloved Indian restaurant since 2000, originally located opposite the Sheraton before moving to Aminu Kano Crescent, Wuse 2. A consistent favourite of Abuja's expat and upper-class Nigerian community. The Butter Chicken is a crowd favourite, the service is famously fast and warm, and the overall vibe is that rare thing in Abuja — reliably excellent. Rated 3.9 on TripAdvisor with 239 reviews.",
+    "lat": 9.0873,
+    "lng": 7.3815
   },
   {
     "restaurant_id": "r012",
@@ -436,7 +458,9 @@
       "none",
       "no_pork"
     ],
-    "description": "A reliable Abuja favourite for Nigerian comfort food. Bboys does everything well \u2014 generous portions, good atmosphere, fair prices. The grilled catfish is the stuff of Abuja legend."
+    "description": "A reliable Abuja favourite for Nigerian comfort food. Bboys does everything well — generous portions, good atmosphere, fair prices. The grilled catfish is the stuff of Abuja legend.",
+    "lat": 9.071,
+    "lng": 7.489
   },
   {
     "restaurant_id": "r013",
@@ -474,7 +498,9 @@
       "halal",
       "no_pork"
     ],
-    "description": "Named after Abuja's iconic landmark, Zuma Rock Grill is the city's premier grilling destination. The suya platter is a work of art. The ambience \u2014 upscale outdoor with views \u2014 makes every meal feel like an occasion."
+    "description": "Named after Abuja's iconic landmark, Zuma Rock Grill is the city's premier grilling destination. The suya platter is a work of art. The ambience — upscale outdoor with views — makes every meal feel like an occasion.",
+    "lat": 9.0893,
+    "lng": 7.4875
   },
   {
     "restaurant_id": "r014",
@@ -510,7 +536,9 @@
       "vegetarian",
       "low_oil"
     ],
-    "description": "Hotel fine dining that actually delivers. The Sheraton kitchen serves a curated Nigerian-international menu that impresses foreign dignitaries and local executives alike. The Nigerian Mezze board is a masterclass in West African small chops."
+    "description": "Hotel fine dining that actually delivers. The Sheraton kitchen serves a curated Nigerian-international menu that impresses foreign dignitaries and local executives alike. The Nigerian Mezze board is a masterclass in West African small chops.",
+    "lat": 9.0566,
+    "lng": 7.4019
   },
   {
     "restaurant_id": "r015",
@@ -540,14 +568,16 @@
       "Tuwo",
       "Eba"
     ],
-    "average_rating": 4.0,
+    "average_rating": 4,
     "review_count": 231,
     "dietary_options": [
       "none",
       "no_pork",
       "halal"
     ],
-    "description": "Abuja's answer to the classic Lagos buka. Bukka Hut serves all the Nigerian staples \u2014 Amala, Egusi, Tuwo \u2014 at prices that civil servants and students can stomach. No fuss, just food."
+    "description": "Abuja's answer to the classic Lagos buka. Bukka Hut serves all the Nigerian staples — Amala, Egusi, Tuwo — at prices that civil servants and students can stomach. No fuss, just food.",
+    "lat": 9.0844,
+    "lng": 7.4345
   },
   {
     "restaurant_id": "r016",
@@ -584,7 +614,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "The real deal suya experience in Abuja. Malabi's mallam has been perfecting his yaji blend since 1998. The liver suya here is genuinely life-changing. Open from 5pm till the charcoal runs out."
+    "description": "The real deal suya experience in Abuja. Malabi's mallam has been perfecting his yaji blend since 1998. The liver suya here is genuinely life-changing. Open from 5pm till the charcoal runs out.",
+    "lat": 9.0867,
+    "lng": 7.3891
   },
   {
     "restaurant_id": "r017",
@@ -620,7 +652,9 @@
       "vegetarian",
       "low_oil"
     ],
-    "description": "Asokoro's finest. Nile caters to Abuja's diplomatic and political class with a menu that fuses Nigerian boldness with Mediterranean refinement. If you have a serious business dinner or a very special date, this is the place."
+    "description": "Asokoro's finest. Nile caters to Abuja's diplomatic and political class with a menu that fuses Nigerian boldness with Mediterranean refinement. If you have a serious business dinner or a very special date, this is the place.",
+    "lat": 9.0469,
+    "lng": 7.4892
   },
   {
     "restaurant_id": "r018",
@@ -656,7 +690,9 @@
       "none",
       "no_pork"
     ],
-    "description": "A solid mid-range option in Jabi that serves Nigerian comfort food with consistency. Genesis is popular with Abuja's young professionals and families who want good food without the premium price tag."
+    "description": "A solid mid-range option in Jabi that serves Nigerian comfort food with consistency. Genesis is popular with Abuja's young professionals and families who want good food without the premium price tag.",
+    "lat": 9.0747,
+    "lng": 7.4137
   },
   {
     "restaurant_id": "r019",
@@ -693,7 +729,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Port Harcourt's finest Delta cuisine restaurant. Papyrus elevates the rich, palm-oil-forward flavours of the Niger Delta into a fine dining experience. The Banga soup here is a religious experience."
+    "description": "Port Harcourt's finest Delta cuisine restaurant. Papyrus elevates the rich, palm-oil-forward flavours of the Niger Delta into a fine dining experience. The Banga soup here is a religious experience.",
+    "lat": 4.813,
+    "lng": 7.027
   },
   {
     "restaurant_id": "r020",
@@ -730,7 +768,9 @@
       "halal",
       "no_pork"
     ],
-    "description": "PH's most talked-about suya spot. The charcoal smoke hits you from a block away. Obalende's suya is extra hot by default \u2014 ask for medium if you're not ready. Late night vibes, cold drinks, good company."
+    "description": "PH's most talked-about suya spot. The charcoal smoke hits you from a block away. Obalende's suya is extra hot by default — ask for medium if you're not ready. Late night vibes, cold drinks, good company.",
+    "lat": 4.8205,
+    "lng": 7.0272
   },
   {
     "restaurant_id": "r021",
@@ -767,7 +807,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "A Port Harcourt staple for Delta cuisine done properly. Deramus is where oil workers and locals converge for honest, flavourful food. The Afang soup is thick, the portions generous, the prices fair."
+    "description": "A Port Harcourt staple for Delta cuisine done properly. Deramus is where oil workers and locals converge for honest, flavourful food. The Afang soup is thick, the portions generous, the prices fair.",
+    "lat": 4.837,
+    "lng": 7.018
   },
   {
     "restaurant_id": "r022",
@@ -804,7 +846,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Port Harcourt's popular gathering spot. White House does Lagos Contemporary with a Delta twist. The small chops are the best in PH \u2014 every owambe pre-party starts here."
+    "description": "Port Harcourt's popular gathering spot. White House does Lagos Contemporary with a Delta twist. The small chops are the best in PH — every owambe pre-party starts here.",
+    "lat": 4.834,
+    "lng": 7.02
   },
   {
     "restaurant_id": "r023",
@@ -840,7 +884,9 @@
       "none",
       "no_pork"
     ],
-    "description": "The realest buka experience in Port Harcourt. Buka Central PH serves traditional Delta and Igbo soups that taste like they came straight from a village kitchen. Cheap, filling, authentic."
+    "description": "The realest buka experience in Port Harcourt. Buka Central PH serves traditional Delta and Igbo soups that taste like they came straight from a village kitchen. Cheap, filling, authentic.",
+    "lat": 4.8356,
+    "lng": 7.0421
   },
   {
     "restaurant_id": "r024",
@@ -876,7 +922,9 @@
       "vegetarian",
       "low_oil"
     ],
-    "description": "Port Harcourt's most sophisticated dining address. 360 Degrees combines Nigerian ingredients with international culinary techniques. The rooftop view over GRA and the fusion pepper soup alone justify the price tag."
+    "description": "Port Harcourt's most sophisticated dining address. 360 Degrees combines Nigerian ingredients with international culinary techniques. The rooftop view over GRA and the fusion pepper soup alone justify the price tag.",
+    "lat": 4.817,
+    "lng": 7.034
   },
   {
     "restaurant_id": "r025",
@@ -912,7 +960,9 @@
       "no_pork",
       "vegetarian"
     ],
-    "description": "Iya Basira is a Mushin legend. Her Ewa Agoyin \u2014 black-eyed beans with the most perfectly caramelised pepper sauce \u2014 has been drawing Lagos people from across town since 1995. Budget doesn't mean basic here."
+    "description": "Iya Basira is a Mushin legend. Her Ewa Agoyin — black-eyed beans with the most perfectly caramelised pepper sauce — has been drawing Lagos people from across town since 1995. Budget doesn't mean basic here.",
+    "lat": 6.5374,
+    "lng": 3.3611
   },
   {
     "restaurant_id": "r026",
@@ -949,7 +999,9 @@
       "halal",
       "no_pork"
     ],
-    "description": "Suya on the beach. That's the entire pitch and it's enough. Elegushi Beach Suya combines the smoky perfection of Hausa-Fulani grilling with the Lagos beach atmosphere. Sunset, ocean breeze, suya in hand \u2014 this is the Lagos experience."
+    "description": "Suya on the beach. That's the entire pitch and it's enough. Elegushi Beach Suya combines the smoky perfection of Hausa-Fulani grilling with the Lagos beach atmosphere. Sunset, ocean breeze, suya in hand — this is the Lagos experience.",
+    "lat": 6.442,
+    "lng": 3.479
   },
   {
     "restaurant_id": "r027",
@@ -986,7 +1038,9 @@
       "no_alcohol",
       "vegetarian"
     ],
-    "description": "An authentic Northern Nigerian breakfast and lunch spot in Karu. Hausa Koko Spot is where Abuja's Northern Nigerian population comes for a taste of home. The Koko and Kosai breakfast combo is unmatched at that price point."
+    "description": "An authentic Northern Nigerian breakfast and lunch spot in Karu. Hausa Koko Spot is where Abuja's Northern Nigerian population comes for a taste of home. The Koko and Kosai breakfast combo is unmatched at that price point.",
+    "lat": 9.07,
+    "lng": 7.506
   },
   {
     "restaurant_id": "r028",
@@ -1023,7 +1077,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "The best Efik cuisine in Lagos, period. Calabar Kitchen brings authentic Cross River flavours to Ikeja \u2014 the Edikang Ikong is made with fresh waterleaf and periwinkle the traditional way. No shortcuts, no compromises."
+    "description": "The best Efik cuisine in Lagos, period. Calabar Kitchen brings authentic Cross River flavours to Ikeja — the Edikang Ikong is made with fresh waterleaf and periwinkle the traditional way. No shortcuts, no compromises.",
+    "lat": 6.6018,
+    "lng": 3.3515
   },
   {
     "restaurant_id": "r029",
@@ -1058,7 +1114,9 @@
       "none",
       "no_pork"
     ],
-    "description": "The unofficial canteen of Computer Village. Quick, cheap, no-nonsense Nigerian food for the tech traders and hustlers of Otigba. Don't come for the ambience \u2014 come for the fast service and the price."
+    "description": "The unofficial canteen of Computer Village. Quick, cheap, no-nonsense Nigerian food for the tech traders and hustlers of Otigba. Don't come for the ambience — come for the fast service and the price.",
+    "lat": 6.616,
+    "lng": 3.3485
   },
   {
     "restaurant_id": "r030",
@@ -1092,7 +1150,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Authentic Igbo cuisine in the heart of Abuja. Igbo Ukwu Restaurant is where the Igbo diaspora in Abuja comes to reconnect with home cooking. The Ofe Onugbu is bitter, bold, and beautiful \u2014 exactly how it should be."
+    "description": "Authentic Igbo cuisine in the heart of Abuja. Igbo Ukwu Restaurant is where the Igbo diaspora in Abuja comes to reconnect with home cooking. The Ofe Onugbu is bitter, bold, and beautiful — exactly how it should be.",
+    "lat": 9.0765,
+    "lng": 7.4866
   },
   {
     "restaurant_id": "r031",
@@ -1130,7 +1190,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Ibadan's most iconic restaurant, perched inside the legendary Cocoa House at Dugbe. Kokodome has been hosting Ibadan's elite, politicians, and business class for decades. The Gbegiri and Ewedu is a Yoruba masterclass and the city view from the upper floor is unmatched."
+    "description": "Ibadan's most iconic restaurant, perched inside the legendary Cocoa House at Dugbe. Kokodome has been hosting Ibadan's elite, politicians, and business class for decades. The Gbegiri and Ewedu is a Yoruba masterclass and the city view from the upper floor is unmatched.",
+    "lat": 7.3775,
+    "lng": 3.901
   },
   {
     "restaurant_id": "r032",
@@ -1168,7 +1230,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Rated #1 restaurant in Ibadan on TripAdvisor, Ibachi is the city's finest Chinese restaurant. Located in New Bodija with a stunning teppanyaki grill section, the culinary team behind the famous Kabachi partnered with Cantonese Executive Chef Zhu to bring world-class oriental dining to Ibadan. The ambience is breathtaking, the portions are generous, and the Singapore Noodles are legendary."
+    "description": "Rated #1 restaurant in Ibadan on TripAdvisor, Ibachi is the city's finest Chinese restaurant. Located in New Bodija with a stunning teppanyaki grill section, the culinary team behind the famous Kabachi partnered with Cantonese Executive Chef Zhu to bring world-class oriental dining to Ibadan. The ambience is breathtaking, the portions are generous, and the Singapore Noodles are legendary.",
+    "lat": 7.417,
+    "lng": 3.887
   },
   {
     "restaurant_id": "r033",
@@ -1206,7 +1270,9 @@
       "vegetarian",
       "low_oil"
     ],
-    "description": "Five Continents is Ibadan's most spectacular dining destination \u2014 a 5-star luxury complex inside Golden Tulip Hotel housing five venues: Three Dragons Chinese Restaurant, Tulip Grill BBQ, Pacific Lounge, Vibe Lounge, and Nucleus Restaurant. Surrounded by fountains and water features, the artificial island setting is unlike anything else in Ibadan. Ranked #7 of 52 Ibadan restaurants on TripAdvisor."
+    "description": "Five Continents is Ibadan's most spectacular dining destination — a 5-star luxury complex inside Golden Tulip Hotel housing five venues: Three Dragons Chinese Restaurant, Tulip Grill BBQ, Pacific Lounge, Vibe Lounge, and Nucleus Restaurant. Surrounded by fountains and water features, the artificial island setting is unlike anything else in Ibadan. Ranked #7 of 52 Ibadan restaurants on TripAdvisor.",
+    "lat": 7.386,
+    "lng": 3.88
   },
   {
     "restaurant_id": "r034",
@@ -1244,7 +1310,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Tamberma is Ibadan's most beloved multi-cuisine restaurant, set in a serene nature-infused outdoor space in Iyaganku GRA. The menu spans Indian curries, Chinese noodles, Nigerian classics, and BBQ grills. The string-light outdoor patio, live music on weekends, and exceptional cocktails make it the top date spot in Ibadan. Best visited at night when the ambience is magical."
+    "description": "Tamberma is Ibadan's most beloved multi-cuisine restaurant, set in a serene nature-infused outdoor space in Iyaganku GRA. The menu spans Indian curries, Chinese noodles, Nigerian classics, and BBQ grills. The string-light outdoor patio, live music on weekends, and exceptional cocktails make it the top date spot in Ibadan. Best visited at night when the ambience is magical.",
+    "lat": 7.392,
+    "lng": 3.913
   },
   {
     "restaurant_id": "r035",
@@ -1280,7 +1348,9 @@
       "no_pork",
       "vegetarian"
     ],
-    "description": "The most beloved canteen on the University of Ibadan campus. Ose Olorun has fed generations of UI students, lecturers, and staff. The Ewa Agoyin breakfast is an institution. Come early or meet an empty pot \u2014 it sells out before noon every day."
+    "description": "The most beloved canteen on the University of Ibadan campus. Ose Olorun has fed generations of UI students, lecturers, and staff. The Ewa Agoyin breakfast is an institution. Come early or meet an empty pot — it sells out before noon every day.",
+    "lat": 7.4447,
+    "lng": 3.9
   },
   {
     "restaurant_id": "r036",
@@ -1318,7 +1388,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Bubble Plaza is one of Enugu's most popular upscale hangout spots in Independence Layout. The multi-cuisine menu spans Continental, Chinese, and Lebanese dishes making it a favourite for Enugu's young professionals, students from nearby universities, and families. Known for great shawarma, refreshing drinks, and a lively modern atmosphere. A go-to for Enugu residents who want quality food in a stylish setting."
+    "description": "Bubble Plaza is one of Enugu's most popular upscale hangout spots in Independence Layout. The multi-cuisine menu spans Continental, Chinese, and Lebanese dishes making it a favourite for Enugu's young professionals, students from nearby universities, and families. Known for great shawarma, refreshing drinks, and a lively modern atmosphere. A go-to for Enugu residents who want quality food in a stylish setting.",
+    "lat": 6.4537,
+    "lng": 7.5414
   },
   {
     "restaurant_id": "r037",
@@ -1353,7 +1425,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Onyinye's is what Enugu buka culture is all about. Cooked fresh every morning, the Oha soup here uses real ora leaves from the village. The palm wine arrives cold in a calabash. No pretense \u2014 just the food your Enugu grandmother would approve of."
+    "description": "Onyinye's is what Enugu buka culture is all about. Cooked fresh every morning, the Oha soup here uses real ora leaves from the village. The palm wine arrives cold in a calabash. No pretense — just the food your Enugu grandmother would approve of.",
+    "lat": 6.455,
+    "lng": 7.535
   },
   {
     "restaurant_id": "r038",
@@ -1391,7 +1465,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Coal City Chophouse is named after Enugu's identity as Nigeria's coal city. The menu is proudly Igbo \u2014 heavy on soups, nkwobi, and abacha \u2014 with enough contemporary options to keep the younger crowd happy. Reliable and well-priced."
+    "description": "Coal City Chophouse is named after Enugu's identity as Nigeria's coal city. The menu is proudly Igbo — heavy on soups, nkwobi, and abacha — with enough contemporary options to keep the younger crowd happy. Reliable and well-priced.",
+    "lat": 6.4493,
+    "lng": 7.513
   },
   {
     "restaurant_id": "r039",
@@ -1426,7 +1502,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Don't let the name fool you \u2014 this is a proper no-frills Enugu chop bar. The Ofe Akwu with starch is cooked with fresh palm fruit the traditional way. Palm wine is always available. Budget-friendly and genuinely satisfying."
+    "description": "Don't let the name fool you — this is a proper no-frills Enugu chop bar. The Ofe Akwu with starch is cooked with fresh palm fruit the traditional way. Palm wine is always available. Budget-friendly and genuinely satisfying.",
+    "lat": 6.4745,
+    "lng": 7.548
   },
   {
     "restaurant_id": "r040",
@@ -1454,14 +1532,16 @@
       "Eba",
       "Akara"
     ],
-    "average_rating": 4.0,
+    "average_rating": 4,
     "review_count": 298,
     "dietary_options": [
       "none",
       "no_pork",
       "vegetarian"
     ],
-    "description": "Hidden inside Ogige Market, this kitchen has been feeding Enugu traders and market workers for over 20 years. The Abacha is made fresh every morning and the Akara is fried to order. Cash only, fast service, zero waste."
+    "description": "Hidden inside Ogige Market, this kitchen has been feeding Enugu traders and market workers for over 20 years. The Abacha is made fresh every morning and the Akara is fried to order. Cash only, fast service, zero waste.",
+    "lat": 6.449,
+    "lng": 7.51
   },
   {
     "restaurant_id": "r041",
@@ -1499,7 +1579,9 @@
       "no_alcohol",
       "vegetarian"
     ],
-    "description": "Cilantro is Kano's most celebrated fine dining restaurant, located at 23 Sultan Road (formerly 67). Part of the national Cilantro chain, it is the sister restaurant of Cilantro Abuja, serving elevated Indian and Pakistani cuisine in a beautiful outdoor terrace setting. Fully halal, making it a natural fit for Kano's Muslim majority. Praised for curries, tandoori grills and professional service. Rated 84/100 on Sluurpy from 1,462 reviews."
+    "description": "Cilantro is Kano's most celebrated fine dining restaurant, located at 23 Sultan Road (formerly 67). Part of the national Cilantro chain, it is the sister restaurant of Cilantro Abuja, serving elevated Indian and Pakistani cuisine in a beautiful outdoor terrace setting. Fully halal, making it a natural fit for Kano's Muslim majority. Praised for curries, tandoori grills and professional service. Rated 84/100 on Sluurpy from 1,462 reviews.",
+    "lat": 11.998,
+    "lng": 8.518
   },
   {
     "restaurant_id": "r042",
@@ -1536,7 +1618,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "The most authentic suya experience in Kano. Fagge Suya Corner operates from dusk with charcoal pits that have been burning for generations. The mallam's yaji recipe is a closely guarded family secret. This is where Kano residents bring visitors to show off \u2014 and rightly so."
+    "description": "The most authentic suya experience in Kano. Fagge Suya Corner operates from dusk with charcoal pits that have been burning for generations. The mallam's yaji recipe is a closely guarded family secret. This is where Kano residents bring visitors to show off — and rightly so.",
+    "lat": 11.997,
+    "lng": 8.52
   },
   {
     "restaurant_id": "r043",
@@ -1573,7 +1657,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "The vibrant food street of Sabon Gari where Kano's diverse population \u2014 Northern Nigerians, Southerners, and expatriates \u2014 all eat together. Multiple food stalls serving Tuwo, Miyan Kuka, and fresh Suya from morning till night. Halal throughout."
+    "description": "The vibrant food street of Sabon Gari where Kano's diverse population — Northern Nigerians, Southerners, and expatriates — all eat together. Multiple food stalls serving Tuwo, Miyan Kuka, and fresh Suya from morning till night. Halal throughout.",
+    "lat": 11.994,
+    "lng": 8.53
   },
   {
     "restaurant_id": "r044",
@@ -1610,7 +1696,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "Named after Kano's famous Durbar festival, this restaurant celebrates Northern Nigerian food culture with pride. Durbar Restaurant serves consistently excellent Hausa-Fulani food in a clean, family-friendly environment. The Miyan Taushe pumpkin soup is exceptional."
+    "description": "Named after Kano's famous Durbar festival, this restaurant celebrates Northern Nigerian food culture with pride. Durbar Restaurant serves consistently excellent Hausa-Fulani food in a clean, family-friendly environment. The Miyan Taushe pumpkin soup is exceptional.",
+    "lat": 12.008,
+    "lng": 8.5145
   },
   {
     "restaurant_id": "r045",
@@ -1646,7 +1734,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "A solid everyday buka in Bompai serving Kano's workers and residents. The Tuwo Shinkafa is cooked to the proper consistency \u2014 not too firm, not too soft \u2014 and the Miyan Kuka has real depth. Fully halal, budget-friendly, open from 7am."
+    "description": "A solid everyday buka in Bompai serving Kano's workers and residents. The Tuwo Shinkafa is cooked to the proper consistency — not too firm, not too soft — and the Miyan Kuka has real depth. Fully halal, budget-friendly, open from 7am.",
+    "lat": 12.006,
+    "lng": 8.521
   },
   {
     "restaurant_id": "r046",
@@ -1682,7 +1772,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "The original Kilishi experience. Gidan Kilishi at Kurmi Market is where Kano's famous spiced dried beef is made and sold at the source. People travel from Lagos and Abuja specifically for this kilishi. The paper-thin, perfectly spiced sheets of beef are a Kano heritage product."
+    "description": "The original Kilishi experience. Gidan Kilishi at Kurmi Market is where Kano's famous spiced dried beef is made and sold at the source. People travel from Lagos and Abuja specifically for this kilishi. The paper-thin, perfectly spiced sheets of beef are a Kano heritage product.",
+    "lat": 11.9886,
+    "lng": 8.5164
   },
   {
     "restaurant_id": "r047",
@@ -1719,7 +1811,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "Arewa Suya Palace is Tarauni's most celebrated evening suya spot. The grilling starts at 6pm sharp and the crowd builds fast. Known for a yaji blend that is aggressively spiced \u2014 extra hot is not a warning here, it's a promise. All halal, open till midnight."
+    "description": "Arewa Suya Palace is Tarauni's most celebrated evening suya spot. The grilling starts at 6pm sharp and the crowd builds fast. Known for a yaji blend that is aggressively spiced — extra hot is not a warning here, it's a promise. All halal, open till midnight.",
+    "lat": 12.014,
+    "lng": 8.523
   },
   {
     "restaurant_id": "r048",
@@ -1748,7 +1842,7 @@
       "Masa",
       "Fura da Nono"
     ],
-    "average_rating": 4.0,
+    "average_rating": 4,
     "review_count": 198,
     "dietary_options": [
       "halal",
@@ -1756,7 +1850,9 @@
       "no_alcohol",
       "vegetarian"
     ],
-    "description": "A no-frills buka on Sultan Road serving Kano's office workers and traders. The lunch rush is intense \u2014 arrive before 1pm or risk missing the Miyan Taushe. Mild spice profile makes it accessible to visitors not yet initiated into Kano heat. Always halal."
+    "description": "A no-frills buka on Sultan Road serving Kano's office workers and traders. The lunch rush is intense — arrive before 1pm or risk missing the Miyan Taushe. Mild spice profile makes it accessible to visitors not yet initiated into Kano heat. Always halal.",
+    "lat": 11.9975,
+    "lng": 8.5185
   },
   {
     "restaurant_id": "r049",
@@ -1793,7 +1889,9 @@
       "no_pork",
       "no_alcohol"
     ],
-    "description": "Adjacent to Kano's historic Emir's Palace, Grand Palace Restaurant is the city's most prestigious dining address. The Royal Tuwo Platter \u2014 a feast of Tuwo Shinkafa with three rotating soups \u2014 is served in traditional calabash. Fully halal, impeccably presented, the definitive Kano fine dining experience."
+    "description": "Adjacent to Kano's historic Emir's Palace, Grand Palace Restaurant is the city's most prestigious dining address. The Royal Tuwo Platter — a feast of Tuwo Shinkafa with three rotating soups — is served in traditional calabash. Fully halal, impeccably presented, the definitive Kano fine dining experience.",
+    "lat": 11.993,
+    "lng": 8.516
   },
   {
     "restaurant_id": "r050",
@@ -1831,7 +1929,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Set on the stunning Tinapa lakeside, this is the crown jewel of Calabar dining. The view across the lake pairs perfectly with the finest Efik cuisine in Cross River State. The Edikang Ikong is made with freshly harvested waterleaf and periwinkle. Fresh fish is sourced from the lake daily. The experience here is Calabar at its most majestic."
+    "description": "Set on the stunning Tinapa lakeside, this is the crown jewel of Calabar dining. The view across the lake pairs perfectly with the finest Efik cuisine in Cross River State. The Edikang Ikong is made with freshly harvested waterleaf and periwinkle. Fresh fish is sourced from the lake daily. The experience here is Calabar at its most majestic.",
+    "lat": 4.874,
+    "lng": 8.423
   },
   {
     "restaurant_id": "r051",
@@ -1866,7 +1966,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Calabar South's most authentic Efik buka. Obufa Esuk \u2014 meaning 'waterside' in Efik \u2014 serves traditional Cross River soups in their most honest form. The Afang here is thick with leaves, heavy with seafood, and made the way Calabar grandmothers taught. Budget price, premium flavour."
+    "description": "Calabar South's most authentic Efik buka. Obufa Esuk — meaning 'waterside' in Efik — serves traditional Cross River soups in their most honest form. The Afang here is thick with leaves, heavy with seafood, and made the way Calabar grandmothers taught. Budget price, premium flavour.",
+    "lat": 4.8156,
+    "lng": 8.3231
   },
   {
     "restaurant_id": "r052",
@@ -1904,7 +2006,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Aqua Vista sits on the Calabar Marina waterfront with views of the Cross River that make every meal feel like a mini-holiday. The grilled fresh fish is caught locally and the Pepper Soup is spiced to Efik tradition. One of Calabar's most romantic dining spots."
+    "description": "Aqua Vista sits on the Calabar Marina waterfront with views of the Cross River that make every meal feel like a mini-holiday. The grilled fresh fish is caught locally and the Pepper Soup is spiced to Efik tradition. One of Calabar's most romantic dining spots.",
+    "lat": 4.8233,
+    "lng": 8.332
   },
   {
     "restaurant_id": "r053",
@@ -1940,7 +2044,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Efik Heritage Kitchen is on a mission to preserve authentic Cross River cuisine. Every dish on the menu traces back to a specific Efik village tradition. The Ekpang Nkukwo \u2014 cocoyam dumplings in a seafood broth \u2014 is prepared with the patience and skill it demands. A cultural experience as much as a meal."
+    "description": "Efik Heritage Kitchen is on a mission to preserve authentic Cross River cuisine. Every dish on the menu traces back to a specific Efik village tradition. The Ekpang Nkukwo — cocoyam dumplings in a seafood broth — is prepared with the patience and skill it demands. A cultural experience as much as a meal.",
+    "lat": 4.847,
+    "lng": 8.345
   },
   {
     "restaurant_id": "r054",
@@ -1976,7 +2082,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Named after Calabar's world-famous December Carnival, this chop house captures the city's festive energy year-round. Affordable, very spicy, and packed with locals. The Periwinkle Soup here is a specialty you won't find easily elsewhere \u2014 briny, rich, and deeply Calabar."
+    "description": "Named after Calabar's world-famous December Carnival, this chop house captures the city's festive energy year-round. Affordable, very spicy, and packed with locals. The Periwinkle Soup here is a specialty you won't find easily elsewhere — briny, rich, and deeply Calabar.",
+    "lat": 4.82,
+    "lng": 8.327
   },
   {
     "restaurant_id": "r055",
@@ -2013,7 +2121,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Adjacent to Benin City's historic Oba's Palace, this restaurant carries the weight of Edo culinary heritage with pride. The Banga Soup and Starch combo is prepared with fresh palm fruit from Edo State farms. The Owo Soup \u2014 a unique peppery Edo specialty \u2014 is a revelation."
+    "description": "Adjacent to Benin City's historic Oba's Palace, this restaurant carries the weight of Edo culinary heritage with pride. The Banga Soup and Starch combo is prepared with fresh palm fruit from Edo State farms. The Owo Soup — a unique peppery Edo specialty — is a revelation.",
+    "lat": 6.339,
+    "lng": 5.627
   },
   {
     "restaurant_id": "r056",
@@ -2050,7 +2160,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Named after Benin's legendary heroine Emotan, this restaurant serves Edo State cuisine with the confidence of a city that knows its food is underrated. The Owo Soup here is the benchmark version \u2014 peppery, palm-oil-rich, and deeply satisfying with starch. A Benin City institution."
+    "description": "Named after Benin's legendary heroine Emotan, this restaurant serves Edo State cuisine with the confidence of a city that knows its food is underrated. The Owo Soup here is the benchmark version — peppery, palm-oil-rich, and deeply satisfying with starch. A Benin City institution.",
+    "lat": 6.336,
+    "lng": 5.617
   },
   {
     "restaurant_id": "r057",
@@ -2085,7 +2197,9 @@
       "none",
       "no_pork"
     ],
-    "description": "On the UNESCO-listed Igun Street \u2014 home of Benin's ancient bronze casting guilds \u2014 this chop bar has been fuelling artisans and traders for decades. The Banga Soup with Starch is prepared with fresh palm fruit the old Benin way. Cheap, authentic, and worth every kobo."
+    "description": "On the UNESCO-listed Igun Street — home of Benin's ancient bronze casting guilds — this chop bar has been fuelling artisans and traders for decades. The Banga Soup with Starch is prepared with fresh palm fruit the old Benin way. Cheap, authentic, and worth every kobo.",
+    "lat": 6.3397,
+    "lng": 5.6276
   },
   {
     "restaurant_id": "r058",
@@ -2123,7 +2237,9 @@
       "no_pork",
       "low_oil"
     ],
-    "description": "Benin Bronze Grill brings Edo cuisine into a contemporary space without losing its roots. The Native Soup \u2014 a complex, deeply flavoured Bini specialty \u2014 is the standout dish. Great for Benin City's young professional crowd who want quality food in a relaxed atmosphere."
+    "description": "Benin Bronze Grill brings Edo cuisine into a contemporary space without losing its roots. The Native Soup — a complex, deeply flavoured Bini specialty — is the standout dish. Great for Benin City's young professional crowd who want quality food in a relaxed atmosphere.",
+    "lat": 6.335,
+    "lng": 5.6037
   },
   {
     "restaurant_id": "r059",
@@ -2158,7 +2274,9 @@
       "none",
       "no_pork"
     ],
-    "description": "Uselu's most dependable buka for authentic Edo home cooking. Uwagboe's soups rotate daily \u2014 Owo on Monday, Banga on Wednesday, Native Soup on Friday \u2014 and regulars plan their week around the schedule. Old Benin recipes, fresh ingredients, honest prices."
+    "description": "Uselu's most dependable buka for authentic Edo home cooking. Uwagboe's soups rotate daily — Owo on Monday, Banga on Wednesday, Native Soup on Friday — and regulars plan their week around the schedule. Old Benin recipes, fresh ingredients, honest prices.",
+    "lat": 6.3663,
+    "lng": 5.596
   },
   {
     "restaurant_id": "r060",
@@ -2195,6 +2313,8 @@
       "none",
       "no_pork"
     ],
-    "description": "A unique Benin City hybrid \u2014 Northern Nigerian suya technique meets Edo flavour sensibilities. The mallam here uses a yaji blend that incorporates local Edo spices, creating a suya experience you won't find anywhere else in Nigeria. The Native Pepper Soup served alongside is a Benin City touch that elevates the whole experience."
+    "description": "A unique Benin City hybrid — Northern Nigerian suya technique meets Edo flavour sensibilities. The mallam here uses a yaji blend that incorporates local Edo spices, creating a suya experience you won't find anywhere else in Nigeria. The Native Pepper Soup served alongside is a Benin City touch that elevates the whole experience.",
+    "lat": 6.337,
+    "lng": 5.623
   }
 ]

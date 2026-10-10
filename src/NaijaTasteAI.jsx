@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, Sun, Moon, ChefHat, Utensils, Zap,
   RefreshCw, ChevronDown, Globe, Clock, BarChart3, MessageSquare, ArrowRight, MapPin, Sparkles, CheckCircle, Flame,
-  LogOut, User,
+  LogOut, User, Crosshair,
 } from 'lucide-react';
 
 import './styles/global.css';
@@ -10,9 +10,18 @@ import { API, HERO_PHRASES, QUICK_PROMPTS, STAGES, STAGE_LABELS, STAGE_TIPS } fr
 import {
   Tag, PersonaCard, RestaurantCard, ReviewModal, ThinkingDots
 } from './components';
+import { NearbyPanel } from './components/NearbyPanel.jsx';
 import GithubIcon from './components/GithubIcon.jsx';
 import AuthGate from './components/AuthGate.jsx';
-import { getAuth, authFetch, signout } from './lib/auth.js';
+import { getAuth, authFetch, signout, getFavorites, addFavorite, removeFavorite } from './lib/auth.js';
+
+const haversineKm = (lat1, lng1, lat2, lng2) => {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(a));
+};
 
 /* ── MAIN APP ─────────────────────────────────────────────────── */
 function ConciergeApp({ user, onSignOut }) {
@@ -37,8 +46,85 @@ function ConciergeApp({ user, onSignOut }) {
   const [thinkOpen, setThinkOpen] = useState(true);
   const [resultsOpen, setResultsOpen] = useState(true);
   const [showQuickPrompts, setShowQuickPrompts] = useState(true);
+  const [favorites, setFavorites] = useState([]);
+  const [nearby, setNearby] = useState(null);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyError, setNearbyError] = useState('');
+  const [showNearby, setShowNearby] = useState(false);
+  const [geoCache, setGeoCache] = useState({});
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  /* Load favorites + fetch geo for LLM recs */
+  useEffect(() => {
+    getFavorites().then(setFavorites).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!recs?.length) return;
+    const ids = recs.map((r) => r.restaurant_id).filter(Boolean);
+    if (ids.length === 0) return;
+    const uncached = ids.filter((id) => !geoCache[id]);
+    if (uncached.length === 0) return;
+    let cancelled = false;
+    fetch(`${API}/restaurants/geo?ids=${encodeURIComponent(uncached.join(','))}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.geo) setGeoCache((prev) => ({ ...prev, ...data.geo }));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [recs, geoCache]);
+
+  const toggleFavorite = useCallback(async (restaurantId) => {
+    if (!restaurantId) return;
+    const isFav = favorites.includes(restaurantId);
+    // optimistic update
+    setFavorites((prev) => isFav ? prev.filter((id) => id !== restaurantId) : [...prev, restaurantId]);
+    try {
+      const next = isFav ? await removeFavorite(restaurantId) : await addFavorite(restaurantId);
+      setFavorites(next);
+    } catch {
+      // rollback
+      setFavorites((prev) => isFav ? [...prev, restaurantId] : prev.filter((id) => id !== restaurantId));
+    }
+  }, [favorites]);
+
+  const findNearby = useCallback(() => {
+    if (nearbyLoading) return;
+    setShowNearby(true);
+    setNearbyError('');
+    setNearbyLoading(true);
+    if (!navigator.geolocation) {
+      setNearbyLoading(false);
+      setNearbyError('Geolocation is not supported by this browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(`${API}/nearby?lat=${latitude}&lng=${longitude}&limit=8&radius_km=25`);
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data?.error?.message || 'Nearby lookup failed');
+          setNearby(data);
+        } catch (err) {
+          setNearbyError(err.message || 'Could not find spots near you.');
+        } finally {
+          setNearbyLoading(false);
+        }
+      },
+      (err) => {
+        setNearbyLoading(false);
+        setNearbyError(
+          err.code === 1
+            ? 'Location permission denied — enable it to find spots near you.'
+            : 'Could not get your location — try again.',
+        );
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+    );
+  }, [nearbyLoading]);
 
   /* Hero phrase rotation */
   useEffect(() => {
@@ -259,6 +345,21 @@ function ConciergeApp({ user, onSignOut }) {
             </span>
           </span>
           <button
+            onClick={findNearby}
+            title="Find restaurants near me"
+            style={{
+              background: showNearby ? 'rgba(16,185,129,0.12)' : 'var(--bg-card)',
+              border: `1px solid ${showNearby ? 'rgba(16,185,129,0.4)' : 'var(--border)'}`,
+              borderRadius: 20, padding: '6px 12px',
+              display: 'flex', alignItems: 'center', gap: 6,
+              fontSize: 12, color: showNearby ? 'var(--green)' : 'var(--text-secondary)',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
+            }}
+          >
+            <Crosshair size={14} className={nearbyLoading ? 'spin' : undefined} />
+            {nearbyLoading ? 'Locating…' : 'Near me'}
+          </button>
+          <button
             onClick={onSignOut}
             title="Sign out"
             style={{
@@ -352,7 +453,7 @@ function ConciergeApp({ user, onSignOut }) {
         </div>
 
         <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0" }}>
-          AI-powered recommendations · 63 Nigerian restaurants · 8 cities
+          AI-powered recommendations · 60 Nigerian restaurants · 8 cities
         </p>
       </div>
 
@@ -644,6 +745,19 @@ function ConciergeApp({ user, onSignOut }) {
         {/* ─── RIGHT: RESULTS ─── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
+          {/* Nearby panel */}
+          {showNearby && (
+            <NearbyPanel
+              loading={nearbyLoading}
+              error={nearbyError}
+              nearby={nearby}
+              onRetry={findNearby}
+              onClose={() => setShowNearby(false)}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
+            />
+          )}
+
           {/* Persona card */}
           {persona && <PersonaCard persona={persona} />}
 
@@ -693,15 +807,25 @@ function ConciergeApp({ user, onSignOut }) {
             }}>
               {recs ? (
                 <div style={{ padding: "12px 12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-                  {recs.map((r, i) => (
-                    <RestaurantCard
-                      key={r.restaurant_id || i}
-                      rec={r}
-                      index={i}
-                      onReview={generateReview}
-                      persona={persona}
-                    />
-                  ))}
+                  {recs.map((r, i) => {
+                    const geo = geoCache[r.restaurant_id];
+                    const distanceKm = geo && nearby?.origin
+                      ? Math.round(haversineKm(nearby.origin.lat, nearby.origin.lng, geo.lat, geo.lng) * 10) / 10
+                      : undefined;
+                    return (
+                      <RestaurantCard
+                        key={r.restaurant_id || i}
+                        rec={r}
+                        index={i}
+                        onReview={generateReview}
+                        persona={persona}
+                        distanceKm={distanceKm}
+                        directionsUrl={geo?.directions_url}
+                        isFavorite={favorites.includes(r.restaurant_id)}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    );
+                  })}
                   {meta && (
                     <div style={{
                       marginTop: 4, padding: "10px 14px",
@@ -755,7 +879,7 @@ function ConciergeApp({ user, onSignOut }) {
                   <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
                       [MapPin, "8 cities covered"],
-                      [Utensils, "63 curated restaurants"],
+                      [Utensils, "60 curated restaurants"],
                       [Sparkles, "AI-ranked by taste match"],
                     ].map(([Icon, label]) => (
                       <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
@@ -807,7 +931,7 @@ function ConciergeApp({ user, onSignOut }) {
           </a>
         </p>
         <p style={{ fontSize: 11, color: "var(--text-hint)", margin: 0, opacity: 0.6 }}>
-          Powered by Gemini API (gemini-3.8-flash) · Autonomous agent · 63 Nigerian Restaurants across 8 Cities
+          Powered by Gemini API (gemini-3.8-flash) · Autonomous agent · 60 Nigerian Restaurants across 8 Cities
         </p>
       </footer>
 

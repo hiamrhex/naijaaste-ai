@@ -1,9 +1,18 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
-import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, hasRefreshToken, updateUser } from '../auth/store.js';
+import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
+import { issueOtp, verifyOtp } from '../auth/otp.js';
+import { sendOtpEmail } from '../services/email.service.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CATALOGUE = JSON.parse(readFileSync(join(__dirname, '../data/restaurants.json'), 'utf-8'));
+const catalogueById = new Map(CATALOGUE.map((r) => [r.restaurant_id, r]));
 
 const router = Router();
 
@@ -13,6 +22,14 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many attempts. Try again in 15 minutes.' } },
+});
+
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many reset requests. Try again in 15 minutes.' } },
 });
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -134,6 +151,104 @@ router.post('/auth/signout', (req, res) => {
 
 router.get('/auth/me', requireAuth, (req, res) => {
   return res.json({ success: true, user: req.user });
+});
+
+// ─── Forgot / reset password (OTP via email) ─────────────────────────────────
+// Always returns 200 for unknown emails (no account enumeration).
+router.post('/auth/forgot-password', resetLimiter, async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) {
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'valid email is required' } });
+    }
+    const user = findUserByEmail(email);
+    if (!user) {
+      return res.json({ success: true, message: 'If that account exists, a reset code has been sent.' });
+    }
+    let code;
+    try {
+      code = issueOtp(user.email);
+    } catch (err) {
+      if (err.code === 'RESEND_COOLDOWN') {
+        return res.status(429).json({ success: false, error: { code: 'RESEND_COOLDOWN', message: err.message, retry_after_ms: err.retryAfterMs } });
+      }
+      throw err;
+    }
+    const delivery = await sendOtpEmail({ to: user.email, name: user.name, code });
+    return res.json({
+      success: true,
+      message: 'If that account exists, a reset code has been sent.',
+      ...(delivery.dev_otp ? { dev_otp: delivery.dev_otp } : {}),
+    });
+  } catch (err) {
+    console.error('[auth] forgot-password error:', err.message);
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request' } });
+  }
+});
+
+router.post('/auth/reset-password', resetLimiter, async (req, res) => {
+  try {
+    const { email, otp, new_password } = req.body || {};
+    const errors = [];
+    if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) errors.push('valid email is required');
+    if (!otp || typeof otp !== 'string' || !/^\d{6}$/.test(otp)) errors.push('6-digit code is required');
+    if (!new_password || typeof new_password !== 'string' || new_password.length < 8) errors.push('new password must be at least 8 characters');
+    if (errors.length) {
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; ') } });
+    }
+    const result = verifyOtp(email, otp);
+    if (!result.ok) {
+      const messages = {
+        missing: 'Invalid or expired reset code',
+        expired: 'Reset code expired — request a new one',
+        max_attempts: 'Too many attempts — request a new code',
+        mismatch: `Incorrect code — ${result.attemptsLeft} attempts left`,
+      };
+      return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: messages[result.reason] } });
+    }
+    const user = findUserByEmail(email);
+    if (!user) {
+      // OTP verified but user gone — treat as generic failure, do not leak state
+      return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: 'Invalid or expired reset code' } });
+    }
+    const passwordHash = await bcrypt.hash(new_password, 12);
+    setPasswordHash(user.id, passwordHash);
+    revokeAllRefreshTokens(user.id); // password change kills every session
+    return res.json({ success: true, message: 'Password updated — sign in with your new password.' });
+  } catch (err) {
+    console.error('[auth] reset-password error:', err.message);
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request' } });
+  }
+});
+
+// ─── Favorites ────────────────────────────────────────────────────────────────
+router.get('/auth/favorites', requireAuth, (req, res) => {
+  const ids = getFavorites(req.user.id);
+  const items = ids.map((id) => catalogueById.get(id)).filter(Boolean);
+  return res.json({ success: true, favorites: ids, items });
+});
+
+router.post('/auth/favorites', requireAuth, (req, res) => {
+  const { restaurant_id } = req.body || {};
+  if (!restaurant_id || typeof restaurant_id !== 'string') {
+    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'restaurant_id is required' } });
+  }
+  if (!catalogueById.has(restaurant_id)) {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Unknown restaurant' } });
+  }
+  const result = addFavorite(req.user.id, restaurant_id);
+  if (!result.ok) {
+    return res.status(result.error === 'FAVORITES_FULL' ? 409 : 404).json({ success: false, error: { code: result.error, message: result.error === 'FAVORITES_FULL' ? 'Favorites list is full (max 50)' : 'User not found' } });
+  }
+  return res.status(result.added ? 201 : 200).json({ success: true, favorites: result.favorites, added: result.added });
+});
+
+router.delete('/auth/favorites/:restaurant_id', requireAuth, (req, res) => {
+  const result = removeFavorite(req.user.id, req.params.restaurant_id);
+  if (!result.ok) {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
+  }
+  return res.json({ success: true, favorites: result.favorites, removed: result.removed });
 });
 
 export { router as authRoutes };

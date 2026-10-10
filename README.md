@@ -1,7 +1,7 @@
 # NaijaTaste AI
 
 Nigerian restaurant discovery engine. A guest chats in English or Pidgin; the app
-extracts a dining persona, recommends from a curated catalogue of 63 restaurants
+extracts a dining persona, recommends from a curated catalogue of 60 restaurants
 across 8 Nigerian cities, generates reviews, and remembers the session.
 
 One repo, two processes:
