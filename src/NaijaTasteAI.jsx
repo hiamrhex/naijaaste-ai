@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, Sun, Moon, ChefHat, Utensils, Zap,
   RefreshCw, ChevronDown, Globe, Clock, BarChart3, MessageSquare, ArrowRight, MapPin, Sparkles, CheckCircle, Flame,
+  LogOut, User,
 } from 'lucide-react';
 
 import './styles/global.css';
@@ -9,9 +10,12 @@ import { API, HERO_PHRASES, QUICK_PROMPTS, STAGES, STAGE_LABELS, STAGE_TIPS } fr
 import {
   Tag, PersonaCard, RestaurantCard, ReviewModal, ThinkingDots
 } from './components';
+import GithubIcon from './components/GithubIcon.jsx';
+import AuthGate from './components/AuthGate.jsx';
+import { getAuth, authFetch, signout } from './lib/auth.js';
 
 /* ── MAIN APP ─────────────────────────────────────────────────── */
-export default function NaijaTasteAI() {
+function ConciergeApp({ user, onSignOut }) {
   const [dark, setDark] = useState(true);
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroVisible, setHeroVisible] = useState(true);
@@ -104,20 +108,21 @@ export default function NaijaTasteAI() {
     setShowQuickPrompts(false);
     setMessages((prev) => [...prev, { role: "user", content: txt }]);
     setLoading(true);
-
     try {
-      const body = { message: txt };
-      if (sessionId) body.session_id = sessionId;
-      const res = await fetch(`${API}/chat`, {
+      const res = await authFetch('/agent', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ message: txt, session_id: sessionId || undefined }),
       });
       const data = await res.json();
 
+      if (!res.ok || !data.success) {
+        throw new Error(data?.error?.message || "Agent request failed");
+      }
       if (data.session_id) setSessionId(data.session_id);
       if (data.stage) setStage(data.stage);
       if (data.extracted_persona) setPersona(data.extracted_persona);
+
       if (data.recommendations?.recommendations) {
         setRecs(data.recommendations.recommendations);
         setResultsOpen(true);
@@ -127,11 +132,12 @@ export default function NaijaTasteAI() {
       setMessages((prev) => [...prev, {
         role: "assistant",
         content: data.message || "No response received.",
+        trace: data.trace || null,
       }]);
-    } catch {
+    } catch (err) {
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: "Connection issue — please try again.",
+        content: err.message || "Connection issue — please try again.",
         error: true,
       }]);
     } finally {
@@ -239,8 +245,30 @@ export default function NaijaTasteAI() {
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(249,115,22,0.4)"; e.currentTarget.style.color = "var(--orange)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
           >
-            {/* <Github size={15} /> */}
+            <GithubIcon size={15} />
           </a>
+          <span style={{
+            fontSize: 12, color: "var(--text-secondary)",
+            display: "flex", alignItems: "center", gap: 6,
+            background: "var(--bg-card)", border: "1px solid var(--border)",
+            padding: "5px 11px", borderRadius: 20, maxWidth: 160,
+          }} title={user?.email}>
+            <User size={12} color="var(--orange)" />
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {user?.name?.split(" ")[0] || "Foodie"}
+            </span>
+          </span>
+          <button
+            onClick={onSignOut}
+            title="Sign out"
+            style={{
+              background: "none", border: "1px solid var(--border)",
+              borderRadius: 8, padding: 7, cursor: "pointer",
+              color: "var(--text-muted)", display: "flex", alignItems: "center",
+            }}
+          >
+            <LogOut size={14} />
+          </button>
           <button
             onClick={() => setDark((d) => !d)}
             style={{
@@ -445,11 +473,26 @@ export default function NaijaTasteAI() {
                       borderRadius: "4px 14px 14px 14px",
                       padding: "10px 13px",
                       fontSize: 13.5, lineHeight: 1.6,
-                      color: "var(--chat-bot-text)",
+                      color: m.error ? "#F87171" : "var(--chat-bot-text)",
                       border: "1px solid var(--border)",
                     }}>
                       {m.content}
                     </div>
+                    {m.trace && m.trace.some((s) => s.tool) && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
+                        {m.trace.filter((s) => s.tool).map((s, ti) => (
+                          <span key={ti} style={{
+                            fontSize: 10, display: "inline-flex", alignItems: "center", gap: 4,
+                            background: s.ok ? "rgba(16,185,129,0.08)" : "rgba(239,68,68,0.08)",
+                            border: `1px solid ${s.ok ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`,
+                            color: s.ok ? "var(--green)" : "#F87171",
+                            padding: "2px 8px", borderRadius: 20, fontWeight: 600,
+                          }}>
+                            <Zap size={9} />{s.tool}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
                 {m.role === "user" && (
@@ -533,9 +576,16 @@ export default function NaijaTasteAI() {
                 )}
                 {meta && (
                   <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 4 }}>
-                      <BarChart3 size={11} />{meta.after_hard_filter} restaurants considered
-                    </span>
+                    {meta.after_hard_filter != null && (
+                      <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 4 }}>
+                        <BarChart3 size={11} />{meta.after_hard_filter} restaurants considered
+                      </span>
+                    )}
+                    {meta.steps != null && (
+                      <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 4 }}>
+                        <Zap size={11} />{meta.steps} agent steps
+                      </span>
+                    )}
                     <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 4 }}>
                       <Clock size={11} />{meta.latency_ms}ms
                     </span>
@@ -658,12 +708,16 @@ export default function NaijaTasteAI() {
                       background: "var(--bg-card-hover)", borderRadius: 10,
                       display: "flex", flexWrap: "wrap", gap: 12,
                     }}>
-                      <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 5 }}>
-                        <BarChart3 size={11} />{meta.after_hard_filter} restaurants filtered
-                      </span>
-                      <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 5 }}>
-                        <MessageSquare size={11} />{meta.candidates_sent_to_llm} ranked by AI
-                      </span>
+                      {meta.after_hard_filter != null && (
+                        <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 5 }}>
+                          <BarChart3 size={11} />{meta.after_hard_filter} restaurants filtered
+                        </span>
+                      )}
+                      {meta.candidates_sent_to_llm != null && (
+                        <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 5 }}>
+                          <MessageSquare size={11} />{meta.candidates_sent_to_llm} ranked by AI
+                        </span>
+                      )}
                       <span style={{ fontSize: 11, color: "var(--text-hint)", display: "flex", alignItems: "center", gap: 5 }}>
                         <Clock size={11} />{meta.latency_ms}ms
                       </span>
@@ -736,9 +790,24 @@ export default function NaijaTasteAI() {
           </span>
           {" "}·{" "}
           <span style={{ color: "var(--text-hint)" }}>DSN × BCT LLM Agent Challenge 3.0 · 2026</span>
+          {" "}·{" "}
+          <a
+            href="https://github.com/hiamrhex/naijaaste-ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: "var(--text-muted)", display: "inline-flex", alignItems: "center",
+              gap: 4, verticalAlign: "middle", textDecoration: "none",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--orange)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+          >
+            <GithubIcon size={12} /> Source
+          </a>
         </p>
         <p style={{ fontSize: 11, color: "var(--text-hint)", margin: 0, opacity: 0.6 }}>
-          Powered by Gemini API (gemini-3.8-flash) · 63 Nigerian Restaurants across 8 Cities
+          Powered by Gemini API (gemini-3.8-flash) · Autonomous agent · 63 Nigerian Restaurants across 8 Cities
         </p>
       </footer>
 
@@ -753,4 +822,23 @@ export default function NaijaTasteAI() {
       )}
     </div>
   );
+}
+
+/* ── AUTHENTICATED SHELL ─────────────────────────────────────── */
+export default function NaijaTasteAI() {
+  const [user, setUser] = useState(() => getAuth()?.user || null);
+
+  useEffect(() => {
+    const onExpired = () => setUser(null);
+    window.addEventListener('auth:expired', onExpired);
+    return () => window.removeEventListener('auth:expired', onExpired);
+  }, []);
+
+  const handleSignOut = async () => {
+    await signout();
+    setUser(null);
+  };
+
+  if (!user) return <AuthGate onAuth={(u) => setUser(u)} />;
+  return <ConciergeApp user={user} onSignOut={handleSignOut} />;
 }

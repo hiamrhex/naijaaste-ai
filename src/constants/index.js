@@ -1,6 +1,10 @@
 /* ── CONSTANTS ───────────────────────────────────────────────── */
 
-export const API = "https://naijaaste-ai-production.up.railway.app";
+export const API =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.DEV
+    ? 'http://localhost:3000'
+    : 'https://naijaaste-ai-production.up.railway.app');
 
 export const HERO_PHRASES = [
   { lang: "Yoruba",  text: "Se o ti jeun?",                  suffix: "" },

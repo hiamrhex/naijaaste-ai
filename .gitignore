@@ -15,6 +15,9 @@ dist-ssr
 # Secrets
 .env
 
+# Runtime data stores (per-instance)
+src/data/users.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -185,6 +185,12 @@ export const processChat = async (sessionId, userMessage) => {
 
 export const getSession = (sessionId) => sessionStore[sessionId] || null;
 
+export const saveSession = (session) => {
+  sessionStore[session.session_id] = session;
+  saveSessions(sessionStore);
+  return session;
+};
+
 export const clearSession = (sessionId) => {
   delete sessionStore[sessionId];
   saveSessions(sessionStore);
