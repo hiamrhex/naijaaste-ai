@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
-import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite } from '../auth/store.js';
+import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
 import { issueOtp, verifyOtp } from '../auth/otp.js';
 import { sendOtpEmail } from '../services/email.service.js';
+import { verifyGoogleCredential, googleAuthEnabled } from '../auth/google.js';
 import { env } from '../env.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -93,7 +94,7 @@ router.post('/auth/signin', authLimiter, async (req, res) => {
     }
     const { email, password } = req.body;
     const user = findUserByEmail(email);
-    if (!user) {
+    if (!user || !user.password_hash) {
       return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } });
     }
     const ok = await bcrypt.compare(password, user.password_hash);
@@ -152,6 +153,33 @@ router.post('/auth/signout', (req, res) => {
 
 router.get('/auth/me', requireAuth, (req, res) => {
   return res.json({ success: true, user: req.user });
+});
+
+// ─── Google sign-in (identity services credential) ──────────────────────────
+router.post('/auth/google', authLimiter, async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+    if (!credential || typeof credential !== 'string' || credential.length > 8192) {
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'credential is required' } });
+    }
+    if (!googleAuthEnabled()) {
+      return res.status(503).json({ success: false, error: { code: 'GOOGLE_NOT_CONFIGURED', message: 'Google sign-in is not configured on this server' } });
+    }
+    let profile;
+    try {
+      profile = await verifyGoogleCredential(credential);
+    } catch (err) {
+      if (err.code === 'GOOGLE_INVALID_TOKEN') {
+        return res.status(401).json({ success: false, error: { code: 'GOOGLE_INVALID_TOKEN', message: 'Invalid Google credential' } });
+      }
+      throw err;
+    }
+    const { user } = upsertGoogleUser(profile);
+    return issueTokens(user, res, 200);
+  } catch (err) {
+    req.log?.error({ err }, 'auth google failed');
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Google sign-in failed' } });
+  }
 });
 
 // ─── Forgot / reset password (OTP via email) ─────────────────────────────────

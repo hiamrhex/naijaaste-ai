@@ -15,6 +15,7 @@ import { requestId } from "./middleware/requestId.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./env.js";
 import { logger } from "./lib/logger.js";
+import { googleAuthEnabled } from "./auth/google.js";
 
 export const app = express();
 
@@ -53,6 +54,7 @@ const ENDPOINTS = [
   "POST /auth/refresh",
   "POST /auth/signout",
   "GET  /auth/me",
+  "POST /auth/google",
   "POST /auth/forgot-password",
   "POST /auth/reset-password",
   "GET  /auth/favorites",
@@ -106,6 +108,7 @@ app.get("/health", (_req, res) => {
     service: "NaijaTaste AI",
     version: "2.0.0",
     timestamp: new Date().toISOString(),
+    features: { google_auth: googleAuthEnabled() },
     endpoints: ENDPOINTS,
   });
 });

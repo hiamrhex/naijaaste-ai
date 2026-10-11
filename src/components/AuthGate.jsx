@@ -1,46 +1,95 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChefHat, ArrowRight, Loader2, Eye, EyeOff, Shield, KeyRound, ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import GithubIcon from './GithubIcon.jsx';
-import { signin, signup, forgotPassword, resetPassword } from '../lib/auth.js';
+import { signin, signup, forgotPassword, resetPassword, googleSignIn } from '../lib/auth.js';
+import { API } from '../constants/index.js';
 
 const S = {
   wrap: {
     minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: '#080810', padding: '24px 16px', position: 'relative', overflow: 'hidden',
+    background: '#050508', padding: '24px 16px', position: 'relative', overflow: 'hidden',
     fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
   },
-  glow: {
-    position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-    width: 700, height: 400, pointerEvents: 'none',
-    background: 'radial-gradient(ellipse, rgba(249,115,22,0.10) 0%, transparent 70%)',
-  },
+  orb: (size, top, left, color, delay) => ({
+    position: 'absolute', width: size, height: size, borderRadius: '50%',
+    background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+    filter: 'blur(70px)', pointerEvents: 'none', top, left,
+    animation: `aurora ${18 + delay}s ease-in-out ${delay}s infinite alternate`,
+  }),
   card: {
-    width: '100%', maxWidth: 420, background: '#111827', border: '1px solid #1F2937',
-    borderRadius: 20, padding: '32px 28px', position: 'relative', zIndex: 1,
-    boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+    width: '100%', maxWidth: 430, background: 'rgba(14,15,22,0.72)',
+    border: '1px solid transparent',
+    backgroundImage:
+      'linear-gradient(rgba(16,17,24,0.88), rgba(12,13,19,0.92)), '
+      + 'linear-gradient(135deg, rgba(249,115,22,0.35), rgba(168,85,247,0.18), rgba(249,115,22,0.35))',
+    backgroundOrigin: 'border-box', backgroundClip: 'padding-box, border-box',
+    borderRadius: 22, padding: '34px 30px', position: 'relative', zIndex: 1,
+    boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset',
+    backdropFilter: 'blur(18px)',
+    animation: 'rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both',
   },
 };
 
 const input = (focused) => ({
-  width: '100%', boxSizing: 'border-box', background: '#0D0D1A',
-  border: `1px solid ${focused ? 'rgba(249,115,22,0.5)' : '#1F2937'}`,
-  borderRadius: 10, padding: '11px 14px', fontSize: 14, color: '#F9FAFB',
-  fontFamily: 'inherit', outline: 'none', transition: 'border 0.2s',
+  width: '100%', boxSizing: 'border-box',
+  background: focused ? 'rgba(249,115,22,0.04)' : '#0A0B10',
+  border: `1px solid ${focused ? 'rgba(249,115,22,0.6)' : '#1C1D2A'}`,
+  borderRadius: 11, padding: '12px 14px', fontSize: 14, color: '#F9FAFB',
+  fontFamily: 'inherit', outline: 'none',
+  transition: 'border 0.25s, box-shadow 0.25s, background 0.25s',
+  boxShadow: focused ? '0 0 0 3px rgba(249,115,22,0.12)' : 'none',
 });
 
 const btn = {
-  width: '100%', background: '#F97316', border: 'none', borderRadius: 10,
-  padding: '12px 14px', fontSize: 14.5, fontWeight: 700, color: '#fff',
+  width: '100%', border: 'none', borderRadius: 11,
+  padding: '13px 14px', fontSize: 14.5, fontWeight: 700, color: '#fff',
   cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
-  alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.15s',
+  alignItems: 'center', justifyContent: 'center', gap: 8,
+  background: 'linear-gradient(120deg, #F97316, #FB923C, #F97316)',
+  backgroundSize: '200% 100%',
+  transition: 'transform 0.15s, box-shadow 0.2s, opacity 0.15s',
+  boxShadow: '0 8px 24px rgba(249,115,22,0.28)',
 };
 
 const ghostBtn = {
-  width: '100%', background: 'transparent', border: '1px solid #1F2937', borderRadius: 10,
+  width: '100%', background: 'transparent', border: '1px solid #23243A', borderRadius: 11,
   padding: '11px 14px', fontSize: 13.5, fontWeight: 600, color: '#9CA3AF',
   cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
-  alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.15s',
+  alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s',
 };
+
+const KEYFRAMES = `
+@keyframes aurora {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, -30px) scale(1.15); }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sheen {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60% { transform: translateX(3px); }
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; }
+.fade-slide { animation: fadeSlide 0.3s ease both; }
+.err-shake { animation: shake 0.4s ease; }
+`;
 
 export default function AuthGate({ onAuth }) {
   const [mode, setMode] = useState('signin');
@@ -54,9 +103,59 @@ export default function AuthGate({ onAuth }) {
   const [notice, setNotice] = useState('');
   const [devOtp, setDevOtp] = useState('');
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleOn, setGoogleOn] = useState(false);
   const [focus, setFocus] = useState('');
+  const googleBtnRef = useRef(null);
 
   const isCredsMode = mode === 'signin' || mode === 'signup';
+
+  useEffect(() => {
+    let cancelled = false;
+    let tries = 0;
+    const load = () => {
+      if (cancelled) return;
+      fetch(`${API}/health`)
+        .then((r) => r.json())
+        .then((h) => {
+          if (cancelled) return;
+          if (!h?.features?.google_auth) return;
+          setGoogleOn(true);
+          const start = () => {
+            if (cancelled || !window.google?.accounts?.id || !googleBtnRef.current) return;
+            window.google.accounts.id.initialize({
+              client_id: h.google_client_id || undefined,
+              callback: async (resp) => {
+                setGoogleBusy(true);
+                setError('');
+                try {
+                  const user = await googleSignIn(resp.credential);
+                  onAuth(user);
+                } catch (err) {
+                  setError(err.message || 'Google sign-in failed');
+                } finally {
+                  setGoogleBusy(false);
+                }
+              },
+            });
+            window.google.accounts.id.renderButton(googleBtnRef.current, {
+              theme: 'filled_black', size: 'large', width: 360, text: 'continue_with',
+              shape: 'rectangular', logo_alignment: 'left',
+            });
+          };
+          if (window.google?.accounts?.id) { start(); return; }
+          const s = document.createElement('script');
+          s.src = 'https://accounts.google.com/gsi/client';
+          s.async = true;
+          s.onload = () => { tries = 0; start(); };
+          s.onerror = () => { if (++tries < 3) setTimeout(load, 800); };
+          document.head.appendChild(s);
+        })
+        .catch(() => { /* health unreachable — hide button */ });
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [onAuth]);
 
   const switchMode = (m) => {
     setMode(m);
@@ -122,19 +221,28 @@ export default function AuthGate({ onAuth }) {
 
   return (
     <div style={S.wrap}>
-      <div style={S.glow} />
+      <style>{KEYFRAMES}</style>
+      <div style={S.orb(520, '-12%', '12%', 'rgba(249,115,22,0.13)', 0)} />
+      <div style={S.orb(430, '58%', '68%', 'rgba(168,85,247,0.10)', 3)} />
+      <div style={S.orb(300, '72%', '8%', 'rgba(236,72,153,0.07)', 6)} />
+
       <div style={S.card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <div style={{
-            width: 42, height: 42, borderRadius: 12, background: 'rgba(249,115,22,0.1)',
-            border: '1px solid rgba(249,115,22,0.3)', display: 'flex',
+            width: 44, height: 44, borderRadius: 13,
+            background: 'linear-gradient(135deg, rgba(249,115,22,0.22), rgba(249,115,22,0.05))',
+            border: '1px solid rgba(249,115,22,0.35)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 24px rgba(249,115,22,0.15)',
           }}>
-            <ChefHat size={20} color="#F97316" />
+            <ChefHat size={21} color="#F97316" />
           </div>
           <div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 19, color: '#F9FAFB', letterSpacing: '-0.3px' }}>
-              NaijaTaste <span style={{ color: '#F97316' }}>AI</span>
+              NaijaTaste <span style={{
+                background: 'linear-gradient(90deg, #F97316, #FBBF24)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>AI</span>
             </div>
             <div style={{ fontSize: 11, color: '#6B7280' }}>Your elite dining concierge</div>
           </div>
@@ -142,8 +250,8 @@ export default function AuthGate({ onAuth }) {
 
         {isCredsMode && (
           <div style={{
-            display: 'flex', gap: 4, background: '#0D0D1A', border: '1px solid #1F2937',
-            borderRadius: 10, padding: 4, margin: '20px 0 18px',
+            display: 'flex', gap: 4, background: '#0A0B10', border: '1px solid #1C1D2A',
+            borderRadius: 12, padding: 4, margin: '20px 0 18px', position: 'relative',
           }}>
             {['signin', 'signup'].map((m) => (
               <button
@@ -151,10 +259,14 @@ export default function AuthGate({ onAuth }) {
                 type="button"
                 onClick={() => switchMode(m)}
                 style={{
-                  flex: 1, border: 'none', borderRadius: 8, padding: '9px 0',
+                  flex: 1, border: 'none', borderRadius: 9, padding: '9px 0',
                   fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                  background: mode === m ? '#F97316' : 'transparent',
-                  color: mode === m ? '#fff' : '#9CA3AF', transition: 'all 0.2s',
+                  background: mode === m
+                    ? 'linear-gradient(120deg, #F97316, #FB923C)'
+                    : 'transparent',
+                  color: mode === m ? '#fff' : '#9CA3AF',
+                  transition: 'background 0.3s, color 0.3s, box-shadow 0.3s',
+                  boxShadow: mode === m ? '0 4px 14px rgba(249,115,22,0.3)' : 'none',
                 }}
               >
                 {m === 'signin' ? 'Sign in' : 'Create account'}
@@ -169,8 +281,9 @@ export default function AuthGate({ onAuth }) {
               type="button"
               onClick={() => switchMode('signin')}
               style={{
-                background: 'none', border: '1px solid #1F2937', borderRadius: 8,
+                background: 'none', border: '1px solid #23243A', borderRadius: 9,
                 padding: 7, cursor: 'pointer', color: '#9CA3AF', display: 'flex',
+                transition: 'border 0.2s, color 0.2s',
               }}
               aria-label="Back to sign in"
             >
@@ -189,9 +302,9 @@ export default function AuthGate({ onAuth }) {
         )}
 
         {notice && (
-          <div style={{
+          <div className="fade-slide" style={{
             background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)',
-            borderRadius: 9, padding: '9px 12px', fontSize: 12.5, color: '#10B981',
+            borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: '#10B981',
             display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12,
           }} role="status">
             <CheckCircle size={14} style={{ flexShrink: 0 }} />
@@ -200,9 +313,9 @@ export default function AuthGate({ onAuth }) {
         )}
 
         {devOtp && (
-          <div style={{
+          <div className="fade-slide" style={{
             background: 'rgba(249,115,22,0.07)', border: '1px dashed rgba(249,115,22,0.45)',
-            borderRadius: 9, padding: '10px 12px', fontSize: 12.5, color: '#F97316',
+            borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: '#F97316',
             marginBottom: 12, textAlign: 'center',
           }} role="status">
             Dev mode (no SMTP configured) — your code:{' '}
@@ -290,6 +403,7 @@ export default function AuthGate({ onAuth }) {
                 style={{
                   background: 'none', border: 'none', color: '#F97316', fontSize: 12,
                   cursor: 'pointer', fontFamily: 'inherit', padding: 0, fontWeight: 600,
+                  transition: 'opacity 0.2s',
                 }}
               >
                 Forgot password?
@@ -298,15 +412,26 @@ export default function AuthGate({ onAuth }) {
           )}
 
           {error && (
-            <div style={{
+            <div className="err-shake" style={{
               background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: 9, padding: '9px 12px', fontSize: 12.5, color: '#F87171',
+              borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: '#F87171',
             }} role="alert">
               {error}
             </div>
           )}
 
-          <button type="submit" style={{ ...btn, opacity: busy ? 0.7 : 1 }} disabled={busy}>
+          <button
+            type="submit"
+            style={{
+              ...btn,
+              opacity: busy ? 0.7 : 1,
+              animation: busy ? 'none' : 'sheen 3.2s linear infinite',
+              transform: 'translateY(0)',
+            }}
+            disabled={busy}
+            onMouseEnter={(e) => { if (!busy) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(249,115,22,0.38)'; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(249,115,22,0.28)'; }}
+          >
             {busy ? <Loader2 size={16} className="spin" /> : null}
             {busy
               ? 'Please wait…'
@@ -324,12 +449,47 @@ export default function AuthGate({ onAuth }) {
           )}
         </form>
 
+        {googleOn && isCredsMode && (
+          <div className="fade-slide" style={{ marginTop: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #23243A, transparent)' }} />
+              <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 600, letterSpacing: 0.5 }}>OR</span>
+              <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #23243A, transparent)' }} />
+            </div>
+            <div style={{
+              borderRadius: 11, overflow: 'hidden', position: 'relative',
+              border: '1px solid #23243A', transition: 'border 0.25s, box-shadow 0.25s',
+              opacity: googleBusy ? 0.6 : 1,
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(249,115,22,0.45)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(249,115,22,0.08)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#23243A'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <div
+                ref={googleBtnRef}
+                style={{ display: 'flex', justifyContent: 'center', padding: '2px 0' }}
+              />
+              {googleBusy && (
+                <div style={{
+                  position: 'absolute', inset: 0, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', background: 'rgba(10,11,16,0.6)',
+                }}>
+                  <Loader2 size={18} className="spin" color="#F9FAFB" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          marginTop: 16, fontSize: 11, color: '#6B7280',
+          marginTop: 18, fontSize: 11, color: '#6B7280',
         }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%', background: '#10B981',
+            animation: 'pulseDot 2.2s ease-in-out infinite',
+          }} />
           <Shield size={12} color="#10B981" />
-          JWT auth · bcrypt hashing · rate-limited · httpOnly cookies
+          JWT · bcrypt · rate-limited · httpOnly cookies
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
@@ -338,8 +498,10 @@ export default function AuthGate({ onAuth }) {
             target="_blank" rel="noopener noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,
-              color: '#9CA3AF', textDecoration: 'none',
+              color: '#9CA3AF', textDecoration: 'none', transition: 'color 0.2s',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#F97316'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#9CA3AF'; }}
           >
             <GithubIcon size={14} /> View source on GitHub
           </a>

@@ -51,6 +51,36 @@ export const findUserByEmail = (email) => {
 
 export const findUserById = (id) => store[id] || null;
 
+// Creates a passwordless Google user, or links google_sub to an existing
+// account with the same email and merges name/picture if missing.
+export const upsertGoogleUser = ({ email, name, picture, sub }) => {
+  const target = email.toLowerCase().trim();
+  let user = Object.values(store).find((u) => u.email === target);
+  const now = new Date().toISOString();
+  if (!user) {
+    const id = randomUUID();
+    store[id] = {
+      id,
+      email: target,
+      name: (name || target.split('@')[0]).trim(),
+      password_hash: null,
+      google_sub: sub,
+      picture: picture || null,
+      created_at: now,
+      last_login: now,
+      refresh_tokens: {},
+      favorites: [],
+    };
+    persist();
+    return { user: sanitize(store[id]), created: true };
+  }
+  const patch = { last_login: now, google_sub: sub };
+  if (!user.picture && picture) patch.picture = picture;
+  Object.assign(user, patch);
+  persist();
+  return { user: sanitize(user), created: false };
+};
+
 export const updateUser = (id, patch) => {
   if (!store[id]) return null;
   Object.assign(store[id], patch);
@@ -120,6 +150,7 @@ export const sanitize = (user) => ({
   id: user.id,
   email: user.email,
   name: user.name,
+  picture: user.picture || null,
   created_at: user.created_at,
   last_login: user.last_login,
   favorites: user.favorites || [],

@@ -54,6 +54,18 @@ export const signin = async ({ email, password }) => {
   return data.user;
 };
 
+export const googleSignIn = async (credential) => {
+  const res = await fetch(`${API}/auth/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ credential }),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  const data = await res.json();
+  setAuth({ user: data.user, accessToken: data.accessToken });
+  return data.user;
+};
+
 export const signout = async () => {
   try {
     await fetch(`${API}/auth/signout`, { method: 'POST', credentials: 'include' });

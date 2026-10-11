@@ -18,6 +18,7 @@ const EnvSchema = z.object({
   RATE_LIMIT_LLM_MAX: z.coerce.number().int().positive().default(10),
   CORS_ORIGIN: z.string().optional(),
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(1),
+  GOOGLE_CLIENT_ID: z.string().optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
