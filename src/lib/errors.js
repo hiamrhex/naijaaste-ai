@@ -7,9 +7,60 @@ export class ApiError extends Error {
   }
 }
 
-export const badRequest = (message, details) =>
-  new ApiError(400, 'VALIDATION_ERROR', message, details);
+// Layer 19 — typed hierarchy. Throw the specific subclass; the global
+// errorHandler maps it to the unified shape (layer 20) + status (layer 27).
+export class ValidationError extends ApiError {
+  constructor(message, details) {
+    super(400, 'VALIDATION_ERROR', message, details);
+  }
+}
 
-export const notFound = (code, message) => new ApiError(404, code, message);
+export class UnauthorizedError extends ApiError {
+  constructor(message = 'Authentication required', code = 'UNAUTHENTICATED') {
+    super(401, code, message);
+  }
+}
+
+export class ForbiddenError extends ApiError {
+  constructor(message = 'Forbidden', code = 'FORBIDDEN') {
+    super(403, code, message);
+  }
+}
+
+export class NotFoundError extends ApiError {
+  constructor(code = 'NOT_FOUND', message = 'Not found') {
+    super(404, code, message);
+  }
+}
+
+export class ConflictError extends ApiError {
+  constructor(code = 'CONFLICT', message = 'Conflict') {
+    super(409, code, message);
+  }
+}
+
+export class RateLimitedError extends ApiError {
+  constructor(message = 'Too many requests, please try again later.', retryAfterSec) {
+    super(429, 'RATE_LIMITED', message);
+    this.retryAfterSec = retryAfterSec;
+  }
+}
+
+export class UpstreamError extends ApiError {
+  constructor(message = 'Upstream request failed') {
+    super(502, 'UPSTREAM_FAILURE', message);
+  }
+}
+
+export class UnavailableError extends ApiError {
+  constructor(message = 'Service temporarily unavailable', code = 'UNAVAILABLE') {
+    super(503, code, message);
+  }
+}
+
+export const badRequest = (message, details) =>
+  new ValidationError(message, details);
+
+export const notFound = (code, message) => new NotFoundError(code, message);
 
 export const isApiError = (err) => err instanceof ApiError;

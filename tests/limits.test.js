@@ -38,9 +38,10 @@ describe('rate limiting (layer 1)', () => {
     const res = await request(app)
       .get('/chat/11111111-1111-4111-8111-111111111111')
       .expect(429);
-    expect(res.body.success).toBe(false);
+    expect(res.body).not.toHaveProperty('success');
     expect(res.body.error.code).toBe('RATE_LIMITED');
-    expect(res.body.requestId).toMatch(/^[A-Za-z0-9-]{8,64}$/);
+    expect(res.body.error.requestId).toMatch(/^[A-Za-z0-9-]{8,64}$/);
+    expect(res.headers['retry-after']).toBeDefined();
     // draft-7 sends the combined `ratelimit` header
     expect(res.headers['ratelimit']).toBeDefined();
   });

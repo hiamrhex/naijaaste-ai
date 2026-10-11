@@ -5,11 +5,11 @@ import { errorHandler } from '../src/middleware/errorHandler.js';
 import { badRequest, notFound } from '../src/lib/errors.js';
 
 describe('error contract (layers 19/20/26/27)', () => {
-  it('validation failure carries error.code and requestId', async () => {
+  it('validation failure uses the unified shape { error: { code, message, requestId } }', async () => {
     const res = await request(app).post('/chat').send({}).expect(400);
-    expect(res.body.success).toBe(false);
-    expect(res.body.error).toEqual({ code: 'VALIDATION_ERROR', message: 'message is required' });
-    expect(res.body.requestId).toMatch(/^[A-Za-z0-9-]{8,64}$/);
+    expect(Object.keys(res.body)).toEqual(['error']);
+    expect(res.body.error).toMatchObject({ code: 'VALIDATION_ERROR', message: 'message is required' });
+    expect(res.body.error.requestId).toMatch(/^[A-Za-z0-9-]{8,64}$/);
   });
 
   it('honors an inbound X-Request-Id and returns it in the header', async () => {
@@ -35,10 +35,12 @@ describe('error contract (layers 19/20/26/27)', () => {
     expect(res.body.error.code).toBe('SESSION_NOT_FOUND');
   });
 
-  it('unknown route returns 404 ROUTE_NOT_FOUND', async () => {
+  it('unknown route returns 404 ROUTE_NOT_FOUND (route list lives on /health)', async () => {
     const res = await request(app).get('/definitely-not-a-route').expect(404);
     expect(res.body.error.code).toBe('ROUTE_NOT_FOUND');
-    expect(res.body.available_endpoints).toContain('GET  /health');
+    expect(res.body.error.requestId).toBeDefined();
+    const health = await request(app).get('/health').expect(200);
+    expect(health.body.endpoints).toContain('GET  /health');
   });
 
   it('review with missing body returns 400 without calling the LLM', async () => {

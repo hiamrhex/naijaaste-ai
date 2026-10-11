@@ -13,6 +13,7 @@ import { agentRoutes } from "./routes/agent.routes.js";
 import { nearbyRoutes } from "./routes/nearby.routes.js";
 import { requestId } from "./middleware/requestId.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { fail } from "./lib/respond.js";
 import { env } from "./env.js";
 import { logger } from "./lib/logger.js";
 import { googleAuthEnabled } from "./auth/google.js";
@@ -47,34 +48,39 @@ app.use(
     exposedHeaders: ["X-Request-Id", "RateLimit"],
   })
 );
+// Layer 25 — canonical base path is /api/v1. Health stays unversioned
+// (probes must not break across versions).
 const ENDPOINTS = [
   "GET  /health",
-  "POST /auth/signup",
-  "POST /auth/signin",
-  "POST /auth/refresh",
-  "POST /auth/signout",
-  "GET  /auth/me",
-  "POST /auth/google",
-  "POST /auth/forgot-password",
-  "POST /auth/reset-password",
-  "GET  /auth/favorites",
-  "POST /auth/favorites",
-  "DELETE /auth/favorites/:restaurant_id",
-  "GET  /nearby",
-  "POST /agent",
-  "POST /extract-persona",
-  "POST /update-preference",
-  "POST /recommend",
-  "POST /generate-review",
-  "POST /chat",
-  "GET  /chat/:sessionId",
-  "DELETE /chat/:sessionId",
+  "POST /api/v1/auth/signup",
+  "POST /api/v1/auth/signin",
+  "POST /api/v1/auth/refresh",
+  "POST /api/v1/auth/signout",
+  "GET  /api/v1/auth/me",
+  "POST /api/v1/auth/google",
+  "POST /api/v1/auth/forgot-password",
+  "POST /api/v1/auth/reset-password",
+  "GET  /api/v1/auth/favorites",
+  "POST /api/v1/auth/favorites",
+  "DELETE /api/v1/auth/favorites/:restaurant_id",
+  "GET  /api/v1/nearby",
+  "POST /api/v1/agent",
+  "POST /api/v1/extract-persona",
+  "POST /api/v1/update-preference",
+  "POST /api/v1/recommend",
+  "POST /api/v1/generate-review",
+  "POST /api/v1/chat",
+  "GET  /api/v1/chat/:sessionId",
+  "DELETE /api/v1/chat/:sessionId",
 ];
-const limiterHandler = (req, res) => {
-  res.status(429).json({
-    success: false,
-    error: { code: "RATE_LIMITED", message: "Too many requests, please try again later." },
+// Layer 20 — the unified failure shape lives in lib/respond.js.
+const limiterHandler = (windowSec) => (req, res) => {
+  fail(res, {
+    status: 429,
+    code: "RATE_LIMITED",
+    message: "Too many requests, please try again later.",
     requestId: req.id,
+    retryAfterSec: windowSec,
   });
 };
 
@@ -84,7 +90,7 @@ const apiLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
   skip: (req) => req.path === "/health", // probes never throttled
-  handler: limiterHandler,
+  handler: limiterHandler(900),
 });
 
 const llmLimiter = rateLimit({
@@ -92,7 +98,7 @@ const llmLimiter = rateLimit({
   limit: env.RATE_LIMIT_LLM_MAX,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  handler: limiterHandler,
+  handler: limiterHandler(60),
 });
 
 app.use(apiLimiter);
@@ -107,6 +113,7 @@ app.get("/health", (_req, res) => {
     status: "ok",
     service: "NaijaTaste AI",
     version: "2.0.0",
+    api: "/api/v1",
     timestamp: new Date().toISOString(),
     features: { google_auth: googleAuthEnabled() },
     endpoints: ENDPOINTS,
@@ -114,21 +121,25 @@ app.get("/health", (_req, res) => {
 });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
-app.use("/", authRoutes);
-app.use("/", agentRoutes);
-app.use("/", nearbyRoutes);
-app.use("/", personaRoutes);
-app.use("/", recommendRoutes);
-app.use("/", reviewRoutes);
-app.use("/", chatRoutes);
+// Canonical: /api/v1. Legacy unprefixed mounts stay until clients migrate
+// (tracked in LAYERS.md layer 25); both serve identical handlers.
+for (const base of ["/api/v1", "/"]) {
+  app.use(base, authRoutes);
+  app.use(base, agentRoutes);
+  app.use(base, nearbyRoutes);
+  app.use(base, personaRoutes);
+  app.use(base, recommendRoutes);
+  app.use(base, reviewRoutes);
+  app.use(base, chatRoutes);
+}
 app.use(express.static('public'))
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: { code: "ROUTE_NOT_FOUND", message: `Route ${req.method} ${req.path} not found` },
-    available_endpoints: ENDPOINTS,
+  fail(res, {
+    status: 404,
+    code: "ROUTE_NOT_FOUND",
+    message: `Route ${req.method} ${req.path} not found`,
     requestId: req.id,
   });
 });

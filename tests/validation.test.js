@@ -44,17 +44,17 @@ describe('HTTP validation failures use the 003 contract', () => {
   it('POST /chat with non-string message → 400 VALIDATION_ERROR + details path', async () => {
     const res = await request(app).post('/chat').send({ message: 42 }).expect(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
-    expect(res.body.details?.[0]?.path).toBe('message');
+    expect(res.body.error.details?.[0]?.path).toBe('message');
   });
 
   it('POST /extract-persona with short raw_text → 400 with path raw_text', async () => {
     const res = await request(app).post('/extract-persona').send({ raw_text: 'no' }).expect(400);
-    expect(res.body.details?.[0]?.path).toBe('raw_text');
+    expect(res.body.error.details?.[0]?.path).toBe('raw_text');
   });
 
   it('POST /recommend missing persona → 400 with path persona', async () => {
     const res = await request(app).post('/recommend').send({}).expect(400);
-    expect(res.body.details?.[0]?.path).toBe('persona');
+    expect(res.body.error.details?.[0]?.path).toBe('persona');
   });
 
   it('POST /update-preference with rating 4.5 → 400 (integer enforced)', async () => {
