@@ -3,6 +3,12 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { randomUUID } from 'crypto';
 import { logger } from '../lib/logger.js';
+import { env } from '../env.js';
+
+export const isAdminEmail = (email) => {
+  const list = (env.ADMIN_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  return list.includes((email || '').toLowerCase().trim());
+};
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '../data');
@@ -35,6 +41,7 @@ export const createUser = ({ email, passwordHash, name }) => {
     email: email.toLowerCase().trim(),
     name: name.trim(),
     password_hash: passwordHash,
+    role: isAdminEmail(email) ? 'admin' : 'user',
     created_at: now,
     last_login: null,
     refresh_tokens: {},
@@ -66,6 +73,7 @@ export const upsertGoogleUser = ({ email, name, picture, sub }) => {
       password_hash: null,
       google_sub: sub,
       picture: picture || null,
+      role: isAdminEmail(email) ? 'admin' : 'user',
       created_at: now,
       last_login: now,
       refresh_tokens: {},
@@ -151,7 +159,13 @@ export const sanitize = (user) => ({
   email: user.email,
   name: user.name,
   picture: user.picture || null,
+  role: user.role || (isAdminEmail(user.email) ? 'admin' : 'user'),
   created_at: user.created_at,
   last_login: user.last_login,
   favorites: user.favorites || [],
 });
+
+export const countUsers = () => Object.keys(store).length;
+
+export const countFavorites = () =>
+  Object.values(store).reduce((n, u) => n + (u.favorites || []).length, 0);

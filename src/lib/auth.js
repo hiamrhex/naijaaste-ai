@@ -30,12 +30,23 @@ const parseError = async (res) => {
   } catch { return 'Request failed'; }
 };
 
+// Last X-Request-Id seen from the API — auto-attached to feedback reports (D).
+let lastRequestId = null;
+export const getLastRequestId = () => lastRequestId;
+const track = (res) => {
+  try {
+    const v = res.headers?.get?.('x-request-id');
+    if (v) lastRequestId = v;
+  } catch { /* non-Response in tests */ }
+  return res;
+};
+
 export const signup = async ({ name, email, password }) => {
-  const res = await fetch(`${API}/auth/signup`, {
+  const res = track(await fetch(`${API}/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password }),
-  });
+  }));
   if (!res.ok) throw new Error(await parseError(res));
   const data = await res.json();
   setAuth({ user: data.user, accessToken: data.accessToken });
@@ -43,11 +54,11 @@ export const signup = async ({ name, email, password }) => {
 };
 
 export const signin = async ({ email, password }) => {
-  const res = await fetch(`${API}/auth/signin`, {
+  const res = track(await fetch(`${API}/auth/signin`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
-  });
+  }));
   if (!res.ok) throw new Error(await parseError(res));
   const data = await res.json();
   setAuth({ user: data.user, accessToken: data.accessToken });
@@ -55,11 +66,11 @@ export const signin = async ({ email, password }) => {
 };
 
 export const googleSignIn = async (credential) => {
-  const res = await fetch(`${API}/auth/google`, {
+  const res = track(await fetch(`${API}/auth/google`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ credential }),
-  });
+  }));
   if (!res.ok) throw new Error(await parseError(res));
   const data = await res.json();
   setAuth({ user: data.user, accessToken: data.accessToken });
@@ -68,7 +79,7 @@ export const googleSignIn = async (credential) => {
 
 export const signout = async () => {
   try {
-    await fetch(`${API}/auth/signout`, { method: 'POST', credentials: 'include' });
+    track(await fetch(`${API}/auth/signout`, { method: 'POST', credentials: 'include' }));
   } finally {
     dropAuth();
   }
@@ -76,22 +87,22 @@ export const signout = async () => {
 
 // Returns { message, dev_otp? } — dev_otp only present outside production.
 export const forgotPassword = async ({ email }) => {
-  const res = await fetch(`${API}/auth/forgot-password`, {
+  const res = track(await fetch(`${API}/auth/forgot-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
-  });
+  }));
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error?.message || 'Request failed');
   return data;
 };
 
 export const resetPassword = async ({ email, otp, newPassword }) => {
-  const res = await fetch(`${API}/auth/reset-password`, {
+  const res = track(await fetch(`${API}/auth/reset-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, otp, new_password: newPassword }),
-  });
+  }));
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error?.message || 'Request failed');
   return data;
@@ -124,10 +135,10 @@ export const removeFavorite = async (restaurantId) => {
 export const tryRefresh = async () => {
   if (!current) return false;
   try {
-    const res = await fetch(`${API}/auth/refresh`, {
+    const res = track(await fetch(`${API}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
-    });
+    }));
     if (!res.ok) return false;
     const data = await res.json();
     setAuth({ user: data.user, accessToken: data.accessToken });
@@ -145,7 +156,7 @@ export const authFetch = async (path, options = {}) => {
       ...(options.headers || {}),
       Authorization: `Bearer ${current.accessToken}`,
     },
-  });
+  }).then(track);
 
   let res = await doFetch();
   if (res.status === 401) {

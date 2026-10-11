@@ -8,6 +8,9 @@ import { personaRoutes } from "./routes/persona.routes.js";
 import { recommendRoutes } from "./routes/recommend.routes.js";
 import { reviewRoutes } from "./routes/review.routes.js";
 import { chatRoutes } from "./routes/chat.routes.js";
+import { ratingsRoutes } from "./routes/ratings.routes.js";
+import { reportsRoutes } from "./routes/reports.routes.js";
+import { adminRoutes } from "./routes/admin.routes.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { agentRoutes } from "./routes/agent.routes.js";
 import { nearbyRoutes } from "./routes/nearby.routes.js";
@@ -72,6 +75,12 @@ const ENDPOINTS = [
   "POST /api/v1/chat",
   "GET  /api/v1/chat/:sessionId",
   "DELETE /api/v1/chat/:sessionId",
+  "POST /api/v1/ratings",
+  "GET  /api/v1/ratings",
+  "POST /api/v1/reports",
+  "GET  /api/v1/admin/stats",
+  "GET  /api/v1/admin/reports",
+  "PATCH /api/v1/admin/reports/:ticket",
 ];
 // Layer 20 — the unified failure shape lives in lib/respond.js.
 const limiterHandler = (windowSec) => (req, res) => {
@@ -131,6 +140,9 @@ for (const base of ["/api/v1", "/"]) {
   app.use(base, recommendRoutes);
   app.use(base, reviewRoutes);
   app.use(base, chatRoutes);
+  app.use(base, ratingsRoutes);
+  app.use(base, reportsRoutes);
+  app.use(base, adminRoutes);
 }
 app.use(express.static('public'))
 
