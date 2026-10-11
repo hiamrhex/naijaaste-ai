@@ -34,7 +34,15 @@ export const restaurantSchema = z.object({
   signature_dishes: z.array(z.any()),
   social_tags: z.array(z.any()),
   price_range_naira: z.object({ min: z.number(), max: z.number() }),
+  // Our record links to Google by place_id ONLY (policy: place_id is exempt
+  // from caching restrictions and may be stored indefinitely; all other
+  // Google content lives exclusively in the ephemeral memory cache).
+  google_place_id: z.string().min(10).optional(),
 }).passthrough();
+
+// Google place_id format guard for our stored records.
+export const googlePlaceIdSchema = z.string().min(10).max(255)
+  .regex(/^[A-Za-z0-9_-]+$/, 'invalid google place_id');
 
 export const chatBodySchema = z.object({
   message: z.string({ required_error: 'message is required' })
