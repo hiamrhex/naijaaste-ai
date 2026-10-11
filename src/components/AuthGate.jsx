@@ -205,7 +205,7 @@ export default function AuthGate({ onAuth }) {
             borderRadius: 9, padding: '10px 12px', fontSize: 12.5, color: '#F97316',
             marginBottom: 12, textAlign: 'center',
           }} role="status">
-            Dev mode (no RESEND_API_KEY) — your code:{' '}
+            Dev mode (no SMTP configured) — your code:{' '}
             <strong style={{ fontFamily: 'ui-monospace, monospace', fontSize: 16, letterSpacing: 3 }}>{devOtp}</strong>
           </div>
         )}

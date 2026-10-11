@@ -1,11 +1,29 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// ─── Email delivery (Resend) ─────────────────────────────────────────────────
-// Dev fallback: when RESEND_API_KEY is absent (or delivery fails outside prod),
+// ─── Email delivery (SMTP via nodemailer) ───────────────────────────────────
+// Requires SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS (see .env.example).
+// Dev fallback: when SMTP is not configured (or delivery fails outside prod),
 // the OTP is console-logged and returned as `dev_otp` so local flows still work.
 // Production NEVER returns dev_otp.
 
-const FROM = process.env.RESEND_FROM || 'NaijaTaste AI <onboarding@resend.dev>';
+const FROM = process.env.SMTP_FROM || 'NaijaTaste AI <noreply@localhost>';
+
+const smtpConfigured = () =>
+  Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+
+let transporter = null;
+const getTransporter = () => {
+  if (!transporter) {
+    const port = Number(process.env.SMTP_PORT || 587);
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+  }
+  return transporter;
+};
 
 const otpHtml = ({ name, code }) => `
 <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#080810;padding:32px 16px;color:#F9FAFB">
@@ -28,31 +46,28 @@ const otpHtml = ({ name, code }) => `
 </div>`;
 
 /**
- * Send a password-reset OTP email.
+ * Send a password-reset OTP email over SMTP.
  * Returns { delivered: boolean, dev_otp?: string }.
  * dev_otp is only ever set outside production.
  */
 export const sendOtpEmail = async ({ to, name, code }) => {
   const isProd = process.env.NODE_ENV === 'production';
-  const apiKey = process.env.RESEND_API_KEY;
 
-  if (!apiKey) {
-    console.log(`[email] RESEND_API_KEY not set — OTP for ${to}: ${code}`);
+  if (!smtpConfigured()) {
+    console.log(`[email] SMTP not configured — OTP for ${to}: ${code}`);
     return { delivered: false, ...(isProd ? {} : { dev_otp: code }) };
   }
 
   try {
-    const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({
+    await getTransporter().sendMail({
       from: FROM,
       to,
       subject: 'Your NaijaTaste AI reset code',
       html: otpHtml({ name, code }),
     });
-    if (error) throw new Error(error.message);
     return { delivered: true };
   } catch (err) {
-    console.error('[email] Resend delivery failed:', err.message);
+    console.error('[email] SMTP delivery failed:', err.message);
     if (isProd) return { delivered: false };
     return { delivered: false, dev_otp: code };
   }

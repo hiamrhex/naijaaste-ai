@@ -1,1 +1,32 @@
-{}
+{
+  "fb834aa4-4989-4967-aa40-7064848419ac": {
+    "session_id": "fb834aa4-4989-4967-aa40-7064848419ac",
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "Find me a spicy buka in Lagos under 5000 naira",
+        "timestamp": "2026-10-11T03:17:34.183Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Head straight to **Buka Hut Lagos** in Yaba! \n\nIt’s an authentic, bustling Yoruba buka serving proper hot, peppery dishes well within your ₦5,000 budget (meals range between ₦1,500 – ₦5,000). \n\nOrder their legendary **Abula** (piping hot àmàlà drowned in gbegiri, ewedu, and that fiery buka stew with assorted meat). The àmàlà is silky smooth, the pepper level hits all the right spots, and the energy is pure, unfiltered Lagos. \n\nGo hungry—you won't regret it!",
+        "timestamp": "2026-10-11T03:17:34.183Z"
+      }
+    ],
+    "extracted_persona": {
+      "preference_history": [
+        {
+          "signal_id": "7e001ebc-7bea-4b60-a1dd-ac55d965277a",
+          "dimension": "spice",
+          "value": "high",
+          "rating": 5,
+          "recorded_at": "2026-10-11T03:17:26.385Z"
+        }
+      ]
+    },
+    "stage": "gather",
+    "recommendations": null,
+    "created_at": "2026-10-11T03:17:21.251Z",
+    "last_active": "2026-10-11T03:17:34.183Z"
+  }
+}
