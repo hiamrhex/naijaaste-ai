@@ -13,17 +13,39 @@ import { agentRoutes } from "./routes/agent.routes.js";
 import { nearbyRoutes } from "./routes/nearby.routes.js";
 import { requestId } from "./middleware/requestId.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { env } from "./env.js";
+import { logger } from "./lib/logger.js";
 
 export const app = express();
 
 // ─── Security Middleware ──────────────────────────────────────────────────────
-app.set("trust proxy", 1);
+app.set("trust proxy", env.TRUST_PROXY);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
-app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" })); // prevent oversized payloads
 app.use(requestId);
+
+// CORS allowlist — unset = open (reflect any origin), loudly logged (parity
+// until the operator sets CORS_ORIGIN in production)
+const allowedOrigins = (env.CORS_ORIGIN || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+if (allowedOrigins.length === 0) {
+  logger.warn("CORS_ORIGIN not set — allowing requests from any origin");
+}
+
+app.use(
+  cors({
+    origin: allowedOrigins.length === 0 ? true : allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "DELETE"],
+    allowedHeaders: ["Content-Type", "X-Request-Id"],
+    exposedHeaders: ["X-Request-Id", "RateLimit"],
+  })
+);
 const ENDPOINTS = [
   "GET  /health",
   "POST /auth/signup",
@@ -46,14 +68,35 @@ const ENDPOINTS = [
   "GET  /chat/:sessionId",
   "DELETE /chat/:sessionId",
 ];
+const limiterHandler = (req, res) => {
+  res.status(429).json({
+    success: false,
+    error: { code: "RATE_LIMITED", message: "Too many requests, please try again later." },
+    requestId: req.id,
+  });
+};
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: env.RATE_LIMIT_API_MAX,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip: (req) => req.path === "/health", // probes never throttled
+  handler: limiterHandler,
+});
+
+const llmLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: env.RATE_LIMIT_LLM_MAX,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: limiterHandler,
+});
+
+app.use(apiLimiter);
 app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 600,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, error: { code: "RATE_LIMITED", message: "Too many requests. Slow down." } },
-  })
+  ["/chat", "/extract-persona", "/update-preference", "/recommend", "/generate-review", "/agent"],
+  llmLimiter
 );
 
 // ─── Health Check ─────────────────────────────────────────────────────────────

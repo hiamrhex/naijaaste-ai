@@ -14,6 +14,10 @@ const EnvSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+  RATE_LIMIT_API_MAX: z.coerce.number().int().positive().default(600),
+  RATE_LIMIT_LLM_MAX: z.coerce.number().int().positive().default(10),
+  CORS_ORIGIN: z.string().optional(),
+  TRUST_PROXY: z.coerce.number().int().nonnegative().default(1),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

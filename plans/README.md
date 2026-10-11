@@ -23,7 +23,7 @@ and push to `origin/master`. Never push if any Done criterion fails; stop and re
 | 003 | Error contract + correct status codes (layers 19/20/26/27) | P1 | M | 002 | DONE |
 | 004 | Structured logging, request id, graceful shutdown (layers 16/21/22/23) | P1 | M | 003 | DONE |
 | 005 | Zod contracts: fail-fast env + request validation (layers 2/18) | P1 | M | 003 | DONE |
-| 006 | Rate limiting + CORS allowlist (layer 1 + production config) | P1 | S | 005 | DEFERRED |
+| 006 | Rate limiting + CORS allowlist (layer 1 + production config) | P1 | S | 005 | DONE |
 | 007 | PRD Phase 0 foundation: TS agent server, Postgres, model seam, CI, staging | P0 | L | PRD v1.0 | IN PROGRESS |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale) | DEFERRED (with reason).
@@ -42,23 +42,23 @@ section approved by the operator 2026-10-09 — executing.
 
 | Layer | Verdict | Where handled |
 |-------|---------|---------------|
-| 1 rate limiting | GAP | plan 006 |
-| 2 input validation | GAP | plan 005 |
-| 3–7 auth cluster | N/A (rejected below) | — |
+| 1 rate limiting | PASS — API+LLM limiters, `/health` exempt, 429 contract (src/app.js) | plan 006 |
+| 2 input validation | PASS — zod schemas + validate middleware (src/schemas, src/middleware/validate.js) | plan 005 |
+| 3–7 auth cluster | PASS — JWT access/refresh, bcrypt, auth middleware (src/auth/) | — |
 | 8 secret storage | PASS — `.env` ignored since `b739eff`, never committed | — |
 | 9 identifiers | PASS — uuidv4 for sessions/personas/signals | — |
 | 10–14, 17 DB/money layers | N/A (rejected below) | — |
 | 15 idempotency | PARTIAL — retried LLM calls are idempotent; note only | — |
-| 16 graceful shutdown | GAP | plan 004 |
-| 18 fail-fast config | GAP | plan 005 |
-| 19 typed errors | GAP | plan 003 |
-| 20 error/response shape | GAP (`detail: error.message` leaks, `session_persisted: true` asserted early) | plan 003 |
-| 21 structured logging | GAP (12 `console.*` sites in server code) | plan 004 |
-| 22 request id | GAP | plan 003 (id) + 004 (child logger) |
-| 23 log meta / stacks | GAP (stacks dropped: `error.message` only) | plan 004 |
-| 24 health endpoint | PASS (`src/app.js:21-37`; no deep deps to probe) | — |
+| 16 graceful shutdown | PASS — SIGTERM/SIGINT drain, 10s force-exit (src/server.js) | plan 004 |
+| 18 fail-fast config | PASS — zod env schema, exit-1 on missing required keys (src/env.js) | plan 005 |
+| 19 typed errors | PASS — ApiError helpers (src/lib/errors.js) | plan 003 |
+| 20 error/response shape | PASS — uniform `{success,error{code,message,details?},requestId}`; no leaks | plan 003 |
+| 21 structured logging | PASS — pino + redaction, zero `console.*` outside evaluate.js | plan 004 |
+| 22 request id | PASS — X-Request-Id in, `req.log` child, echoed in bodies | plan 003+004 |
+| 23 log meta / stacks | PASS — `req.log.error({err})` keeps stacks; 5xx logged, 4xx not | plan 004 |
+| 24 health endpoint | PASS (`GET /health` in ENDPOINTS; exempt from limiter) | — |
 | 25 versioned path | DEFERRED (rejected below) | — |
-| 26/27 status codes | GAP (200 on business failures, unreachable 500 handler) | plan 003 |
+| 26/27 status codes | PASS — 400/404/429/5xx mapped correctly; contract 404 | plan 003 |
 | 28 roles | N/A (rejected below) | — |
 
 ## Dependency notes
