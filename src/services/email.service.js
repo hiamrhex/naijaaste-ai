@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { logger } from '../lib/logger.js';
 
 // ─── Email delivery (SMTP via nodemailer) ───────────────────────────────────
 // Requires SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS (see .env.example).
@@ -54,8 +55,12 @@ export const sendOtpEmail = async ({ to, name, code }) => {
   const isProd = process.env.NODE_ENV === 'production';
 
   if (!smtpConfigured()) {
-    console.log(`[email] SMTP not configured — OTP for ${to}: ${code}`);
-    return { delivered: false, ...(isProd ? {} : { dev_otp: code }) };
+    if (isProd) {
+      logger.warn('smtp not configured — otp email skipped in production');
+      return { delivered: false };
+    }
+    logger.warn({ to, otp: code }, 'smtp not configured — dev otp fallback');
+    return { delivered: false, dev_otp: code };
   }
 
   try {
@@ -67,7 +72,7 @@ export const sendOtpEmail = async ({ to, name, code }) => {
     });
     return { delivered: true };
   } catch (err) {
-    console.error('[email] SMTP delivery failed:', err.message);
+    logger.error({ err }, 'smtp delivery failed');
     if (isProd) return { delivered: false };
     return { delivered: false, dev_otp: code };
   }

@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { logger } from "../lib/logger.js";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -42,7 +43,10 @@ const withRetry = async (fn, retries = 3, baseDelay = 1000) => {
 
       // Exponential backoff with jitter
       const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
-      console.warn(`LLM call failed (attempt ${attempt}/${retries}). Retrying in ${Math.round(delay)}ms...`);
+      logger.warn(
+        { attempt, retries, delay_ms: Math.round(delay), status: error?.status },
+        'llm call failed, retrying'
+      );
       await sleep(delay);
     }
   }
@@ -87,7 +91,7 @@ export const callLLMJson = async (prompt, tokenLimit = TOKEN_LIMITS.default) => 
     return JSON.parse(clean);
   } catch (parseError) {
     // Corrective retry — tell LLM exactly what went wrong
-    console.warn('JSON parse failed. Attempting corrective retry...');
+    logger.warn({ err: parseError }, 'llm json parse failed, corrective retry');
 
     const correctivePrompt = `
 Your previous response failed JSON parsing with this error: ${parseError.message}

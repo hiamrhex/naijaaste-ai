@@ -1,6 +1,7 @@
 import { buildChatSystemPrompt, buildChatUserPrompt } from '../prompts/chat.prompt.js';
 import { callLLMJson } from './llm.service.js';
 import { getRecommendations } from './recommend.service.js';
+import { logger } from '../lib/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 import { readFileSync, writeFile, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -45,7 +46,7 @@ const saveSessions = (sessions) => {
           'utf-8',
           (err) => {
             if (err) {
-              console.error('[chat] Session persist failed:', err.message);
+              logger.error({ err }, 'session persist failed');
               resolve(false);
             } else {
               resolve(true);
@@ -162,7 +163,7 @@ export const processChat = async (sessionId, userMessage) => {
       recommendations = await getRecommendations(fullPersona);
       session.recommendations = recommendations;
     } catch (err) {
-      console.error('[chat] Recommendation failed:', err.message);
+      logger.error({ err }, 'recommendation failed in chat turn');
     }
   }
 

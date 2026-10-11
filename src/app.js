@@ -56,10 +56,6 @@ app.use(
     message: { success: false, error: { code: "RATE_LIMITED", message: "Too many requests. Slow down." } },
   })
 );
-app.use((req, _res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {

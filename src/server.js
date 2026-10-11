@@ -1,9 +1,10 @@
 import { app } from './app.js';
+import { logger } from './lib/logger.js';
 
 const PORT = process.env.PORT || 3000;
 
 const server = app.listen(PORT, () => {
-  console.log(`NaijaTaste AI listening on port ${PORT}`);
+  logger.info({ port: PORT }, 'NaijaTaste AI listening');
 });
 
 // Graceful shutdown — stop accepting, let in-flight finish, then exit
@@ -11,23 +12,24 @@ let shuttingDown = false;
 const shutdown = (signal) => {
   if (shuttingDown) return;
   shuttingDown = true;
-  console.log(`[shutdown] ${signal} received — draining connections`);
+  logger.info({ signal }, 'shutdown requested');
   server.close(() => {
-    console.log('[shutdown] server closed cleanly');
+    logger.info({ signal }, 'shutdown complete');
     process.exit(0);
   });
+  // Bounded drain: force-exit if keep-alive connections hang past 10s
   setTimeout(() => {
-    console.error('[shutdown] forced exit after 10s drain timeout');
+    logger.warn({ signal }, 'shutdown timed out, forcing exit');
     process.exit(1);
-  }, 10000).unref();
+  }, 10_000).unref();
 };
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('unhandledRejection', (reason) => {
-  console.error('[fatal] unhandledRejection:', reason);
+  logger.error({ err: reason }, 'unhandledRejection');
 });
 process.on('uncaughtException', (err) => {
-  console.error('[fatal] uncaughtException:', err.message);
+  logger.error({ err }, 'uncaughtException');
   shutdown('uncaughtException');
 });

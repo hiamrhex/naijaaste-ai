@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { randomUUID } from 'crypto';
+import { logger } from '../lib/logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '../data');
@@ -22,7 +23,7 @@ const persist = () => {
   try {
     writeFileSync(USERS_FILE, JSON.stringify(store, null, 2), 'utf-8');
   } catch (err) {
-    console.error('[auth] User persist failed:', err.message);
+    logger.error({ err }, 'user persist failed');
   }
 };
 

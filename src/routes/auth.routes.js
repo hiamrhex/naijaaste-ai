@@ -79,7 +79,7 @@ router.post('/auth/signup', authLimiter, async (req, res) => {
     const user = createUser({ email, passwordHash, name });
     return issueTokens(user, res, 201);
   } catch (err) {
-    console.error('[auth] signup error:', err.message);
+    req.log?.error({ err }, 'auth signup failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signup failed' } });
   }
 });
@@ -102,7 +102,7 @@ router.post('/auth/signin', authLimiter, async (req, res) => {
     updateUser(user.id, { last_login: new Date().toISOString() });
     return issueTokens(sanitize(user), res);
   } catch (err) {
-    console.error('[auth] signin error:', err.message);
+    req.log?.error({ err }, 'auth signin failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signin failed' } });
   }
 });
@@ -127,7 +127,7 @@ router.post('/auth/refresh', authLimiter, (req, res) => {
     if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
       return res.status(401).json({ success: false, error: { code: 'INVALID_REFRESH', message: 'Invalid or expired refresh token' } });
     }
-    console.error('[auth] refresh error:', err.message);
+    req.log?.error({ err }, 'auth refresh failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Token refresh failed' } });
   }
 });
@@ -144,7 +144,7 @@ router.post('/auth/signout', (req, res) => {
     res.clearCookie('refreshToken', { path: '/auth' });
     return res.json({ success: true });
   } catch (err) {
-    console.error('[auth] signout error:', err.message);
+    req.log?.error({ err }, 'auth signout failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signout failed' } });
   }
 });
@@ -181,7 +181,7 @@ router.post('/auth/forgot-password', resetLimiter, async (req, res) => {
       ...(delivery.dev_otp ? { dev_otp: delivery.dev_otp } : {}),
     });
   } catch (err) {
-    console.error('[auth] forgot-password error:', err.message);
+    req.log?.error({ err }, 'auth forgot-password failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request' } });
   }
 });
@@ -216,7 +216,7 @@ router.post('/auth/reset-password', resetLimiter, async (req, res) => {
     revokeAllRefreshTokens(user.id); // password change kills every session
     return res.json({ success: true, message: 'Password updated — sign in with your new password.' });
   } catch (err) {
-    console.error('[auth] reset-password error:', err.message);
+    req.log?.error({ err }, 'auth reset-password failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request' } });
   }
 });

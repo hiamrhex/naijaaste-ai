@@ -1,4 +1,5 @@
 import { ApiError } from '../lib/errors.js';
+import { logger } from '../lib/logger.js';
 
 export const errorHandler = (err, req, res, _next) => {
   let status = 500;
@@ -20,7 +21,8 @@ export const errorHandler = (err, req, res, _next) => {
   }
 
   if (status >= 500) {
-    console.error('[ERROR]', err); // plan 004 swaps this for req.log
+    const log = req.log || logger;
+    log.error({ err }, 'unhandled error');
   }
 
   res.status(status).json({
