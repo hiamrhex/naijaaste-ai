@@ -34,7 +34,7 @@ const loadSessions = () => {
   }
 };
 
-// Async write with queue — prevents race conditions
+// Async write with queue — prevents race conditions; resolves true/false
 const saveSessions = (sessions) => {
   writeQueue = writeQueue.then(
     () =>
@@ -44,12 +44,17 @@ const saveSessions = (sessions) => {
           JSON.stringify(sessions, null, 2),
           'utf-8',
           (err) => {
-            if (err) console.error('[chat] Session persist failed:', err.message);
-            resolve();
+            if (err) {
+              console.error('[chat] Session persist failed:', err.message);
+              resolve(false);
+            } else {
+              resolve(true);
+            }
           }
         );
       })
   );
+  return writeQueue;
 };
 
 // Load on startup
@@ -161,9 +166,9 @@ export const processChat = async (sessionId, userMessage) => {
     }
   }
 
-  // Persist asynchronously — non-blocking, queued
+  // Persist — await the queued write so the flag is honest
   sessionStore[sessionId] = session;
-  saveSessions(sessionStore);
+  const persisted = await saveSessions(sessionStore);
 
   return {
     success: true,
@@ -176,7 +181,7 @@ export const processChat = async (sessionId, userMessage) => {
     meta: {
       turn_count: session.conversation_history.filter(m => m.role === 'user').length,
       persona_complete: isPersonaComplete(session.extracted_persona),
-      session_persisted: true,
+      session_persisted: persisted,
       last_active: session.last_active,
       latency_ms: Date.now() - startTime
     }
@@ -191,8 +196,11 @@ export const saveSession = (session) => {
   return session;
 };
 
-export const clearSession = (sessionId) => {
+export const clearSession = async (sessionId) => {
+  if (!sessionStore[sessionId]) {
+    return { success: false, session_id: sessionId };
+  }
   delete sessionStore[sessionId];
-  saveSessions(sessionStore);
-  return { success: true, session_id: sessionId };
+  const persisted = await saveSessions(sessionStore);
+  return { success: true, session_id: sessionId, persisted };
 };

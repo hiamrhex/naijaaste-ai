@@ -1,53 +1,57 @@
 import { Router } from 'express';
 import { processChat, getSession, clearSession } from '../services/chat.service.js';
+import { badRequest, notFound } from '../lib/errors.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
 // ─── Start or Continue Chat ───────────────────────────────────────────────────
-router.post('/chat', async (req, res) => {
+router.post('/chat', async (req, res, next) => {
   try {
     const { message, session_id } = req.body;
 
     if (!message || typeof message !== 'string' || message.trim().length < 1) {
-      return res.status(400).json({
-        success: false,
-        error: 'message is required'
-      });
+      return next(badRequest('message is required'));
     }
 
     // Use provided session_id or generate new one
     const sessionId = session_id || uuidv4();
     const result = await processChat(sessionId, message.trim());
+    if (!result.success) {
+      // processChat returns success:false only for the >500-char guard
+      return next(badRequest(result.error));
+    }
 
     return res.status(200).json(result);
-
-  } catch (error) {
-    console.error('[chat] Error:', error.message);
-    return res.status(500).json({
-      success: false,
-      error: 'Chat processing failed',
-      detail: error.message
-    });
+  } catch (err) {
+    next(err);
   }
 });
 
 // ─── Get Session State ────────────────────────────────────────────────────────
-router.get('/chat/:sessionId', (req, res) => {
-  const session = getSession(req.params.sessionId);
-  if (!session) {
-    return res.status(404).json({
-      success: false,
-      error: 'Session not found'
-    });
+router.get('/chat/:sessionId', (req, res, next) => {
+  try {
+    const session = getSession(req.params.sessionId);
+    if (!session) {
+      return next(notFound('SESSION_NOT_FOUND', 'Session not found'));
+    }
+    return res.status(200).json({ success: true, session });
+  } catch (err) {
+    next(err);
   }
-  return res.status(200).json({ success: true, session });
 });
 
 // ─── Clear Session ────────────────────────────────────────────────────────────
-router.delete('/chat/:sessionId', (req, res) => {
-  const result = clearSession(req.params.sessionId);
-  return res.status(200).json(result);
+router.delete('/chat/:sessionId', async (req, res, next) => {
+  try {
+    const result = await clearSession(req.params.sessionId);
+    if (!result.success) {
+      return next(notFound('SESSION_NOT_FOUND', 'Session not found'));
+    }
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
 });
 
 export { router as chatRoutes };

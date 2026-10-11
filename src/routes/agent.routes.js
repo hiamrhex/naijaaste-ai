@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { runAgent } from '../agent/agent.js';
 import { requireAuth } from '../auth/middleware.js';
 import { getSession, saveSession } from '../services/chat.service.js';
+import { ApiError } from '../lib/errors.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
@@ -50,10 +51,26 @@ router.post('/agent', requireAuth, async (req, res) => {
       meta: { latency_ms: Date.now() - startTime, steps: trace.length, agent: true },
     });
   } catch (err) {
-    console.error('[agent] Error:', err.message);
+    if (err instanceof ApiError) return res.status(err.status).json({
+      success: false, error: { code: err.code, message: err.message }, requestId: req.id,
+    });
+    if (typeof err?.status === 'number') {
+      // GoogleGenAI ApiError — map to the contract, never leak the SDK message
+      return res.status(502).json({
+        success: false,
+        error: {
+          code: err.status === 400 || err.status === 401 ? 'UPSTREAM_AUTH' : 'UPSTREAM_FAILURE',
+          message: err.status === 400 || err.status === 401
+            ? 'Upstream LLM authentication failed'
+            : 'Upstream LLM request failed',
+        },
+        requestId: req.id,
+      });
+    }
     return res.status(500).json({
       success: false,
-      error: { code: err.status === 400 ? 'UPSTREAM_AUTH' : 'AGENT_FAILED', message: 'Agent run failed', detail: err.message },
+      error: { code: 'AGENT_FAILED', message: 'Agent run failed' },
+      requestId: req.id,
     });
   }
 });

@@ -1,19 +1,17 @@
 import { Router } from 'express';
 import { extractPersona } from '../services/persona.service.js';
+import { badRequest } from '../lib/errors.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
 // ─── Extract Persona ──────────────────────────────────────────────────────────
-router.post('/extract-persona', async (req, res) => {
+router.post('/extract-persona', async (req, res, next) => {
   try {
     const { raw_text } = req.body;
 
     if (!raw_text || typeof raw_text !== 'string' || raw_text.trim().length < 10) {
-      return res.status(400).json({
-        success: false,
-        error: 'raw_text is required and must be at least 10 characters'
-      });
+      return next(badRequest('raw_text is required and must be at least 10 characters'));
     }
 
     const persona = await extractPersona(raw_text.trim());
@@ -27,50 +25,34 @@ router.post('/extract-persona', async (req, res) => {
         ready_for: ['recommend', 'generate-review']
       }
     });
-
-  } catch (error) {
-    console.error('[extract-persona] Error:', error.message);
-    return res.status(500).json({
-      success: false,
-      error: 'Persona extraction failed',
-      detail: error.message
-    });
+  } catch (err) {
+    next(err);
   }
 });
 
 // ─── Update Preference ────────────────────────────────────────────────────────
-router.post('/update-preference', async (req, res) => {
+router.post('/update-preference', async (req, res, next) => {
   try {
     const { persona, signal } = req.body;
 
     if (!persona || !signal) {
-      return res.status(400).json({
-        success: false,
-        error: 'Request body must contain both persona and signal objects'
-      });
+      return next(badRequest('Request body must contain both persona and signal objects'));
     }
 
     // Validate signal shape
     const requiredSignalFields = ['dimension', 'value', 'rating'];
     const missingFields = requiredSignalFields.filter(f => signal[f] === undefined);
     if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: `Missing signal fields: ${missingFields.join(', ')}`,
-        expected_signal_shape: {
-          dimension: 'ambience | budget | spice | cuisine | social_context',
-          value: 'the specific value e.g. buka, premium, hot',
-          rating: 'integer 1-5 from user feedback'
-        }
-      });
+      return next(badRequest(`Missing signal fields: ${missingFields.join(', ')}`, [
+        { path: 'signal.dimension', message: 'ambience | budget | spice | cuisine | social_context' },
+        { path: 'signal.value', message: 'the specific value e.g. buka, premium, hot' },
+        { path: 'signal.rating', message: 'integer 1-5 from user feedback' },
+      ]));
     }
 
     // Validate rating range
     if (signal.rating < 1 || signal.rating > 5) {
-      return res.status(400).json({
-        success: false,
-        error: 'signal.rating must be between 1 and 5'
-      });
+      return next(badRequest('signal.rating must be between 1 and 5'));
     }
 
     // Compute recency-aware weight
@@ -123,14 +105,8 @@ router.post('/update-preference', async (req, res) => {
         latest_signal: newSignal
       }
     });
-
-  } catch (error) {
-    console.error('[update-preference] Error:', error.message);
-    return res.status(500).json({
-      success: false,
-      error: 'Preference update failed',
-      detail: error.message
-    });
+  } catch (err) {
+    next(err);
   }
 });
 
