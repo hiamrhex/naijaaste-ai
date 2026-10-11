@@ -26,13 +26,17 @@
     "google-auth-library": "^11.2.0",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",
     "nodemailer": "^10.1.0",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-router": "^8.4.0",
+    "react-router-dom": "^7.18.4",
     "uuid": "^10.0.0",
+    "vite-plugin-pwa": "^2.0.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
