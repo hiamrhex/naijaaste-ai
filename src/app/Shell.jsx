@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import AuthGate from '../components/AuthGate.jsx';
+import { TabBar } from '../components/TabBar.jsx';
 import { useAuth } from './useAuth.js';
 import { useTheme } from './useTheme.js';
 
@@ -34,7 +35,10 @@ export function AuthedOutlet() {
           </div>
         )}
       >
+        <div className="app-main">
         <Outlet />
+      </div>
+      <TabBar />
       </Suspense>
     </Shell>
   );

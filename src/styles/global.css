@@ -156,3 +156,148 @@ textarea::placeholder {
     grid-template-columns: 1fr !important;
   }
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 640px) {
+  .badge-desktop {
+    display: inline-flex !important;
+  }
+}
+
+/* ── Tab bar: bottom tabs on mobile, sidebar on desktop ── */
+.app-main {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+}
+
+.tabbar {
+  position: fixed;
+  z-index: 200;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: stretch;
+  background: var(--header-bg);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+
+.tabbar-brand {
+  display: none;
+}
+
+.tab-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color 0.18s, background 0.18s, transform 0.12s;
+}
+
+.tab-link:active {
+  transform: scale(0.94);
+}
+
+.tab-link.tab-active {
+  color: var(--orange);
+  background: var(--orange-light);
+}
+
+.tab-label {
+  line-height: 1;
+}
+
+@media (min-width: 900px) {
+  .app-main {
+    padding-bottom: 0;
+    padding-left: 232px;
+  }
+
+  .tabbar {
+    top: 0;
+    right: auto;
+    width: 232px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    border-top: none;
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+  }
+
+  .tabbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px 18px;
+  }
+
+  .tabbar-brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: #fff;
+    background: linear-gradient(135deg, #f97316, #fb923c);
+  }
+
+  .tabbar-brand-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text-primary);
+  }
+
+  .tabbar-brand-name em {
+    font-style: normal;
+    color: var(--orange);
+  }
+
+  .tab-link {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 14px;
+    font-size: 13.5px;
+  }
+}
+
+/* Reduced motion: respect the OS setting everywhere (A + step 5). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
