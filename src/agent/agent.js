@@ -1,7 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
 import { TOOL_DEFINITIONS, executeTool } from './tools.js';
+import { env } from '../env.js';
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const MODEL = env.GEMINI_MODEL;
 const MAX_STEPS = 6;
 
 const AGENT_SYSTEM_PROMPT = `You are NaijaTaste AI — an autonomous dining concierge for Nigerian restaurants.
@@ -20,7 +21,7 @@ Behaviour rules:
 
 let ai = null;
 const getClient = () => {
-  if (!ai) ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  if (!ai) ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
   return ai;
 };
 

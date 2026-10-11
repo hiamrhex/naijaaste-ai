@@ -1,7 +1,8 @@
+import { env } from './env.js';
 import { app } from './app.js';
 import { logger } from './lib/logger.js';
 
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 const server = app.listen(PORT, () => {
   logger.info({ port: PORT }, 'NaijaTaste AI listening');

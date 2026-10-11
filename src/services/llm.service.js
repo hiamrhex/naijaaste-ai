@@ -1,9 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { logger } from "../lib/logger.js";
+import { env } from "../env.js";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+const MODEL = env.GEMINI_MODEL;
 
 // Token limits per endpoint — review needs less, recommend needs more
 const TOKEN_LIMITS = {

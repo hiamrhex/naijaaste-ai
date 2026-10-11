@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { callPersonaLLM } from './llm.service.js';
 import { buildPersonaPrompt } from '../prompts/persona.prompts.js';
+import { MIN_RAW_TEXT } from '../schemas/index.js';
 
 // Valid enum values for post-extraction validation
 const VALID_ENUMS = {
@@ -86,7 +87,7 @@ const sanitizePersona = (extracted) => {
 };
 
 export const extractPersona = async (rawText) => {
-  if (!rawText || typeof rawText !== 'string' || rawText.trim().length < 5) {
+  if (!rawText || typeof rawText !== 'string' || rawText.trim().length < MIN_RAW_TEXT) {
     throw new Error('raw_text must be a non-empty string (min 5 characters)');
   }
 

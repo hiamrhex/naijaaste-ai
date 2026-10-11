@@ -1,8 +1,9 @@
 import pino from 'pino';
+import { env } from '../env.js';
 
 export const logger = pino({
   name: 'naijataste-ai',
-  level: process.env.LOG_LEVEL || 'info',
+  level: env.LOG_LEVEL,
   redact: {
     paths: [
       'apiKey',

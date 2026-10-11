@@ -1,20 +1,17 @@
 import { Router } from 'express';
 import { extractPersona } from '../services/persona.service.js';
-import { badRequest } from '../lib/errors.js';
+import { validate } from '../middleware/validate.js';
+import { extractPersonaSchema, updatePreferenceSchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
 // ─── Extract Persona ──────────────────────────────────────────────────────────
-router.post('/extract-persona', async (req, res, next) => {
+router.post('/extract-persona', validate(extractPersonaSchema), async (req, res, next) => {
   try {
     const { raw_text } = req.body;
 
-    if (!raw_text || typeof raw_text !== 'string' || raw_text.trim().length < 10) {
-      return next(badRequest('raw_text is required and must be at least 10 characters'));
-    }
-
-    const persona = await extractPersona(raw_text.trim());
+    const persona = await extractPersona(raw_text);
 
     return res.status(200).json({
       success: true,
@@ -31,31 +28,11 @@ router.post('/extract-persona', async (req, res, next) => {
 });
 
 // ─── Update Preference ────────────────────────────────────────────────────────
-router.post('/update-preference', async (req, res, next) => {
+router.post('/update-preference', validate(updatePreferenceSchema), async (req, res, next) => {
   try {
     const { persona, signal } = req.body;
 
-    if (!persona || !signal) {
-      return next(badRequest('Request body must contain both persona and signal objects'));
-    }
-
-    // Validate signal shape
-    const requiredSignalFields = ['dimension', 'value', 'rating'];
-    const missingFields = requiredSignalFields.filter(f => signal[f] === undefined);
-    if (missingFields.length > 0) {
-      return next(badRequest(`Missing signal fields: ${missingFields.join(', ')}`, [
-        { path: 'signal.dimension', message: 'ambience | budget | spice | cuisine | social_context' },
-        { path: 'signal.value', message: 'the specific value e.g. buka, premium, hot' },
-        { path: 'signal.rating', message: 'integer 1-5 from user feedback' },
-      ]));
-    }
-
-    // Validate rating range
-    if (signal.rating < 1 || signal.rating > 5) {
-      return next(badRequest('signal.rating must be between 1 and 5'));
-    }
-
-    // Compute recency-aware weight
+    // Compute recency-aware weight (signal shape already validated by schema)
     const weight = signal.rating >= 4
       ? +0.4
       : signal.rating <= 2

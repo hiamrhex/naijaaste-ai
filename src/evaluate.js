@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { getRecommendations } from './services/recommend.service.js';
 import { generateReview } from './services/review.service.js';
-import "dotenv/config";
+import './env.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const restaurants = JSON.parse(

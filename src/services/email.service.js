@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { logger } from '../lib/logger.js';
+import { env } from '../env.js';
 
 // ─── Email delivery (SMTP via nodemailer) ───────────────────────────────────
 // Requires SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS (see .env.example).
@@ -7,20 +8,20 @@ import { logger } from '../lib/logger.js';
 // the OTP is console-logged and returned as `dev_otp` so local flows still work.
 // Production NEVER returns dev_otp.
 
-const FROM = process.env.SMTP_FROM || 'NaijaTaste AI <noreply@localhost>';
+const FROM = env.SMTP_FROM || 'NaijaTaste AI <noreply@localhost>';
 
 const smtpConfigured = () =>
-  Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
 
 let transporter = null;
 const getTransporter = () => {
   if (!transporter) {
-    const port = Number(process.env.SMTP_PORT || 587);
+    const port = env.SMTP_PORT || 587;
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
+      host: env.SMTP_HOST,
       port,
       secure: port === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
     });
   }
   return transporter;
@@ -52,7 +53,7 @@ const otpHtml = ({ name, code }) => `
  * dev_otp is only ever set outside production.
  */
 export const sendOtpEmail = async ({ to, name, code }) => {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = env.NODE_ENV === 'production';
 
   if (!smtpConfigured()) {
     if (isProd) {

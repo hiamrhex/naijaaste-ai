@@ -1,13 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
+import { env } from '../env.js';
 
 const ACCESS_TTL = '15m';
 const REFRESH_TTL = '7d';
 const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const getSecrets = () => {
-  const access = process.env.JWT_ACCESS_SECRET;
-  const refresh = process.env.JWT_REFRESH_SECRET;
+  const access = env.JWT_ACCESS_SECRET;
+  const refresh = env.JWT_REFRESH_SECRET;
   if (!access || !refresh) {
     throw new Error('JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be set');
   }

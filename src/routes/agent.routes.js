@@ -3,19 +3,15 @@ import { runAgent } from '../agent/agent.js';
 import { requireAuth } from '../auth/middleware.js';
 import { getSession, saveSession } from '../services/chat.service.js';
 import { ApiError } from '../lib/errors.js';
+import { validate } from '../middleware/validate.js';
+import { chatBodySchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
-router.post('/agent', requireAuth, async (req, res) => {
+router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) => {
   try {
     const { message, session_id } = req.body || {};
-    if (!message || typeof message !== 'string' || message.trim().length < 1) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'message is required' } });
-    }
-    if (message.length > 500) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Message too long. Please keep under 500 characters.' } });
-    }
 
     const sessionId = session_id || uuidv4();
     const existing = getSession(sessionId);
@@ -30,7 +26,7 @@ router.post('/agent', requireAuth, async (req, res) => {
     };
 
     const startTime = Date.now();
-    const { text, trace } = await runAgent(session, message.trim());
+    const { text, trace } = await runAgent(session, message);
 
     session.conversation_history.push(
       { role: 'user', content: message.trim(), timestamp: new Date().toISOString() },

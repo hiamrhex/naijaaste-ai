@@ -1,4 +1,5 @@
 import { createHmac, randomInt, timingSafeEqual } from 'crypto';
+import { env } from '../env.js';
 
 // ─── OTP store (in-memory) ────────────────────────────────────────────────────
 // Password-reset codes: 6 digits, SHA-256/HMAC-hashed at rest (never plaintext),
@@ -12,7 +13,7 @@ const RESEND_COOLDOWN_MS = 60 * 1000;
 /** email(lowercased) -> { hash, expiresAt, attempts, createdAt } */
 const store = new Map();
 
-const pepper = () => process.env.JWT_ACCESS_SECRET || 'otp-dev-pepper';
+const pepper = () => env.JWT_ACCESS_SECRET || 'otp-dev-pepper';
 
 const hashCode = (email, code) =>
   createHmac('sha256', pepper()).update(`${email}:${code}`).digest('hex');

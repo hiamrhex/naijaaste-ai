@@ -2,13 +2,15 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    environment: 'node',
-    include: ['tests/**/*.test.js'],
     env: {
-      // Dummy so the eager Gemini client constructor at src/services/llm.service.js:3
-      // succeeds in tests. Never a real key; no test performs an LLM call.
-      GEMINI_API_KEY: 'test-key-not-a-real-secret',
+      // Test defaults so the fail-fast env schema (src/env.js) passes in CI
+      // where no .env exists. dotenv never overrides these.
+      GEMINI_API_KEY: 'test-key-not-real',
+      GEMINI_MODEL: 'gemini-3.8-flash',
       NODE_ENV: 'test',
+      LOG_LEVEL: 'warn',
+      JWT_ACCESS_SECRET: 'test-access-secret-0123456789abcdef',
+      JWT_REFRESH_SECRET: 'test-refresh-secret-fedcba9876543210',
     },
   },
 });

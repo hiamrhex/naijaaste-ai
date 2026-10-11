@@ -6,6 +6,7 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/t
 import { requireAuth } from '../auth/middleware.js';
 import { issueOtp, verifyOtp } from '../auth/otp.js';
 import { sendOtpEmail } from '../services/email.service.js';
+import { env } from '../env.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -57,7 +58,7 @@ const issueTokens = (user, res, status = 200) => {
   storeRefreshToken(user.id, jti, expiresAt);
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/auth',
     maxAge: 7 * 24 * 60 * 60 * 1000,
