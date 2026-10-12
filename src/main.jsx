@@ -5,12 +5,15 @@ import './index.css'
 import { router } from './app/router.jsx'
 import { AuthProvider } from './app/AuthContext.jsx'
 import { ThemeProvider } from './app/ThemeContext.jsx'
+import { LanguageProvider } from './app/LanguageContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <ThemeProvider>
-        <RouterProvider router={router} />
+        <LanguageProvider>
+          <RouterProvider router={router} />
+        </LanguageProvider>
       </ThemeProvider>
     </AuthProvider>
   </StrictMode>,

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "1a212763-b173-4cff-874d-9dd4ec7d055a",
+    "user_id": "8166a6ae-55c7-44f9-bef3-4f10b884bdd8",
+    "stars": 5,
+    "note": "Amala elite",
+    "context": "saved",
+    "at": "2026-10-11T16:50:01.416Z"
+  },
+  {
+    "id": "94a5648e-e62d-4a15-ad3d-567da0519ddd",
+    "user_id": "4cff0329-4c9a-4142-b0c8-128789ee378f",
+    "stars": 5,
+    "note": "Amala elite",
+    "context": "saved",
+    "at": "2026-10-11T16:50:34.277Z"
+  },
+  {
+    "id": "fa17830a-eec1-412d-b305-f6fc146e981a",
+    "user_id": "a4dc3371-a4e4-401f-9645-a224928251bb",
+    "stars": 5,
+    "note": "Amala elite",
+    "context": "saved",
+    "at": "2026-10-11T16:53:47.461Z"
+  },
+  {
+    "id": "0af6f21c-41e5-4e2a-8bed-7d1841e9a2a1",
+    "user_id": "48f93433-edcf-43d5-b7c7-65ac53944229",
+    "stars": 5,
+    "note": "Amala elite",
+    "context": "saved",
+    "at": "2026-10-11T16:54:12.746Z"
+  },
+  {
+    "id": "01cc7764-5bb4-44ea-9038-2ec14f7bbbf9",
+    "user_id": "0dd91738-073d-4886-9e03-8b18e276cdce",
+    "restaurant_id": "r001",
+    "stars": 5,
+    "note": "Amala elite",
+    "context": "saved",
+    "at": "2026-10-11T16:55:02.556Z"
+  },
+  {
+    "id": "fad7a125-7746-4d03-aaf5-d4c7b932b55e",
+    "user_id": "75f52ee8-ee6e-405e-aeb4-59463eee5fbc",
+    "restaurant_id": "r001",
+    "stars": 5,
+    "note": "Amala elite",
+    "context": "saved",
+    "at": "2026-10-11T16:55:13.316Z"
+  }
+]
