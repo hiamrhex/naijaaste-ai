@@ -11,6 +11,7 @@ export default defineConfig({
       LOG_LEVEL: 'warn',
       JWT_ACCESS_SECRET: 'test-access-secret-0123456789abcdef',
       JWT_REFRESH_SECRET: 'test-refresh-secret-fedcba9876543210',
+      DEV_OTP_ENABLED: 'true',
     },
   },
 });

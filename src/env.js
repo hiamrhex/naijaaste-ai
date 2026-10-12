@@ -22,6 +22,7 @@ const EnvSchema = z.object({
   GOOGLE_PLACES_API_KEY: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   ADMIN_EMAILS: z.string().optional(),
+  DEV_OTP_ENABLED: z.enum(['true', 'false']).default('false'),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

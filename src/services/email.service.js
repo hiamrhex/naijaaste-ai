@@ -54,14 +54,17 @@ const otpHtml = ({ name, code }) => `
  */
 export const sendOtpEmail = async ({ to, name, code }) => {
   const isProd = env.NODE_ENV === 'production';
+  // dev_otp exists ONLY on explicit opt-in outside production — never on
+  // SMTP failure alone (plan 008: misconfigured deploys must not leak codes).
+  const devOtpAllowed = env.DEV_OTP_ENABLED === 'true' && !isProd;
 
   if (!smtpConfigured()) {
     if (isProd) {
       logger.warn('smtp not configured — otp email skipped in production');
       return { delivered: false };
     }
-    logger.warn({ to, otp: code }, 'smtp not configured — dev otp fallback');
-    return { delivered: false, dev_otp: code };
+    logger.warn('smtp not configured — dev otp fallback (code withheld from logs)');
+    return devOtpAllowed ? { delivered: false, dev_otp: code } : { delivered: false };
   }
 
   try {
@@ -75,6 +78,6 @@ export const sendOtpEmail = async ({ to, name, code }) => {
   } catch (err) {
     logger.error({ err }, 'smtp delivery failed');
     if (isProd) return { delivered: false };
-    return { delivered: false, dev_otp: code };
+    return devOtpAllowed ? { delivered: false, dev_otp: code } : { delivered: false };
   }
 };
