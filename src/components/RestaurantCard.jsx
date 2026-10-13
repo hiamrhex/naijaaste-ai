@@ -11,22 +11,20 @@ const ART_EMOJI = ['🍲', '🍛', '🌶️', '🍗', '🥘', '🍜'];
 
 export function RestaurantCard({ rec, index, onReview, distanceKm, directionsUrl, isFavorite, onToggleFavorite }) {
   const { t } = useLanguage();
-  const [photo, setPhoto] = useState(null);
-  const [photoTried, setPhotoTried] = useState(false);
+  // undefined = fetch pending, null/object = settled (no sync setState in effect)
+  const [photo, setPhoto] = useState(undefined);
   const [whyOpen, setWhyOpen] = useState(false);
   const matchPct = Math.round((rec.match_score || 0) * 100);
   const price = PRICE_MAP[rec.price_tier?.toLowerCase()] || "₦₦";
   const dish = rec.signature_dishes?.[0] || rec.cuisine_tags?.[0];
+  const photoTried = !dish || photo !== undefined;
 
   useEffect(() => {
+    if (!dish) return undefined;
     let cancelled = false;
-    if (dish) {
-      commonsPhoto(dish).then((p) => {
-        if (!cancelled) { setPhoto(p); setPhotoTried(true); }
-      });
-    } else {
-      setPhotoTried(true);
-    }
+    commonsPhoto(dish).then((p) => {
+      if (!cancelled) setPhoto(p || null);
+    });
     return () => { cancelled = true; };
   }, [dish]);
 

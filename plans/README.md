@@ -25,13 +25,13 @@ and push to `origin/master`. Never push if any Done criterion fails; stop and re
 | 005 | Zod contracts: fail-fast env + request validation (layers 2/18) | P1 | M | 003 | DONE |
 | 006 | Rate limiting + CORS allowlist (layer 1 + production config) | P1 | S | 005 | DONE |
 | 007 | PRD Phase 0 foundation: TS agent server, Postgres, model seam, CI, staging | P0 | L | PRD v1.0 | IN PROGRESS |
-| 008 | Gate dev_otp on explicit DEV_OTP_ENABLED flag (finding 1) | P1 | S | — | TODO |
-| 009 | Remove OTP/PII from logs, extend pino redaction (finding 2) | P1 | S | — | TODO |
-| 010 | Enforce LLM limiter on /api/v1 mounts (finding 3) | P1 | S | — | TODO |
-| 011 | Fail CORS closed in production without allowlist (finding 6) | P1 | S | — | TODO |
-| 012 | Bind agent sessions to owners, validate session params (finding 5) | P1 | M | — | TODO |
-| 013 | Root-path refresh cookie, mirrored clear attrs (finding 8) | P1 | S | — | TODO |
-| 014 | Review-tool lookup by id before name fallback (finding 4) | P1 | S | — | TODO |
+| 008 | Gate dev_otp on explicit DEV_OTP_ENABLED flag (finding 1) | P1 | S | — | DONE |
+| 009 | Remove OTP/PII from logs, extend pino redaction (finding 2) | P1 | S | — | DONE |
+| 010 | Enforce LLM limiter on /api/v1 mounts (finding 3) | P1 | S | — | DONE |
+| 011 | Fail CORS closed in production without allowlist (finding 6) | P1 | S | — | DONE |
+| 012 | Bind agent sessions to owners, validate session params (finding 5) | P1 | M | — | DONE |
+| 013 | Root-path refresh cookie, mirrored clear attrs (finding 8) | P1 | S | — | DONE |
+| 014 | Review-tool lookup by id before name fallback (finding 4) | P1 | S | — | DONE |
 | 007 | PRD Phase 0 foundation: TS agent server, Postgres, model seam, CI, staging | P0 | L | PRD v1.0 | IN PROGRESS |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale) | DEFERRED (with reason).
