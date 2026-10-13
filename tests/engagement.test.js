@@ -20,7 +20,8 @@ beforeAll(async () => {
   userToken = u.accessToken;
   const a = await signup('Boss Lady', `boss${stamp}@example.com`);
   adminToken = a.accessToken;
-});
+  // DB init + two bcrypt signups; generous under parallel CI load.
+}, 60000);
 
 afterAll(() => {
   if (PREV.ADMIN_EMAILS === undefined) delete process.env.ADMIN_EMAILS;

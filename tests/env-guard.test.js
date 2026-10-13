@@ -9,6 +9,7 @@ const BASE_ENV = {
   JWT_ACCESS_SECRET: 'test-access-secret-0123456789abcdef',
   JWT_REFRESH_SECRET: 'test-refresh-secret-fedcba9876543210',
   DEV_OTP_ENABLED: 'false',
+  DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
 };
 
 const runEnv = (extra) => {

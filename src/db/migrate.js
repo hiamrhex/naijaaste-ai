@@ -41,13 +41,15 @@ export const runMigrations = async (pool) => {
 const isMain = process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('db/migrate.js');
 
 if (isMain) {
-  if (!env.DATABASE_URL) {
+  if (!env.DATABASE_URL && !env.DATABASE_URL_DIRECT) {
     console.error('migration failed: DATABASE_URL is not set (migrations target a real database; tests use ephemeral pg-mem automatically)');
     process.exitCode = 2;
   } else {
   // CLI builds its own pool (no import from pool.js — avoids a module cycle).
+  // Prefers the direct URL (migrations must not run through the pooler).
+  const connectionString = env.DATABASE_URL_DIRECT || env.DATABASE_URL;
   const pool = new pg.Pool({
-    connectionString: env.DATABASE_URL,
+    connectionString,
     max: 2,
     connectionTimeoutMillis: 15_000,
   });

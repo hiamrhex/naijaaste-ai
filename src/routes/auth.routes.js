@@ -8,13 +8,7 @@ import { issueOtp, verifyOtp } from '../auth/otp.js';
 import { sendOtpEmail } from '../services/email.service.js';
 import { verifyGoogleCredential, googleAuthEnabled } from '../auth/google.js';
 import { env } from '../env.js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const CATALOGUE = JSON.parse(readFileSync(join(__dirname, '../data/restaurants.json'), 'utf-8'));
-const catalogueById = new Map(CATALOGUE.map((r) => [r.restaurant_id, r]));
+import { getRestaurantsByCodes, findRestaurantByCode } from '../db/catalogue.js';
 
 const router = Router();
 
@@ -267,7 +261,9 @@ router.post('/auth/reset-password', resetLimiter, async (req, res) => {
 // ─── Favorites ────────────────────────────────────────────────────────────────
 router.get('/auth/favorites', requireAuth, async (req, res) => {
   const ids = await getFavorites(req.user.id);
-  const items = ids.map((id) => catalogueById.get(id)).filter(Boolean);
+  const found = await getRestaurantsByCodes(ids);
+  const byId = new Map(found.map((r) => [r.restaurant_id, r]));
+  const items = ids.map((id) => byId.get(id)).filter(Boolean);
   return res.json({ success: true, favorites: ids, items });
 });
 
@@ -276,7 +272,7 @@ router.post('/auth/favorites', requireAuth, async (req, res) => {
   if (!restaurant_id || typeof restaurant_id !== 'string') {
     return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'restaurant_id is required' } });
   }
-  if (!catalogueById.has(restaurant_id)) {
+  if (!(await findRestaurantByCode(restaurant_id))) {
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Unknown restaurant' } });
   }
   const result = await addFavorite(req.user.id, restaurant_id);

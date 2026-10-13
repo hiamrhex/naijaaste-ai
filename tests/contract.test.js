@@ -79,9 +79,9 @@ describe('contract group (layers 19/20/25/26/27)', () => {
     expect(cfg.rewrites.some((r) => r.source.startsWith('/api/'))).toBe(true);
   });
 
-  it('api/index.js default-exports the Express app without listening', async () => {
+  it('api/index.js default-exports a function handler without listening', async () => {
     const mod = await import('../api/index.js');
     expect(typeof mod.default).toBe('function');
-    expect(typeof mod.default.listen).toBe('function');
+    // Strip + dispatch behavior is covered in tests/serverless.test.js.
   });
 });

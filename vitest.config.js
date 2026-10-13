@@ -2,6 +2,10 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // Integration-style suite (bcrypt + per-file pg-mem init); generous
+    // timeouts so parallel CI load causes retries, not flakes.
+    testTimeout: 30000,
+    hookTimeout: 60000,
     env: {
       // Test defaults so the fail-fast env schema (src/env.js) passes in CI
       // where no .env exists. dotenv never overrides these.

@@ -52,7 +52,8 @@ const fetchCityElements = async (city, fetchFn) => {
 export const upsertRestaurants = async (db, entries) => {
   if (!entries.length) return { added: 0, updated: 0 };
   const ids = entries.map((e) => e.osm_id);
-  const { rows } = await db.query('SELECT osm_id FROM restaurants WHERE osm_id = ANY($1)', [ids]);
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+  const { rows } = await db.query(`SELECT osm_id FROM restaurants WHERE osm_id IN (${placeholders})`, ids);
   const existing = new Set(rows.map((r) => r.osm_id));
   let added = 0;
   let updated = 0;
@@ -104,7 +105,7 @@ if (isMain) {
   const cities = args.all ? Object.keys(CITY_BBOX)
     : args.city ? [args.city] : IMPORT_CITIES;
   try {
-    const db = getPool();
+    const db = await getPool();
     const totals = { fetched: 0, kept: 0, added: 0, updated: 0 };
     for (const city of cities) {
       const r = await importCity(db, city);
