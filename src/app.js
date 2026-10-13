@@ -112,7 +112,8 @@ const llmLimiter = rateLimit({
 
 app.use(apiLimiter);
 app.use(
-  ["/chat", "/extract-persona", "/update-preference", "/recommend", "/generate-review", "/agent"],
+  ["/chat", "/extract-persona", "/update-preference", "/recommend", "/generate-review", "/agent",
+   "/api/v1/chat", "/api/v1/extract-persona", "/api/v1/update-preference", "/api/v1/recommend", "/api/v1/generate-review", "/api/v1/agent"],
   llmLimiter
 );
 
