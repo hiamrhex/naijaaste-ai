@@ -119,7 +119,7 @@ Rate limits: 600 req/15 min global · 20/15 min auth · 10/15 min password-reset
 ## Tests, evals, CI
 
 ```bash
-npm test           # 39 tests across 3 suites (auth 13, API 4, reset+nearby+favorites 22)
+npm test           # 122 tests across 19 suites (run: npm test)
 npm run lint       # ESLint — clean
 npm run evaluate   # NDCG@5 + RMSE over LLM-generated reviews (needs GEMINI_API_KEY)
 ```
@@ -127,18 +127,26 @@ npm run evaluate   # NDCG@5 + RMSE over LLM-generated reviews (needs GEMINI_API_
 CI (GitHub Actions) runs `npm ci → lint → test → build` on every push and PR, Node 24 —
 badge above reflects the latest run.
 
-## Deployment
+## Deployment (production: Vercel + Neon Postgres)
 
-**SPA → Vercel:** import the repo, framework preset *Vite*, build `npm run build`,
-output `dist/`, set `VITE_API_URL` to your deployed API origin at build time.
+All runtime state lives in Postgres — no JSON files, no in-memory maps —
+so the API runs fine as a serverless function next to the SPA:
 
-**API → any persistent Node host** (Render, Fly, a VPS — or Docker):
-`npm ci --omit=dev && npm start` with `NODE_ENV=production`, real `JWT_*` secrets,
-`GEMINI_API_KEY`, and SMTP credentials. A `Dockerfile` (node:24-alpine) is included.
-
-> Vercel's serverless filesystem is ephemeral — the JSON stores and OTP cache would not
-> survive there, so the API needs a stateful host today. Moving stores to Postgres/Redis
-> is the roadmap fix (plan 007).
+1. **Database (Neon, free tier, no card):** create a project → run migrations
+   with the *direct* URL → `npm run db:migrate` with `DATABASE_URL_DIRECT` set.
+   Runtime uses the *pooled* URL (`DATABASE_URL`). Without it, production
+   refuses to boot; tests/dev use ephemeral pg-mem automatically.
+2. **Vercel:** import the repo (Vite preset, output `dist/`). `vercel.json`
+   rewrites `/api/*` to `api/index.js` (60s `maxDuration` for slow Gemini
+   calls); the SPA calls same-origin `/api/…` by default. Set env vars:
+   `GEMINI_API_KEY`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
+   `DATABASE_URL` (pooled), `CORS_ORIGIN` (= your Vercel domain, required),
+   `SMTP_*`, `GOOGLE_CLIENT_ID`, `ADMIN_EMAILS`, `NODE_ENV=production`.
+3. **Data refresh:** `npm run data:refresh` imports Lagos/Abuja/Port Harcourt/
+   Ibadan from OpenStreetMap (polite: User-Agent, ~1.5s gaps, mirrors).
+   A daily GitHub Actions workflow (`.github/workflows/refresh.yml`) re-runs
+   it — add `DATABASE_URL` + `DATABASE_URL_DIRECT` as repo secrets.
+   Attribution: © OpenStreetMap contributors (ODbL).
 
 ## Project structure
 
@@ -146,19 +154,21 @@ output `dist/`, set `VITE_API_URL` to your deployed API origin at build time.
 src/
   agent/       ReAct loop, 4 tool schemas + dispatcher, system prompt
   auth/        OTP issue/verify, JWT tokens, user store (bcrypt)
-  routes/      auth · agent · chat · nearby · persona · recommend · review
+  routes/      auth · agent · chat · nearby · persona · recommend · review · ratings · reports · admin
   services/    email (SMTP), chat, persona, recommend, review
+  db/          pg pool (Neon/pg-mem), migrations runner, catalogue loader + seed
   utils/       geo (haversine), validation
   components/  AuthGate, NearbyPanel, RestaurantCard, chat UI
-  data/        restaurants.json (60) + runtime stores
-tests/         vitest suites — 39 tests
+  data/        restaurants.json (seed fixture only — runtime state is Postgres)
+migrations/    001 restaurants · 002 users/sessions/OTP/ratings/reports
+tests/         vitest suites — 122 tests
 plans/         25-layer backend audit + implementation plans
 ```
 
 ## Honest limitations & roadmap
 
-- Single-process JSON stores + in-memory OTP map — not multi-instance; Postgres + Redis
-  are next (plan 007).
+- All runtime state is Postgres (users, sessions, OTP, ratings, reports,
+  catalogue) — multi-instance safe; tests run the same SQL on ephemeral pg-mem.
 - Restaurant coordinates are area centroids — distances are approximate, not door-to-door.
 - Built against the **Backend Engineering Mastery 25-layer checklist** (see
   `plans/README.md` for the live coverage map): auth cluster, rate limiting, health, and

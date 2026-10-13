@@ -1,0 +1,32 @@
+name: Daily OSM refresh
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --omit=dev
+      - name: Migrate (direct URL — never the pooler)
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_DIRECT }}
+          GEMINI_API_KEY: ci-not-needed
+          JWT_ACCESS_SECRET: ci-not-needed
+          JWT_REFRESH_SECRET: ci-not-needed
+      - name: Import 4 cities from Overpass
+        run: node src/data/import-osm.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GEMINI_API_KEY: ci-not-needed
+          JWT_ACCESS_SECRET: ci-not-needed
+          JWT_REFRESH_SECRET: ci-not-needed

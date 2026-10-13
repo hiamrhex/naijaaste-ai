@@ -11,7 +11,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview",
-    "evaluate": "node src/evaluate.js"
+    "evaluate": "node src/evaluate.js",
+    "db:migrate": "node src/db/migrate.js",
+    "data:refresh": "node src/data/import-osm.js"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",
