@@ -1,19 +1,12 @@
-import { 
-  buildColdStartRecommendPrompt, 
-  buildWarmRecommendPrompt 
+import {
+  buildColdStartRecommendPrompt,
+  buildWarmRecommendPrompt
 } from '../prompts/recommend.prompt.js';
 import { callRecommendLLM } from './llm.service.js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const allRestaurants = JSON.parse(
-  readFileSync(join(__dirname, '../data/restaurants.json'), 'utf-8')
-);
+import { getCatalogueByCity } from '../db/catalogue.js';
 
 // ─── Hard Filters ─────────────────────────────────────────────────────────────
-const applyHardFilters = (persona) => {
+const applyHardFilters = (allRestaurants, persona) => {
   return allRestaurants.filter((r) => {
     // City match — non-negotiable
     if (r.city.toLowerCase() !== persona.city.toLowerCase()) return false;
@@ -88,8 +81,11 @@ const isWarmUser = (persona) =>
 export const getRecommendations = async (persona) => {
   const startTime = Date.now();
 
+  // City pushdown: the DB returns only this city's rows (scales past 100k).
+  const cityRestaurants = await getCatalogueByCity(persona.city);
+
   // Step 1 — Hard filter
-  const hardFiltered = applyHardFilters(persona);
+  const hardFiltered = applyHardFilters(cityRestaurants, persona);
 
   if (hardFiltered.length === 0) {
     return {
@@ -126,9 +122,7 @@ export const getRecommendations = async (persona) => {
     meta: {
       user_state: warm ? 'warm' : 'cold_start',
       persona_id: persona.persona_id,
-      total_restaurants_in_city: allRestaurants.filter(
-        r => r.city.toLowerCase() === persona.city.toLowerCase()
-      ).length,
+      total_restaurants_in_city: cityRestaurants.length,
       after_hard_filter: hardFiltered.length,
       candidates_sent_to_llm: candidates.length,
       history_signals: persona.preference_history?.length || 0,

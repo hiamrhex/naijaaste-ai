@@ -1,17 +1,12 @@
 import { Router } from 'express';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { haversineKm, parseCoord, directionsUrl } from '../utils/geo.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const CATALOGUE = JSON.parse(readFileSync(join(__dirname, '../data/restaurants.json'), 'utf-8'));
+import { getRestaurantsInBox, getRestaurantsByCodes } from '../db/catalogue.js';
 
 const router = Router();
 
 // GET /nearby?lat=6.52&lng=3.38&limit=10&radius_km=25
 // Public endpoint — location discovery does not require auth.
-router.get('/nearby', (req, res) => {
+router.get('/nearby', async (req, res) => {
   const lat = parseCoord(req.query.lat, -90, 90);
   const lng = parseCoord(req.query.lng, -180, 180);
   if (lat === null || lng === null) {
@@ -20,8 +15,16 @@ router.get('/nearby', (req, res) => {
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
   const radiusKm = Math.min(Math.max(Number(req.query.radius_km) || 50, 1), 500);
 
+  // DB box prefilter (indexed lat/lng) keeps this fast at 100k rows;
+  // precise haversine + sort stays in JS.
+  const latDelta = radiusKm / 111;
+  const lngDelta = radiusKm / (111 * Math.cos((lat * Math.PI) / 180) || 1);
+  const candidates = await getRestaurantsInBox(
+    lat - latDelta, lat + latDelta, lng - lngDelta, lng + lngDelta
+  );
+
   const withDistance = [];
-  for (const r of CATALOGUE) {
+  for (const r of candidates) {
     if (typeof r.lat !== 'number' || typeof r.lng !== 'number') continue;
     const distanceKm = haversineKm(lat, lng, r.lat, r.lng);
     if (distanceKm > radiusKm) continue;
@@ -56,17 +59,17 @@ router.get('/nearby', (req, res) => {
 
 // GET /restaurants/geo?ids=r001,r002 — geo lookup for recommendation cards
 // (LLM recommendation payloads do not carry lat/lng).
-router.get('/restaurants/geo', (req, res) => {
+router.get('/restaurants/geo', async (req, res) => {
   const raw = String(req.query.ids || '');
   const ids = raw.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 50);
   if (ids.length === 0) {
     return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'ids query param required' } });
   }
+  const found = await getRestaurantsByCodes(ids);
   const geo = {};
-  for (const id of ids) {
-    const r = CATALOGUE.find((x) => x.restaurant_id === id);
-    if (r && typeof r.lat === 'number' && typeof r.lng === 'number') {
-      geo[id] = { lat: r.lat, lng: r.lng, directions_url: directionsUrl(r.lat, r.lng) };
+  for (const r of found) {
+    if (typeof r.lat === 'number' && typeof r.lng === 'number') {
+      geo[r.restaurant_id] = { lat: r.lat, lng: r.lng, directions_url: directionsUrl(r.lat, r.lng) };
     }
   }
   return res.json({ success: true, geo });

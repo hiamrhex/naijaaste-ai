@@ -1,13 +1,6 @@
 import { buildReviewPrompt } from '../prompts/review.prompt.js';
 import { callReviewLLM } from './llm.service.js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const allRestaurants = JSON.parse(
-  readFileSync(join(__dirname, '../data/restaurants.json'), 'utf-8')
-);
+import { findRestaurantByCode } from '../db/catalogue.js';
 
 // Validate persona-restaurant compatibility before calling LLM
 // Catches dietary violations and city mismatches early
@@ -67,9 +60,7 @@ export const generateReview = async (persona, restaurant) => {
   // Step 1 — Resolve restaurant from catalogue if only id provided
   let resolvedRestaurant = restaurant;
   if (!restaurant.name && restaurant.restaurant_id) {
-    resolvedRestaurant = allRestaurants.find(
-      r => r.restaurant_id === restaurant.restaurant_id
-    );
+    resolvedRestaurant = await findRestaurantByCode(restaurant.restaurant_id);
     if (!resolvedRestaurant) {
       return {
         success: false,

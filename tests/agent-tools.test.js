@@ -10,23 +10,23 @@ const catalogue = JSON.parse(readFileSync(join(__dirname, '..', 'src/data/restau
 const known = catalogue.find((r) => r.restaurant_id && r.name);
 
 describe('findRestaurantByIdOrName (plan 014)', () => {
-  it('resolves a real restaurant_id', () => {
-    const found = findRestaurantByIdOrName(known.restaurant_id);
+  it('resolves a real restaurant_id', async () => {
+    const found = await findRestaurantByIdOrName(known.restaurant_id);
     expect(found?.restaurant_id).toBe(known.restaurant_id);
   });
 
-  it('returns undefined for an unknown id', () => {
-    expect(findRestaurantByIdOrName('no-such-place-xyz')).toBeUndefined();
+  it('returns undefined for an unknown id', async () => {
+    expect(await findRestaurantByIdOrName('no-such-place-xyz')).toBeUndefined();
   });
 
-  it('falls back to partial name search', () => {
+  it('falls back to partial name search', async () => {
     const firstWord = known.name.split(' ')[0];
-    const found = findRestaurantByIdOrName(firstWord);
+    const found = await findRestaurantByIdOrName(firstWord);
     expect(found?.name).toContain(firstWord);
   });
 
-  it('returns undefined for non-string input without throwing', () => {
-    expect(findRestaurantByIdOrName(undefined)).toBeUndefined();
-    expect(findRestaurantByIdOrName(42)).toBeUndefined();
+  it('returns undefined for non-string input without throwing', async () => {
+    expect(await findRestaurantByIdOrName(undefined)).toBeUndefined();
+    expect(await findRestaurantByIdOrName(42)).toBeUndefined();
   });
 });

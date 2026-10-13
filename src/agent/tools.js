@@ -1,12 +1,7 @@
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { getRecommendations } from '../services/recommend.service.js';
 import { generateReview } from '../services/review.service.js';
+import { getCatalogue, getCatalogueByCity, findRestaurantByCode, findRestaurantsByName } from '../db/catalogue.js';
 import { v4 as uuidv4 } from 'uuid';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const restaurants = JSON.parse(readFileSync(join(__dirname, '../data/restaurants.json'), 'utf-8'));
 
 export const TOOL_DEFINITIONS = [
   {
@@ -64,19 +59,22 @@ const PRICE_ORDER = { budget: 1, mid: 2, premium: 3 };
 
 // Plan 014: id-first lookup. The old code indexed the array with the id
 // string (always undefined), so every real-id review call missed.
-export const findRestaurantByIdOrName = (idOrName) => {
+export const findRestaurantByIdOrName = async (idOrName) => {
   if (!idOrName || typeof idOrName !== 'string') return undefined;
-  const byId = restaurants.find((r) => r.restaurant_id === idOrName);
+  const byId = await findRestaurantByCode(idOrName);
   if (byId) return byId;
-  const needle = idOrName.toLowerCase();
-  return restaurants.find((r) => r.name?.toLowerCase().includes(needle));
+  const matches = await findRestaurantsByName(idOrName);
+  return matches[0];
 };
 
 const executeTool = async (name, args, session) => {
   switch (name) {
     case 'search_restaurants': {
-      let results = Object.values(restaurants);
-      if (args.city) results = results.filter(r => r.city?.toLowerCase().includes(args.city.toLowerCase()));
+      // City pushdown at the DB; finer filters stay in JS.
+      const base = args.city
+        ? await getCatalogueByCity(args.city)
+        : await getCatalogue();
+      let results = base;
       if (args.cuisine) results = results.filter(r =>
         (r.cuisine_tags || []).some(c => c.toLowerCase().includes(args.cuisine.toLowerCase())) ||
         (r.signature_dishes || []).some(d => d.toLowerCase().includes(args.cuisine.toLowerCase()))
@@ -109,7 +107,7 @@ const executeTool = async (name, args, session) => {
       return result;
     }
     case 'generate_review': {
-      const restaurant = findRestaurantByIdOrName(args.restaurant_id);
+      const restaurant = await findRestaurantByIdOrName(args.restaurant_id);
       if (!restaurant) return { error: `Restaurant "${args.restaurant_id}" not found` };
       return await generateReview(args.persona || session.extracted_persona, restaurant);
     }
