@@ -33,4 +33,8 @@ export default defineConfig([
     files: ['src/**/*.js', 'tests/**/*.js', '*.js'],
     languageOptions: { globals: globals.node },
   },
+  {
+    files: ['public/landing.js'],
+    languageOptions: { globals: globals.browser },
+  },
 ])
