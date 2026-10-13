@@ -62,6 +62,16 @@ export const TOOL_DEFINITIONS = [
 
 const PRICE_ORDER = { budget: 1, mid: 2, premium: 3 };
 
+// Plan 014: id-first lookup. The old code indexed the array with the id
+// string (always undefined), so every real-id review call missed.
+export const findRestaurantByIdOrName = (idOrName) => {
+  if (!idOrName || typeof idOrName !== 'string') return undefined;
+  const byId = restaurants.find((r) => r.restaurant_id === idOrName);
+  if (byId) return byId;
+  const needle = idOrName.toLowerCase();
+  return restaurants.find((r) => r.name?.toLowerCase().includes(needle));
+};
+
 const executeTool = async (name, args, session) => {
   switch (name) {
     case 'search_restaurants': {
@@ -99,12 +109,8 @@ const executeTool = async (name, args, session) => {
       return result;
     }
     case 'generate_review': {
-      const restaurant = restaurants[args.restaurant_id];
-      if (!restaurant) {
-        const found = Object.values(restaurants).find(r => r.name?.toLowerCase().includes((args.restaurant_id || '').toLowerCase()));
-        if (!found) return { error: `Restaurant "${args.restaurant_id}" not found` };
-        return await generateReview(args.persona || session.extracted_persona, found);
-      }
+      const restaurant = findRestaurantByIdOrName(args.restaurant_id);
+      if (!restaurant) return { error: `Restaurant "${args.restaurant_id}" not found` };
       return await generateReview(args.persona || session.extracted_persona, restaurant);
     }
     case 'save_preference': {
