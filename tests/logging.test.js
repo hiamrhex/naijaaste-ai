@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { requestId } from '../src/middleware/requestId.js';
 import { logger } from '../src/lib/logger.js';
+import { sendOtpEmail } from '../src/services/email.service.js';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('logging (layers 21/22/23)', () => {
   it('every response carries X-Request-Id', async () => {
@@ -36,5 +41,32 @@ describe('logging (layers 21/22/23)', () => {
   it('logger exports a pino instance with info level', () => {
     expect(typeof logger.child).toBe('function');
     expect(logger.level).toBe(process.env.LOG_LEVEL || 'info');
+  });
+
+  it('dev otp fallback logs no recipient or code (plan 009)', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    await sendOtpEmail({ to: 'someone@example.com', name: 'Someone', code: '123456' });
+    expect(warn).toHaveBeenCalled();
+    const logged = JSON.stringify(warn.mock.calls);
+    expect(logged).not.toContain('someone@example.com');
+    expect(logged).not.toContain('123456');
+  });
+
+  it('pino redaction covers auth-secret shapes (plan 009)', async () => {
+    const { default: pino } = await import('pino');
+    const { REDACT_PATHS } = await import('../src/lib/logger.js');
+    const chunks = [];
+    const mem = { write: (c) => { chunks.push(String(c)); return true; } };
+    const probe = pino({ redact: { paths: REDACT_PATHS, censor: '[REDACTED]' } }, mem);
+    probe.info({
+      otp: '111111', dev_otp: '222222', password: 's3cret',
+      credential: 'cred-value', accessToken: 'tok-abc',
+      nested: { refreshToken: 'tok-def' },
+    }, 'redact check');
+    const out = chunks.join('');
+    for (const secret of ['111111', '222222', 's3cret', 'cred-value', 'tok-abc', 'tok-def']) {
+      expect(out).not.toContain(secret);
+    }
+    expect(out).toContain('[REDACTED]');
   });
 });
