@@ -189,7 +189,10 @@ export const processChat = async (sessionId, userMessage) => {
   };
 };
 
-export const getSession = (sessionId) => sessionStore[sessionId] || null;
+const hasSession = (sessionId) =>
+  Object.prototype.hasOwnProperty.call(sessionStore, sessionId);
+
+export const getSession = (sessionId) => (hasSession(sessionId) ? sessionStore[sessionId] : null);
 
 export const saveSession = (session) => {
   sessionStore[session.session_id] = session;
@@ -198,7 +201,7 @@ export const saveSession = (session) => {
 };
 
 export const clearSession = async (sessionId) => {
-  if (!sessionStore[sessionId]) {
+  if (!hasSession(sessionId)) {
     return { success: false, session_id: sessionId };
   }
   delete sessionStore[sessionId];

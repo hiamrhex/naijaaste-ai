@@ -3,6 +3,7 @@ import { runAgent } from '../agent/agent.js';
 import { requireAuth } from '../auth/middleware.js';
 import { getSession, saveSession } from '../services/chat.service.js';
 import { ApiError } from '../lib/errors.js';
+import { fail } from '../lib/respond.js';
 import { validate } from '../middleware/validate.js';
 import { chatBodySchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,8 +16,16 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
 
     const sessionId = session_id || uuidv4();
     const existing = getSession(sessionId);
+    if (existing?.user_id && existing.user_id !== req.user.id) {
+      return fail(res, {
+        status: 403, code: 'FORBIDDEN',
+        message: 'Session belongs to another user',
+        requestId: req.id,
+      });
+    }
     const session = existing || {
       session_id: sessionId,
+      user_id: req.user.id,
       conversation_history: [],
       extracted_persona: { preference_history: [] },
       stage: 'gather',
@@ -24,6 +33,9 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
       created_at: new Date().toISOString(),
       last_active: new Date().toISOString(),
     };
+    // Claim-on-first-agent-use: anonymous sessions gain an owner the first
+    // time an authenticated caller uses them via /agent.
+    if (!session.user_id) session.user_id = req.user.id;
 
     const startTime = Date.now();
     const { text, trace } = await runAgent(session, message);

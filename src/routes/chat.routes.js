@@ -7,6 +7,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const assertUuidParam = (req, _res, next) => {
+  if (!UUID_RE.test(req.params.sessionId || '')) {
+    return next(badRequest('session_id must be a valid UUID'));
+  }
+  next();
+};
+
 // ─── Start or Continue Chat ───────────────────────────────────────────────────
 router.post('/chat', validate(chatBodySchema), async (req, res, next) => {
   try {
@@ -27,7 +36,7 @@ router.post('/chat', validate(chatBodySchema), async (req, res, next) => {
 });
 
 // ─── Get Session State ────────────────────────────────────────────────────────
-router.get('/chat/:sessionId', (req, res, next) => {
+router.get('/chat/:sessionId', assertUuidParam, (req, res, next) => {
   try {
     const session = getSession(req.params.sessionId);
     if (!session) {
@@ -40,7 +49,7 @@ router.get('/chat/:sessionId', (req, res, next) => {
 });
 
 // ─── Clear Session ────────────────────────────────────────────────────────────
-router.delete('/chat/:sessionId', async (req, res, next) => {
+router.delete('/chat/:sessionId', assertUuidParam, async (req, res, next) => {
   try {
     const result = await clearSession(req.params.sessionId);
     if (!result.success) {
