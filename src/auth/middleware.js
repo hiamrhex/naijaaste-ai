@@ -1,7 +1,7 @@
 import { verifyAccessToken } from './tokens.js';
 import { findUserById, sanitize } from './store.js';
 
-export const requireAuth = (req, res, next) => {
+export const requireAuth = async (req, res, next) => {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) {
@@ -9,7 +9,7 @@ export const requireAuth = (req, res, next) => {
   }
   try {
     const payload = verifyAccessToken(token);
-    const user = findUserById(payload.sub);
+    const user = await findUserById(payload.sub);
     if (!user) {
       return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'User no longer exists' } });
     }

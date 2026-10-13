@@ -3,7 +3,8 @@
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { getPool, closePool } from './pool.js';
+import pg from 'pg';
+import { env } from '../env.js';
 import { logger } from '../lib/logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,16 +41,28 @@ export const runMigrations = async (pool) => {
 const isMain = process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('db/migrate.js');
 
 if (isMain) {
+  if (!env.DATABASE_URL) {
+    console.error('migration failed: DATABASE_URL is not set (migrations target a real database; tests use ephemeral pg-mem automatically)');
+    process.exitCode = 2;
+  } else {
+  // CLI builds its own pool (no import from pool.js — avoids a module cycle).
+  const pool = new pg.Pool({
+    connectionString: env.DATABASE_URL,
+    max: 2,
+    connectionTimeoutMillis: 15_000,
+  });
   try {
-    const pool = getPool();
     const ran = await runMigrations(pool);
-    logger.info({ ran }, 'migrations complete');
-    console.log(JSON.stringify({ ran }));
+    const { seedCatalogue } = await import('./seed.js');
+    const { seeded } = await seedCatalogue(pool);
+    logger.info({ ran, seeded }, 'migrations complete');
+    console.log(JSON.stringify({ ran, seeded }));
   } catch (err) {
     logger.error({ err: err.message, code: err.code }, 'migration failed');
     console.error(`migration failed: ${err.code || err.message}`);
     process.exitCode = 1;
   } finally {
-    await closePool();
+    await pool.end().catch(() => {});
+  }
   }
 }

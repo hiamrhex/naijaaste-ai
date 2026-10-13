@@ -1,52 +1,41 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { randomUUID } from 'crypto';
-import { logger } from '../lib/logger.js';
+import { getPool } from '../db/pool.js';
 
 // Check-in ratings (C): 1–5 stars + optional note, stored server-side so
-// they can feed recommendations later. JSON-file store, same seam as users.
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirname, '../data');
-const FILE = join(DATA_DIR, 'ratings.json');
+// they can feed recommendations later. Postgres-backed (pg-mem in tests).
+const iso = (v) => (v instanceof Date ? v.toISOString() : v);
 
-if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-
-const load = () => {
-  try {
-    if (!existsSync(FILE)) return [];
-    const parsed = JSON.parse(readFileSync(FILE, 'utf-8'));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch { return []; }
+const toRating = (row) => {
+  if (!row) return null;
+  return { ...row, at: iso(row.at) };
 };
 
-let ratings = load();
-
-const persist = () => {
-  try {
-    writeFileSync(FILE, JSON.stringify(ratings, null, 2), 'utf-8');
-  } catch (err) {
-    logger.error({ err }, 'ratings persist failed');
-  }
+export const createRating = async ({ userId, restaurantId, stars, note, context }) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    `INSERT INTO ratings (id, user_id, restaurant_id, stars, note, context)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [randomUUID(), userId, restaurantId, stars, note || null, context || 'saved']
+  );
+  return toRating(rows[0]);
 };
 
-export const createRating = ({ userId, restaurantId, stars, note, context }) => {
-  const rating = {
-    id: randomUUID(),
-    user_id: userId,
-    restaurant_id: restaurantId,
-    stars,
-    note: note || null,
-    context: context || 'saved',
-    at: new Date().toISOString(),
-  };
-  ratings.push(rating);
-  persist();
-  return rating;
+export const listRatingsByUser = async (userId) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    'SELECT * FROM ratings WHERE user_id = $1 ORDER BY at DESC', [userId]
+  );
+  return rows.map(toRating);
 };
 
-export const listRatingsByUser = (userId) => ratings.filter((r) => r.user_id === userId);
+export const listAllRatings = async () => {
+  const pool = await getPool();
+  const { rows } = await pool.query('SELECT * FROM ratings ORDER BY at DESC');
+  return rows.map(toRating);
+};
 
-export const listAllRatings = () => [...ratings];
-
-export const countRatings = () => ratings.length;
+export const countRatings = async () => {
+  const pool = await getPool();
+  const { rows } = await pool.query('SELECT count(*)::int AS n FROM ratings');
+  return rows[0].n;
+};

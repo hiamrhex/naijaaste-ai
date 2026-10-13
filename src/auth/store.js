@@ -1,8 +1,5 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { randomUUID } from 'crypto';
-import { logger } from '../lib/logger.js';
+import { getPool } from '../db/pool.js';
 import { env } from '../env.js';
 
 export const isAdminEmail = (email) => {
@@ -10,148 +7,171 @@ export const isAdminEmail = (email) => {
   return list.includes((email || '').toLowerCase().trim());
 };
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirname, '../data');
-const USERS_FILE = join(DATA_DIR, 'users.json');
+const iso = (v) => (v instanceof Date ? v.toISOString() : v);
 
-if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-
-const loadUsers = () => {
-  try {
-    if (!existsSync(USERS_FILE)) return {};
-    return JSON.parse(readFileSync(USERS_FILE, 'utf-8'));
-  } catch { return {}; }
+const toUser = (row) => {
+  if (!row) return null;
+  return {
+    ...row,
+    created_at: iso(row.created_at),
+    last_login: row.last_login ? iso(row.last_login) : null,
+  };
 };
 
-let store = loadUsers();
-
-const persist = () => {
+export const createUser = async ({ email, passwordHash, name }) => {
+  const pool = await getPool();
+  const id = randomUUID();
+  const target = email.toLowerCase().trim();
   try {
-    writeFileSync(USERS_FILE, JSON.stringify(store, null, 2), 'utf-8');
+    const { rows } = await pool.query(
+      `INSERT INTO users (id, email, name, password_hash, role)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [id, target, name.trim(), passwordHash, isAdminEmail(email) ? 'admin' : 'user']
+    );
+    const user = toUser(rows[0]);
+    return sanitize({ ...user, favorites: [] });
   } catch (err) {
-    logger.error({ err }, 'user persist failed');
+    if (err.code === '23505') {
+      const dup = new Error('An account with this email already exists');
+      dup.code = 'EMAIL_TAKEN';
+      throw dup;
+    }
+    throw err;
   }
 };
 
-export const createUser = ({ email, passwordHash, name }) => {
-  const id = randomUUID();
-  const now = new Date().toISOString();
-  store[id] = {
-    id,
-    email: email.toLowerCase().trim(),
-    name: name.trim(),
-    password_hash: passwordHash,
-    role: isAdminEmail(email) ? 'admin' : 'user',
-    created_at: now,
-    last_login: null,
-    refresh_tokens: {},
-    favorites: [],
-  };
-  persist();
-  return sanitize(store[id]);
-};
-
-export const findUserByEmail = (email) => {
+export const findUserByEmail = async (email) => {
+  const pool = await getPool();
   const target = email.toLowerCase().trim();
-  return Object.values(store).find(u => u.email === target) || null;
+  const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [target]);
+  return toUser(rows[0]);
 };
 
-export const findUserById = (id) => store[id] || null;
+export const findUserById = async (id) => {
+  const pool = await getPool();
+  const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+  return toUser(rows[0]);
+};
 
 // Creates a passwordless Google user, or links google_sub to an existing
 // account with the same email and merges name/picture if missing.
-export const upsertGoogleUser = ({ email, name, picture, sub }) => {
+export const upsertGoogleUser = async ({ email, name, picture, sub }) => {
+  const pool = await getPool();
   const target = email.toLowerCase().trim();
-  let user = Object.values(store).find((u) => u.email === target);
-  const now = new Date().toISOString();
-  if (!user) {
+  const existing = await findUserByEmail(target);
+  if (!existing) {
     const id = randomUUID();
-    store[id] = {
-      id,
-      email: target,
-      name: (name || target.split('@')[0]).trim(),
-      password_hash: null,
-      google_sub: sub,
-      picture: picture || null,
-      role: isAdminEmail(email) ? 'admin' : 'user',
-      created_at: now,
-      last_login: now,
-      refresh_tokens: {},
-      favorites: [],
-    };
-    persist();
-    return { user: sanitize(store[id]), created: true };
+    const { rows } = await pool.query(
+      `INSERT INTO users (id, email, name, password_hash, google_sub, picture, role, last_login)
+       VALUES ($1, $2, $3, NULL, $4, $5, $6, now()) RETURNING *`,
+      [id, target, (name || target.split('@')[0]).trim(), sub, picture || null,
+        isAdminEmail(email) ? 'admin' : 'user']
+    );
+    return { user: sanitize({ ...toUser(rows[0]), favorites: [] }), created: true };
   }
-  const patch = { last_login: now, google_sub: sub };
-  if (!user.picture && picture) patch.picture = picture;
-  Object.assign(user, patch);
-  persist();
-  return { user: sanitize(user), created: false };
+  const { rows } = await pool.query(
+    `UPDATE users SET last_login = now(), google_sub = $2,
+       picture = COALESCE(picture, $3) WHERE id = $1 RETURNING *`,
+    [existing.id, sub, picture || null]
+  );
+  return { user: sanitize({ ...toUser(rows[0]), favorites: await getFavorites(existing.id) }), created: false };
 };
 
-export const updateUser = (id, patch) => {
-  if (!store[id]) return null;
-  Object.assign(store[id], patch);
-  persist();
-  return sanitize(store[id]);
-};
-
-export const storeRefreshToken = (userId, jti, expiresAt) => {
-  if (!store[userId]) return;
-  store[userId].refresh_tokens[jti] = { expiresAt };
-  // prune expired
-  const now = Date.now();
-  for (const [k, v] of Object.entries(store[userId].refresh_tokens)) {
-    if (new Date(v.expiresAt).getTime() < now) delete store[userId].refresh_tokens[k];
+export const updateUser = async (id, patch) => {
+  const pool = await getPool();
+  const sets = [];
+  const vals = [id];
+  if (patch.last_login !== undefined) {
+    sets.push(`last_login = $${vals.length + 1}`);
+    vals.push(patch.last_login);
   }
-  persist();
+  if (patch.name !== undefined) {
+    sets.push(`name = $${vals.length + 1}`);
+    vals.push(patch.name);
+  }
+  if (!sets.length) return sanitize({ ...(await findUserById(id)), favorites: await getFavorites(id) });
+  const { rows } = await pool.query(
+    `UPDATE users SET ${sets.join(', ')} WHERE id = $1 RETURNING *`, vals
+  );
+  if (!rows[0]) return null;
+  return sanitize({ ...toUser(rows[0]), favorites: await getFavorites(id) });
 };
 
-export const revokeRefreshToken = (userId, jti) => {
-  if (!store[userId]?.refresh_tokens) return;
-  delete store[userId].refresh_tokens[jti];
-  persist();
+export const storeRefreshToken = async (userId, jti, expiresAt) => {
+  const pool = await getPool();
+  await pool.query(
+    'INSERT INTO refresh_tokens (jti, user_id, expires_at) VALUES ($1, $2, $3) ON CONFLICT (jti) DO NOTHING',
+    [jti, userId, expiresAt]
+  );
+  await pool.query('DELETE FROM refresh_tokens WHERE expires_at < now()');
 };
 
-export const hasRefreshToken = (userId, jti) => {
-  return !!store[userId]?.refresh_tokens?.[jti];
+export const revokeRefreshToken = async (userId, jti) => {
+  const pool = await getPool();
+  await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1 AND jti = $2', [userId, jti]);
 };
 
-export const revokeAllRefreshTokens = (userId) => {
-  if (!store[userId]) return;
-  store[userId].refresh_tokens = {};
-  persist();
+export const hasRefreshToken = async (userId, jti) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    'SELECT 1 FROM refresh_tokens WHERE user_id = $1 AND jti = $2 AND expires_at > now()',
+    [userId, jti]
+  );
+  return rows.length > 0;
 };
 
-export const setPasswordHash = (userId, passwordHash) => {
-  if (!store[userId]) return null;
-  store[userId].password_hash = passwordHash;
-  persist();
-  return sanitize(store[userId]);
+export const revokeAllRefreshTokens = async (userId) => {
+  const pool = await getPool();
+  await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);
+};
+
+export const setPasswordHash = async (userId, passwordHash) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    'UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING *',
+    [passwordHash, userId]
+  );
+  if (!rows[0]) return null;
+  return sanitize({ ...toUser(rows[0]), favorites: await getFavorites(userId) });
 };
 
 const MAX_FAVORITES = 50;
 
-export const getFavorites = (userId) => store[userId]?.favorites || [];
-
-export const addFavorite = (userId, restaurantId) => {
-  if (!store[userId]) return { ok: false, error: 'USER_NOT_FOUND' };
-  const favs = store[userId].favorites || (store[userId].favorites = []);
-  if (favs.includes(restaurantId)) return { ok: true, favorites: favs, added: false };
-  if (favs.length >= MAX_FAVORITES) return { ok: false, error: 'FAVORITES_FULL' };
-  favs.push(restaurantId);
-  persist();
-  return { ok: true, favorites: favs, added: true };
+export const getFavorites = async (userId) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    'SELECT restaurant_id FROM favorites WHERE user_id = $1 ORDER BY created_at', [userId]
+  );
+  return rows.map((r) => r.restaurant_id);
 };
 
-export const removeFavorite = (userId, restaurantId) => {
-  if (!store[userId]) return { ok: false, error: 'USER_NOT_FOUND' };
-  const favs = store[userId].favorites || [];
-  const idx = favs.indexOf(restaurantId);
-  if (idx === -1) return { ok: true, favorites: favs, removed: false };
-  favs.splice(idx, 1);
-  persist();
-  return { ok: true, favorites: favs, removed: true };
+export const addFavorite = async (userId, restaurantId) => {
+  const pool = await getPool();
+  const { rows: u } = await pool.query('SELECT 1 FROM users WHERE id = $1', [userId]);
+  if (!u.length) return { ok: false, error: 'USER_NOT_FOUND' };
+  const current = await getFavorites(userId);
+  if (current.includes(restaurantId)) return { ok: true, favorites: current, added: false };
+  if (current.length >= MAX_FAVORITES) return { ok: false, error: 'FAVORITES_FULL' };
+  try {
+    await pool.query(
+      'INSERT INTO favorites (user_id, restaurant_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [userId, restaurantId]
+    );
+  } catch (err) {
+    if (err.code === '23505') return { ok: true, favorites: await getFavorites(userId), added: false };
+    throw err;
+  }
+  return { ok: true, favorites: await getFavorites(userId), added: true };
+};
+
+export const removeFavorite = async (userId, restaurantId) => {
+  const pool = await getPool();
+  const { rows: u } = await pool.query('SELECT 1 FROM users WHERE id = $1', [userId]);
+  if (!u.length) return { ok: false, error: 'USER_NOT_FOUND' };
+  const { rowCount } = await pool.query(
+    'DELETE FROM favorites WHERE user_id = $1 AND restaurant_id = $2', [userId, restaurantId]
+  );
+  return { ok: true, favorites: await getFavorites(userId), removed: rowCount > 0 };
 };
 
 export const sanitize = (user) => ({
@@ -165,7 +185,14 @@ export const sanitize = (user) => ({
   favorites: user.favorites || [],
 });
 
-export const countUsers = () => Object.keys(store).length;
+export const countUsers = async () => {
+  const pool = await getPool();
+  const { rows } = await pool.query('SELECT count(*)::int AS n FROM users');
+  return rows[0].n;
+};
 
-export const countFavorites = () =>
-  Object.values(store).reduce((n, u) => n + (u.favorites || []).length, 0);
+export const countFavorites = async () => {
+  const pool = await getPool();
+  const { rows } = await pool.query('SELECT count(*)::int AS n FROM favorites');
+  return rows[0].n;
+};

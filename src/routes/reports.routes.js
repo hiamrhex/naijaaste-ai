@@ -6,7 +6,7 @@ import { createReport, REPORT_TYPES } from '../reports/store.js';
 const router = Router();
 const MAX_SCREENSHOT_BYTES = 300 * 1024;
 
-router.post('/reports', requireAuth, (req, res) => {
+router.post('/reports', requireAuth, async (req, res) => {
   const { type, message, screen, device, app_version, restaurant_id, screenshot } = req.body || {};
   if (!REPORT_TYPES.includes(type)) {
     return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: `type must be one of: ${REPORT_TYPES.join(', ')}`, requestId: req.id });
@@ -22,7 +22,7 @@ router.post('/reports', requireAuth, (req, res) => {
       return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: 'screenshot is too large (max ~300KB)', requestId: req.id });
     }
   }
-  const report = createReport({
+  const report = await createReport({
     userId: req.user.id,
     type,
     message: message.trim(),

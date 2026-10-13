@@ -6,7 +6,7 @@ import { createRating, listRatingsByUser } from '../ratings/store.js';
 const router = Router();
 const CONTEXTS = ['saved', 'planned', 'shared'];
 
-router.post('/ratings', requireAuth, (req, res) => {
+router.post('/ratings', requireAuth, async (req, res) => {
   const { restaurant_id, stars, note, context } = req.body || {};
   if (!restaurant_id || typeof restaurant_id !== 'string') {
     return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: 'restaurant_id is required', requestId: req.id });
@@ -20,14 +20,14 @@ router.post('/ratings', requireAuth, (req, res) => {
   if (context !== undefined && !CONTEXTS.includes(context)) {
     return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: `context must be one of: ${CONTEXTS.join(', ')}`, requestId: req.id });
   }
-  const rating = createRating({
+  const rating = await createRating({
     userId: req.user.id, restaurantId: restaurant_id, stars, note, context,
   });
   return ok(res, rating, undefined, 201);
 });
 
-router.get('/ratings', requireAuth, (req, res) => {
-  return ok(res, listRatingsByUser(req.user.id));
+router.get('/ratings', requireAuth, async (req, res) => {
+  return ok(res, await listRatingsByUser(req.user.id));
 });
 
 export { router as ratingsRoutes };

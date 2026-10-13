@@ -1,65 +1,58 @@
 import { buildChatSystemPrompt, buildChatUserPrompt } from '../prompts/chat.prompt.js';
 import { callLLMJson } from './llm.service.js';
 import { getRecommendations } from './recommend.service.js';
+import { getPool } from '../db/pool.js';
 import { logger } from '../lib/logger.js';
 import { v4 as uuidv4 } from 'uuid';
-import { readFileSync, writeFile, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const SESSIONS_FILE = join(__dirname, '../data/sessions.json');
 
 // Session expiry — 24 hours
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
-// Write queue — prevents race conditions on concurrent writes
-let writeQueue = Promise.resolve();
+// ─── Persistent Session Store (Postgres) ──────────────────────────────────────
+const rowToSession = (row) => {
+  if (!row) return null;
+  if (Date.now() - new Date(row.updated_at).getTime() > SESSION_TTL_MS) return null;
+  const data = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+  return data;
+};
 
-// ─── Persistent Session Store ─────────────────────────────────────────────────
-const loadSessions = () => {
+const loadSession = async (sessionId) => {
+  const pool = await getPool();
+  const { rows } = await pool.query('SELECT data, updated_at FROM sessions WHERE id = $1', [sessionId]);
+  const session = rowToSession(rows[0]);
+  if (rows[0] && !session) {
+    await pool.query('DELETE FROM sessions WHERE id = $1', [sessionId]).catch(() => {});
+  }
+  return session;
+};
+
+const blankSession = (sessionId) => ({
+  session_id: sessionId,
+  user_id: null,
+  conversation_history: [],
+  extracted_persona: { preference_history: [] },
+  stage: 'gather',
+  recommendations: null,
+  created_at: new Date().toISOString(),
+  last_active: new Date().toISOString(),
+});
+
+// Persist one session; resolves true/false (keeps the honest flag).
+const persistSession = async (session) => {
   try {
-    if (!existsSync(SESSIONS_FILE)) return {};
-    const raw = readFileSync(SESSIONS_FILE, 'utf-8');
-    const all = JSON.parse(raw);
-
-    // Prune expired sessions on load
-    const now = Date.now();
-    return Object.fromEntries(
-      Object.entries(all).filter(([_, s]) =>
-        now - new Date(s.last_active).getTime() < SESSION_TTL_MS
-      )
+    const pool = await getPool();
+    await pool.query(
+      `INSERT INTO sessions (id, user_id, data, updated_at)
+       VALUES ($1, $2, $3, now())
+       ON CONFLICT (id) DO UPDATE SET user_id = EXCLUDED.user_id, data = EXCLUDED.data, updated_at = now()`,
+      [session.session_id, session.user_id || null, JSON.stringify(session)]
     );
-  } catch {
-    return {};
+    return true;
+  } catch (err) {
+    logger.error({ err }, 'session persist failed');
+    return false;
   }
 };
-
-// Async write with queue — prevents race conditions; resolves true/false
-const saveSessions = (sessions) => {
-  writeQueue = writeQueue.then(
-    () =>
-      new Promise((resolve) => {
-        writeFile(
-          SESSIONS_FILE,
-          JSON.stringify(sessions, null, 2),
-          'utf-8',
-          (err) => {
-            if (err) {
-              logger.error({ err }, 'session persist failed');
-              resolve(false);
-            } else {
-              resolve(true);
-            }
-          }
-        );
-      })
-  );
-  return writeQueue;
-};
-
-// Load on startup
-let sessionStore = loadSessions();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const REQUIRED_FIELDS = ['city', 'budget_level', 'spice_tolerance', 'social_context'];
@@ -88,19 +81,9 @@ export const processChat = async (sessionId, userMessage) => {
   }
 
   // Get or create session
-  if (!sessionStore[sessionId]) {
-    sessionStore[sessionId] = {
-      session_id: sessionId,
-      conversation_history: [],
-      extracted_persona: { preference_history: [] },
-      stage: 'gather',
-      recommendations: null,
-      created_at: new Date().toISOString(),
-      last_active: new Date().toISOString()
-    };
-  }
+  let session = await loadSession(sessionId);
+  if (!session) session = blankSession(sessionId);
 
-  const session = sessionStore[sessionId];
   session.last_active = new Date().toISOString();
 
   // Add user message to history
@@ -167,9 +150,8 @@ export const processChat = async (sessionId, userMessage) => {
     }
   }
 
-  // Persist — await the queued write so the flag is honest
-  sessionStore[sessionId] = session;
-  const persisted = await saveSessions(sessionStore);
+  // Persist — await the write so the flag is honest
+  const persisted = await persistSession(session);
 
   return {
     success: true,
@@ -189,22 +171,18 @@ export const processChat = async (sessionId, userMessage) => {
   };
 };
 
-const hasSession = (sessionId) =>
-  Object.prototype.hasOwnProperty.call(sessionStore, sessionId);
+export const getSession = async (sessionId) => loadSession(sessionId);
 
-export const getSession = (sessionId) => (hasSession(sessionId) ? sessionStore[sessionId] : null);
-
-export const saveSession = (session) => {
-  sessionStore[session.session_id] = session;
-  saveSessions(sessionStore);
+export const saveSession = async (session) => {
+  await persistSession(session);
   return session;
 };
 
 export const clearSession = async (sessionId) => {
-  if (!hasSession(sessionId)) {
+  const pool = await getPool();
+  const { rowCount } = await pool.query('DELETE FROM sessions WHERE id = $1', [sessionId]);
+  if (!rowCount) {
     return { success: false, session_id: sessionId };
   }
-  delete sessionStore[sessionId];
-  const persisted = await saveSessions(sessionStore);
-  return { success: true, session_id: sessionId, persisted };
+  return { success: true, session_id: sessionId, persisted: true };
 };

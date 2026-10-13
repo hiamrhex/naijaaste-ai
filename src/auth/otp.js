@@ -1,17 +1,16 @@
 import { createHmac, randomInt, timingSafeEqual } from 'crypto';
+import { getPool } from '../db/pool.js';
 import { env } from '../env.js';
 
-// ─── OTP store (in-memory) ────────────────────────────────────────────────────
+// ─── OTP store (Postgres) ─────────────────────────────────────────────────────
 // Password-reset codes: 6 digits, SHA-256/HMAC-hashed at rest (never plaintext),
 // 10-minute TTL, max 5 verify attempts, 60s resend cooldown.
-// In-memory only — swap for Redis/DB before multi-instance (plan 007).
+// Same contract as the old in-memory version; survives restarts and scales
+// past a single process.
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN_MS = 60 * 1000;
-
-/** email(lowercased) -> { hash, expiresAt, attempts, createdAt } */
-const store = new Map();
 
 const pepper = () => env.JWT_ACCESS_SECRET || 'otp-dev-pepper';
 
@@ -28,11 +27,8 @@ const safeEqual = (a, b) => {
   }
 };
 
-const prune = () => {
-  const now = Date.now();
-  for (const [key, rec] of store) {
-    if (now > rec.expiresAt + RESEND_COOLDOWN_MS) store.delete(key);
-  }
+const prune = async (pool, now) => {
+  await pool.query('DELETE FROM otps WHERE expires_at < $1', [new Date(now - RESEND_COOLDOWN_MS).toISOString()]);
 };
 
 /**
@@ -40,24 +36,30 @@ const prune = () => {
  * if one was issued within the cooldown window.
  * Returns the plaintext code — caller must deliver it (email/console) and never log it in prod.
  */
-export const issueOtp = (email) => {
-  prune();
-  const key = email.toLowerCase().trim();
-  const existing = store.get(key);
+export const issueOtp = async (email) => {
+  const pool = await getPool();
   const now = Date.now();
-  if (existing && now - existing.createdAt < RESEND_COOLDOWN_MS) {
-    const err = new Error('A new code was just sent — wait before requesting another');
-    err.code = 'RESEND_COOLDOWN';
-    err.retryAfterMs = RESEND_COOLDOWN_MS - (now - existing.createdAt);
-    throw err;
+  await prune(pool, now);
+  const key = email.toLowerCase().trim();
+  const { rows } = await pool.query('SELECT created_at FROM otps WHERE email = $1', [key]);
+  if (rows[0]) {
+    const createdAt = new Date(rows[0].created_at).getTime();
+    if (now - createdAt < RESEND_COOLDOWN_MS) {
+      const err = new Error('A new code was just sent — wait before requesting another');
+      err.code = 'RESEND_COOLDOWN';
+      err.retryAfterMs = RESEND_COOLDOWN_MS - (now - createdAt);
+      throw err;
+    }
   }
   const code = String(randomInt(0, 1000000)).padStart(6, '0');
-  store.set(key, {
-    hash: hashCode(key, code),
-    expiresAt: now + OTP_TTL_MS,
-    attempts: 0,
-    createdAt: now,
-  });
+  await pool.query(
+    `INSERT INTO otps (email, code_hash, expires_at, attempts, created_at)
+     VALUES ($1, $2, $3, 0, $4)
+     ON CONFLICT (email) DO UPDATE SET
+       code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at,
+       attempts = 0, created_at = EXCLUDED.created_at`,
+    [key, hashCode(key, code), new Date(now + OTP_TTL_MS).toISOString(), new Date(now).toISOString()]
+  );
   return code;
 };
 
@@ -66,39 +68,48 @@ export const issueOtp = (email) => {
  * MAX_ATTEMPTS failures or on success.
  * Returns { ok: true } | { ok: false, reason: 'missing'|'expired'|'max_attempts'|'mismatch', attemptsLeft }
  */
-export const verifyOtp = (email, code) => {
+export const verifyOtp = async (email, code) => {
+  const pool = await getPool();
   const key = email.toLowerCase().trim();
-  const rec = store.get(key);
+  const { rows } = await pool.query('SELECT * FROM otps WHERE email = $1', [key]);
+  const rec = rows[0];
   if (!rec) return { ok: false, reason: 'missing', attemptsLeft: 0 };
 
   const now = Date.now();
-  if (now > rec.expiresAt) {
-    store.delete(key);
+  if (now > new Date(rec.expires_at).getTime()) {
+    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: false, reason: 'expired', attemptsLeft: 0 };
   }
   if (rec.attempts >= MAX_ATTEMPTS) {
-    store.delete(key);
+    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: false, reason: 'max_attempts', attemptsLeft: 0 };
   }
 
-  rec.attempts += 1;
-  const match = typeof code === 'string' && /^\d{6}$/.test(code) && safeEqual(rec.hash, hashCode(key, code));
+  const attempts = rec.attempts + 1;
+  const match = typeof code === 'string' && /^\d{6}$/.test(code) && safeEqual(rec.code_hash, hashCode(key, code));
 
   if (match) {
-    store.delete(key);
+    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: true };
   }
-  if (rec.attempts >= MAX_ATTEMPTS) {
-    store.delete(key);
+  if (attempts >= MAX_ATTEMPTS) {
+    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: false, reason: 'max_attempts', attemptsLeft: 0 };
   }
-  return { ok: false, reason: 'mismatch', attemptsLeft: MAX_ATTEMPTS - rec.attempts };
+  await pool.query('UPDATE otps SET attempts = $2 WHERE email = $1', [key, attempts]);
+  return { ok: false, reason: 'mismatch', attemptsLeft: MAX_ATTEMPTS - attempts };
 };
 
-export const clearOtp = (email) => store.delete(email.toLowerCase().trim());
+export const clearOtp = async (email) => {
+  const pool = await getPool();
+  await pool.query('DELETE FROM otps WHERE email = $1', [email.toLowerCase().trim()]);
+};
 
 // Test hook — lets unit tests drive expiry/attempts without waiting in real time.
-export const __setOtpExpiry = (email, expiresAt) => {
-  const rec = store.get(email.toLowerCase().trim());
-  if (rec) rec.expiresAt = expiresAt;
+export const __setOtpExpiry = async (email, expiresAt) => {
+  const pool = await getPool();
+  await pool.query('UPDATE otps SET expires_at = $2 WHERE email = $1', [
+    email.toLowerCase().trim(),
+    new Date(expiresAt).toISOString(),
+  ]);
 };

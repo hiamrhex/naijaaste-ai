@@ -36,9 +36,9 @@ router.post('/chat', validate(chatBodySchema), async (req, res, next) => {
 });
 
 // ─── Get Session State ────────────────────────────────────────────────────────
-router.get('/chat/:sessionId', assertUuidParam, (req, res, next) => {
+router.get('/chat/:sessionId', assertUuidParam, async (req, res, next) => {
   try {
-    const session = getSession(req.params.sessionId);
+    const session = await getSession(req.params.sessionId);
     if (!session) {
       return next(notFound('SESSION_NOT_FOUND', 'Session not found'));
     }

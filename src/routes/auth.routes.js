@@ -53,10 +53,10 @@ const validateSignin = (body) => {
   return errors;
 };
 
-const issueTokens = (user, res, status = 200) => {
+const issueTokens = async (user, res, status = 200) => {
   const accessToken = signAccessToken(user);
   const { token: refreshToken, jti, expiresAt } = signRefreshToken(user);
-  storeRefreshToken(user.id, jti, expiresAt);
+  await storeRefreshToken(user.id, jti, expiresAt);
   // Plan 013: root path so the cookie is sent to both /auth/* (legacy)
   // and /api/v1/auth/* (canonical) mounts.
   res.cookie('refreshToken', refreshToken, {
@@ -76,12 +76,19 @@ router.post('/auth/signup', authLimiter, async (req, res) => {
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; ') } });
     }
     const { name, email, password } = req.body;
-    if (findUserByEmail(email)) {
+    if (await findUserByEmail(email)) {
       return res.status(409).json({ success: false, error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists' } });
     }
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = createUser({ email, passwordHash, name });
-    return issueTokens(user, res, 201);
+    try {
+      const user = await createUser({ email, passwordHash, name });
+      return await issueTokens(user, res, 201);
+    } catch (err) {
+      if (err.code === 'EMAIL_TAKEN') {
+        return res.status(409).json({ success: false, error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists' } });
+      }
+      throw err;
+    }
   } catch (err) {
     req.log?.error({ err }, 'auth signup failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signup failed' } });
@@ -95,7 +102,7 @@ router.post('/auth/signin', authLimiter, async (req, res) => {
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; ') } });
     }
     const { email, password } = req.body;
-    const user = findUserByEmail(email);
+    const user = await findUserByEmail(email);
     if (!user || !user.password_hash) {
       return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } });
     }
@@ -103,30 +110,30 @@ router.post('/auth/signin', authLimiter, async (req, res) => {
     if (!ok) {
       return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } });
     }
-    updateUser(user.id, { last_login: new Date().toISOString() });
-    return issueTokens(sanitize(user), res);
+    await updateUser(user.id, { last_login: new Date().toISOString() });
+    return await issueTokens(sanitize(user), res);
   } catch (err) {
     req.log?.error({ err }, 'auth signin failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signin failed' } });
   }
 });
 
-router.post('/auth/refresh', authLimiter, (req, res) => {
+router.post('/auth/refresh', authLimiter, async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
     if (!token) {
       return res.status(401).json({ success: false, error: { code: 'NO_REFRESH_TOKEN', message: 'Refresh token required' } });
     }
     const payload = verifyRefreshToken(token);
-    if (payload.type !== 'refresh' || !hasRefreshToken(payload.sub, payload.jti)) {
+    if (payload.type !== 'refresh' || !(await hasRefreshToken(payload.sub, payload.jti))) {
       return res.status(401).json({ success: false, error: { code: 'INVALID_REFRESH', message: 'Invalid refresh token' } });
     }
-    const user = findUserById(payload.sub);
+    const user = await findUserById(payload.sub);
     if (!user) {
       return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'User no longer exists' } });
     }
-    revokeRefreshToken(user.id, payload.jti);
-    return issueTokens(sanitize(user), res);
+    await revokeRefreshToken(user.id, payload.jti);
+    return await issueTokens(sanitize(user), res);
   } catch (err) {
     if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
       return res.status(401).json({ success: false, error: { code: 'INVALID_REFRESH', message: 'Invalid or expired refresh token' } });
@@ -136,13 +143,13 @@ router.post('/auth/refresh', authLimiter, (req, res) => {
   }
 });
 
-router.post('/auth/signout', (req, res) => {
+router.post('/auth/signout', async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
     if (token) {
       try {
         const payload = verifyRefreshToken(token);
-        revokeRefreshToken(payload.sub, payload.jti);
+        await revokeRefreshToken(payload.sub, payload.jti);
       } catch { /* already invalid */ }
     }
     res.clearCookie('refreshToken', {
@@ -181,8 +188,8 @@ router.post('/auth/google', authLimiter, async (req, res) => {
       }
       throw err;
     }
-    const { user } = upsertGoogleUser(profile);
-    return issueTokens(user, res, 200);
+    const { user } = await upsertGoogleUser(profile);
+    return await issueTokens(user, res, 200);
   } catch (err) {
     req.log?.error({ err }, 'auth google failed');
     return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Google sign-in failed' } });
@@ -197,13 +204,13 @@ router.post('/auth/forgot-password', resetLimiter, async (req, res) => {
     if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) {
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'valid email is required' } });
     }
-    const user = findUserByEmail(email);
+    const user = await findUserByEmail(email);
     if (!user) {
       return res.json({ success: true, message: 'If that account exists, a reset code has been sent.' });
     }
     let code;
     try {
-      code = issueOtp(user.email);
+      code = await issueOtp(user.email);
     } catch (err) {
       if (err.code === 'RESEND_COOLDOWN') {
         return res.status(429).json({ success: false, error: { code: 'RESEND_COOLDOWN', message: err.message, retry_after_ms: err.retryAfterMs } });
@@ -232,7 +239,7 @@ router.post('/auth/reset-password', resetLimiter, async (req, res) => {
     if (errors.length) {
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; ') } });
     }
-    const result = verifyOtp(email, otp);
+    const result = await verifyOtp(email, otp);
     if (!result.ok) {
       const messages = {
         missing: 'Invalid or expired reset code',
@@ -242,14 +249,14 @@ router.post('/auth/reset-password', resetLimiter, async (req, res) => {
       };
       return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: messages[result.reason] } });
     }
-    const user = findUserByEmail(email);
+    const user = await findUserByEmail(email);
     if (!user) {
       // OTP verified but user gone — treat as generic failure, do not leak state
       return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: 'Invalid or expired reset code' } });
     }
     const passwordHash = await bcrypt.hash(new_password, 12);
-    setPasswordHash(user.id, passwordHash);
-    revokeAllRefreshTokens(user.id); // password change kills every session
+    await setPasswordHash(user.id, passwordHash);
+    await revokeAllRefreshTokens(user.id); // password change kills every session
     return res.json({ success: true, message: 'Password updated — sign in with your new password.' });
   } catch (err) {
     req.log?.error({ err }, 'auth reset-password failed');
@@ -258,13 +265,13 @@ router.post('/auth/reset-password', resetLimiter, async (req, res) => {
 });
 
 // ─── Favorites ────────────────────────────────────────────────────────────────
-router.get('/auth/favorites', requireAuth, (req, res) => {
-  const ids = getFavorites(req.user.id);
+router.get('/auth/favorites', requireAuth, async (req, res) => {
+  const ids = await getFavorites(req.user.id);
   const items = ids.map((id) => catalogueById.get(id)).filter(Boolean);
   return res.json({ success: true, favorites: ids, items });
 });
 
-router.post('/auth/favorites', requireAuth, (req, res) => {
+router.post('/auth/favorites', requireAuth, async (req, res) => {
   const { restaurant_id } = req.body || {};
   if (!restaurant_id || typeof restaurant_id !== 'string') {
     return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'restaurant_id is required' } });
@@ -272,15 +279,15 @@ router.post('/auth/favorites', requireAuth, (req, res) => {
   if (!catalogueById.has(restaurant_id)) {
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Unknown restaurant' } });
   }
-  const result = addFavorite(req.user.id, restaurant_id);
+  const result = await addFavorite(req.user.id, restaurant_id);
   if (!result.ok) {
     return res.status(result.error === 'FAVORITES_FULL' ? 409 : 404).json({ success: false, error: { code: result.error, message: result.error === 'FAVORITES_FULL' ? 'Favorites list is full (max 50)' : 'User not found' } });
   }
   return res.status(result.added ? 201 : 200).json({ success: true, favorites: result.favorites, added: result.added });
 });
 
-router.delete('/auth/favorites/:restaurant_id', requireAuth, (req, res) => {
-  const result = removeFavorite(req.user.id, req.params.restaurant_id);
+router.delete('/auth/favorites/:restaurant_id', requireAuth, async (req, res) => {
+  const result = await removeFavorite(req.user.id, req.params.restaurant_id);
   if (!result.ok) {
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
   }

@@ -15,7 +15,7 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
     const { message, session_id } = req.body || {};
 
     const sessionId = session_id || uuidv4();
-    const existing = getSession(sessionId);
+    const existing = await getSession(sessionId);
     if (existing?.user_id && existing.user_id !== req.user.id) {
       return fail(res, {
         status: 403, code: 'FORBIDDEN',
@@ -46,7 +46,7 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
     );
     session.conversation_history = session.conversation_history.slice(-20);
     session.last_active = new Date().toISOString();
-    saveSession(session);
+    await saveSession(session);
 
     return res.status(200).json({
       success: true,
