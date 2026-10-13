@@ -57,11 +57,13 @@ const issueTokens = (user, res, status = 200) => {
   const accessToken = signAccessToken(user);
   const { token: refreshToken, jti, expiresAt } = signRefreshToken(user);
   storeRefreshToken(user.id, jti, expiresAt);
+  // Plan 013: root path so the cookie is sent to both /auth/* (legacy)
+  // and /api/v1/auth/* (canonical) mounts.
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/auth',
+    path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
   return res.status(status).json({ success: true, user, accessToken });
@@ -143,7 +145,12 @@ router.post('/auth/signout', (req, res) => {
         revokeRefreshToken(payload.sub, payload.jti);
       } catch { /* already invalid */ }
     }
-    res.clearCookie('refreshToken', { path: '/auth' });
+    res.clearCookie('refreshToken', {
+      path: '/',
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
     return res.json({ success: true });
   } catch (err) {
     req.log?.error({ err }, 'auth signout failed');

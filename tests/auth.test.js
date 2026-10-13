@@ -29,7 +29,7 @@ describe('Auth system', () => {
     const setCookie = res.headers['set-cookie'] || [];
     refreshCookie = setCookie.find((c) => c.startsWith('refreshToken=')) || '';
     expect(refreshCookie).toContain('HttpOnly');
-    expect(refreshCookie).toContain('Path=/auth');
+    expect(refreshCookie).toContain('Path=/;');
   });
 
   it('POST /auth/signup rejects duplicate email with 409', async () => {
@@ -100,6 +100,28 @@ describe('Auth system', () => {
   it('POST /auth/refresh rejects missing cookie with 401', async () => {
     const res = await request(app).post('/auth/refresh').expect(401);
     expect(res.body.error.code).toBe('NO_REFRESH_TOKEN');
+  });
+
+  it('canonical POST /api/v1/auth/refresh accepts the root-path cookie (plan 013)', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/refresh')
+      .set('Cookie', refreshCookie)
+      .expect(200);
+    expect(typeof res.body.accessToken).toBe('string');
+    const setCookie = res.headers['set-cookie'] || [];
+    const rotated = setCookie.find((c) => c.startsWith('refreshToken='));
+    expect(rotated).toContain('Path=/;');
+    refreshCookie = rotated;
+    accessToken = res.body.accessToken;
+  });
+
+  it('post-signout refresh is rejected on the canonical mount (plan 013)', async () => {
+    await request(app).post('/api/v1/auth/signout').set('Cookie', refreshCookie).expect(200);
+    const res = await request(app)
+      .post('/api/v1/auth/refresh')
+      .set('Cookie', refreshCookie)
+      .expect(401);
+    expect(res.body.error.code).toBe('INVALID_REFRESH');
   });
 
   it('POST /agent rejects unauthenticated requests with 401', async () => {
