@@ -36,4 +36,12 @@ if (!parsed.success) {
   process.exit(1);
 }
 
+if (parsed.data.NODE_ENV === 'production' && !parsed.data.CORS_ORIGIN) {
+  // Plan 011: an empty allowlist reflects any origin with credentials —
+  // refuse to boot open in production; dev/test keep the convenience.
+  console.error('Invalid environment configuration:');
+  console.error('  - CORS_ORIGIN: required in production (comma-separated allowed origins)');
+  process.exit(1);
+}
+
 export const env = parsed.data;
