@@ -28,3 +28,8 @@ src/data/users.json
 *.njsproj
 *.sln
 *.sw?
+
+src/data/ratings.json
+src/data/reports.json
+src/data/sessions.json
+test-results/
