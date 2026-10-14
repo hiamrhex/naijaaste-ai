@@ -4,6 +4,7 @@ import {
 } from '../prompts/recommend.prompt.js';
 import { callRecommendLLM } from './llm.service.js';
 import { getCatalogueByCity } from '../db/catalogue.js';
+import { logger } from '../lib/logger.js';
 
 // ─── Hard Filters ─────────────────────────────────────────────────────────────
 const applyHardFilters = (allRestaurants, persona) => {
@@ -77,6 +78,44 @@ const isWarmUser = (persona) =>
   Array.isArray(persona.preference_history) &&
   persona.preference_history.length > 0;
 
+// ─── Deterministic fallback (item 6) ──────────────────────────────────────────
+// When the LLM is down/slow/throttled, users still get honest ranked picks
+// from the same pre-score the LLM path uses — same shape, clearly labeled,
+// zero invented prose.
+const FALLBACK_MESSAGE =
+  'Live AI ranking is unavailable right now — these are deterministic picks from your taste match. Try again shortly for AI reasoning.';
+
+const toFallbackRec = (r, i) => ({
+  rank: i + 1,
+  restaurant_id: r.restaurant_id,
+  restaurant_name: r.name,
+  match_score: Math.min(1, Math.round((r._pre_score || 0) * 100) / 100),
+  reasoning: `Matches your ${r.city} search on price (${r.price_tier || 'varied'}) and spice (${r.spice_profile || 'varied'}) — ranked deterministically while AI ranking is down.`,
+  predicted_rating: typeof r.average_rating === 'number' ? r.average_rating : 3.5,
+  why_they_will_love_it: r.signature_dishes?.[0]
+    ? `Known for ${r.signature_dishes[0]}.`
+    : 'A solid match on your stated preferences.',
+  potential_concern: null,
+});
+
+const fallbackResult = (persona, scored, totalInCity, startTime, reason) => ({
+  success: true,
+  fallback: true,
+  recommendations: scored.slice(0, 5).map(toFallbackRec),
+  message: FALLBACK_MESSAGE,
+  persona_summary: `Deterministic shortlist for ${persona.city || 'your city'}.`,
+  meta: {
+    user_state: isWarmUser(persona) ? 'warm' : 'cold_start',
+    persona_id: persona.persona_id,
+    total_restaurants_in_city: totalInCity,
+    after_hard_filter: scored.length,
+    candidates_sent_to_llm: 0,
+    history_signals: persona.preference_history?.length || 0,
+    latency_ms: Date.now() - startTime,
+    fallback_reason: reason?.code || String(reason?.message || reason),
+  },
+});
+
 // ─── Main Service ─────────────────────────────────────────────────────────────
 export const getRecommendations = async (persona) => {
   const startTime = Date.now();
@@ -98,9 +137,10 @@ export const getRecommendations = async (persona) => {
 
   // Step 2 — Pre-score and take top 15 candidates for LLM
   // Prevents context bloat and improves LLM ranking quality
-  const candidates = hardFiltered
+  const scored = hardFiltered
     .map(r => ({ ...r, _pre_score: preScore(r, persona) }))
-    .sort((a, b) => b._pre_score - a._pre_score)
+    .sort((a, b) => b._pre_score - a._pre_score);
+  const candidates = scored
     .slice(0, 15)
     .map(({ _pre_score, ...r }) => r); // remove internal score before sending to LLM
 
@@ -112,8 +152,16 @@ export const getRecommendations = async (persona) => {
     ? buildWarmRecommendPrompt(persona, candidates)
     : buildColdStartRecommendPrompt(persona, candidates);
 
-  // Step 5 — Call LLM with correct token limit and retry logic
-  const llmResult = await callRecommendLLM(prompt);
+  // Step 5 — Call LLM with correct token limit and retry logic.
+  // On LLM failure (down, slow, throttled, circuit open): degrade to the
+  // deterministic picks with a clear message instead of a 502 dead end.
+  let llmResult;
+  try {
+    llmResult = await callRecommendLLM(prompt);
+  } catch (err) {
+    logger.warn({ err: err?.code || err?.message }, 'recommend LLM failed, deterministic fallback');
+    return fallbackResult(persona, scored, cityRestaurants.length, startTime, err);
+  }
 
   // Step 6 — Return with full metadata for judges
   return {

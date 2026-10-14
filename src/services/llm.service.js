@@ -26,6 +26,59 @@ const cleanJSON = (raw) => {
 // Exponential backoff retry
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Per-attempt timeout: a hung upstream must never pin a request (or a
+// Vercel invocation) forever. 20s keeps worst-case inside the 60s budget.
+export const LLM_TIMEOUT_MS = 20000;
+
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => {
+        const err = new Error(`LLM call timed out after ${ms}ms`);
+        err.code = 'LLM_TIMEOUT';
+        reject(err);
+      }, ms)
+    ),
+  ]);
+
+// Circuit breaker factory (item 6). Closed → failures counted; at threshold
+// the breaker opens for coolDownMs and calls fail fast without touching the
+// network; one probe is allowed after cooldown (half-open), closing on
+// success. Pure logic, fully unit-tested; one shared instance guards callLLM.
+export const createBreaker = ({ threshold = 5, coolDownMs = 60000, now = Date.now } = {}) => {
+  let failures = 0;
+  let openedAt = null;
+  return {
+    get state() {
+      if (openedAt === null) return 'closed';
+      if (now() - openedAt >= coolDownMs) return 'half-open';
+      return 'open';
+    },
+    get failures() { return failures; },
+    async exec(fn) {
+      if (this.state === 'open') {
+        const err = new Error('LLM circuit is open — upstream failing, request skipped');
+        err.code = 'CIRCUIT_OPEN';
+        throw err;
+      }
+      try {
+        const out = await fn();
+        failures = 0;
+        openedAt = null;
+        return out;
+      } catch (err) {
+        failures += 1;
+        if (failures >= threshold) openedAt = now();
+        throw err;
+      }
+    },
+    reset() { failures = 0; openedAt = null; },
+  };
+};
+
+export const llmBreaker = createBreaker();
+
 const withRetry = async (fn, retries = 3, baseDelay = 1000) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -58,8 +111,8 @@ const withRetry = async (fn, retries = 3, baseDelay = 1000) => {
  * System instruction sets JSON-only behaviour globally.
  */
 export const callLLM = async (prompt, tokenLimit = TOKEN_LIMITS.default) => {
-  return withRetry(async () => {
-    const response = await ai.models.generateContent({
+  return llmBreaker.exec(() => withRetry(async () => {
+    const response = await withTimeout(ai.models.generateContent({
       model: MODEL,
       contents: prompt,
       config: {
@@ -67,7 +120,7 @@ export const callLLM = async (prompt, tokenLimit = TOKEN_LIMITS.default) => {
         systemInstruction:
           "You are an elite AI assistant. You ALWAYS return valid JSON only. No markdown. No explanation. No preamble. Raw JSON only."
       }
-    });
+    }), LLM_TIMEOUT_MS);
 
     const text = response.text;
     if (!text) {
@@ -76,18 +129,21 @@ export const callLLM = async (prompt, tokenLimit = TOKEN_LIMITS.default) => {
     }
 
     return text.trim();
-  });
+  }));
 };
 
 /**
  * Calls LLM and returns parsed JSON.
- * Retries with corrective prompt if JSON parsing fails.
+ * Transport/upstream failures rethrow immediately (no wasted corrective
+ * call on an undefined response); only genuine parse failures get the
+ * corrective retry.
  */
 export const callLLMJson = async (prompt, tokenLimit = TOKEN_LIMITS.default) => {
-  let raw;
+  // Transport/upstream failures propagate untouched — no wasted corrective
+  // call on an undefined response (used to embed "previous response: undefined").
+  const raw = await callLLM(prompt, tokenLimit);
 
   try {
-    raw = await callLLM(prompt, tokenLimit);
     const clean = cleanJSON(raw);
     return JSON.parse(clean);
   } catch (parseError) {
