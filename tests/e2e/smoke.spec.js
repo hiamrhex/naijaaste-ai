@@ -32,8 +32,8 @@ test('signup, nearby, save, sign out', async ({ page }) => {
     await saveBtn.click();
   }
 
-  // Sign out from Settings.
+  // Sign out from Settings (test id: the global header has its own sign-out).
   await page.getByRole('link', { name: /^settings$/i }).click();
-  await page.getByRole('button', { name: /sign out/i }).click();
+  await page.getByTestId('settings-signout').click();
   await expect(page).toHaveURL(/\/app\/login/, { timeout: 15000 });
 });

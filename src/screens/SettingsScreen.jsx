@@ -303,7 +303,7 @@ export default function SettingsScreen() {
           </div>
         </button>
 
-        <button onClick={signOut} style={{ ...row, cursor: 'pointer' }}>
+        <button onClick={signOut} data-testid="settings-signout" style={{ ...row, cursor: 'pointer' }}>
           <LogOut size={16} color="var(--text-muted)" />
           <div style={{ flex: 1, fontWeight: 600, fontSize: 13.5, textAlign: 'left' }}>Sign out</div>
         </button>
