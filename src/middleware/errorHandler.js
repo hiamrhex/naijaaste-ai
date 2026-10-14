@@ -15,6 +15,16 @@ export const errorHandler = (err, req, res, _next) => {
     message = err.message;
     details = err.details;
     retryAfterSec = err.retryAfterSec;
+  } else if (err?.type === 'entity.too.large') {
+    // Body-parser limit (10kb global, 350kb on /reports): a client payload
+    // problem, never an upstream failure. Surfaced honestly as 413.
+    status = 413;
+    code = 'PAYLOAD_TOO_LARGE';
+    message = 'Request body exceeds the size limit for this endpoint';
+  } else if (err?.type === 'entity.parse.failed') {
+    status = 400;
+    code = 'VALIDATION_ERROR';
+    message = 'Malformed JSON body';
   } else if (typeof err?.status === 'number') {
     // LLM SDK errors (GoogleGenAI ApiError) carry .status — anything unexpected
     // from the LLM upstream is a 502, never a leak of the SDK message.

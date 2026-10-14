@@ -83,5 +83,15 @@ describe('error contract (layers 19/20/26/27)', () => {
     expect(r4.statusCode).toBe(500);
     expect(r4.body.error.code).toBe('INTERNAL');
     expect(r4.body.error.message).toBe('Internal server error'); // no message leak
+
+    const r5 = makeRes();
+    errorHandler(Object.assign(new Error('too big'), { type: 'entity.too.large' }), { id: 'x' }, r5, noop);
+    expect(r5.statusCode).toBe(413);
+    expect(r5.body.error.code).toBe('PAYLOAD_TOO_LARGE');
+
+    const r6 = makeRes();
+    errorHandler(Object.assign(new Error('bad json'), { type: 'entity.parse.failed' }), { id: 'x' }, r6, noop);
+    expect(r6.statusCode).toBe(400);
+    expect(r6.body.error.code).toBe('VALIDATION_ERROR');
   });
 });
