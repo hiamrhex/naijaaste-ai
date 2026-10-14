@@ -234,7 +234,7 @@ export function RestaurantCard({ rec, index, onReview, distanceKm, directionsUrl
         {rec.restaurant_id && (
           <div style={{ marginTop: 8, textAlign: 'right' }}>
             <a
-              href={`#/settings?report=${encodeURIComponent(rec.restaurant_id)}&type=wrong-info`}
+              href={`/app/settings?report=${encodeURIComponent(rec.restaurant_id)}&type=wrong-info`}
               onClick={(e) => e.stopPropagation()}
               style={{ fontSize: 11, color: 'var(--text-hint)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
             >

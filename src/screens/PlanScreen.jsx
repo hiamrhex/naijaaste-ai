@@ -6,6 +6,7 @@ import { ReviewModal } from '../components/ReviewModal.jsx';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 import { useLanguage } from '../app/useLanguage.js';
 import { readPlans, writePlans } from '../lib/plans.js';
+import { recordCheckInEvent } from '../hooks/useCheckIn.js';
 const BUDGETS = [
   { value: 'tight', label: 'Tight', budget_level: 'low' },
   { value: 'mid', label: 'Mid-range', budget_level: 'mid_range' },
@@ -65,6 +66,8 @@ export default function PlanScreen() {
       setRecs(list);
       setStatus('ready');
       try { globalThis.dispatchEvent(new Event('nt:good-moment')); } catch { /* noop */ }
+      try { globalThis.dispatchEvent(new Event('nt:plan-done')); } catch { /* noop */ }
+      if (list[0]?.restaurant_id) recordCheckInEvent(list[0].restaurant_id, 'planned');
       writePlans([{ id: `plan-${Date.now()}`, at: new Date().toISOString(), inputs: { groupSize: size, budget, area, occasion, dietary }, recs: list }, ...readPlans()]);
     } catch (err) {
       setError(err.message || t('genericError'));
@@ -105,6 +108,7 @@ export default function PlanScreen() {
         await navigator.clipboard.writeText(text);
       }
       setShared(true);
+      if (recs[0]?.restaurant_id) recordCheckInEvent(recs[0].restaurant_id, 'shared');
     } catch {
       try { await navigator.clipboard.writeText(text); setShared(true); } catch { /* clipboard denied */ }
     }

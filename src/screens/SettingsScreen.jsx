@@ -6,6 +6,7 @@ import { useTheme } from '../app/useTheme.js';
 import { useLanguage } from '../app/useLanguage.js';
 import { authFetch, deleteAccount, getFavorites } from '../lib/auth.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
+import { FeedbackForm } from '../components/FeedbackForm.jsx';
 import { readHistory } from '../hooks/useConcierge.js';
 import { readPlans } from '../lib/plans.js';
 
@@ -192,6 +193,8 @@ export default function SettingsScreen() {
           <LogOut size={16} color="var(--text-muted)" />
           <div style={{ flex: 1, fontWeight: 600, fontSize: 13.5, textAlign: 'left' }}>Sign out</div>
         </button>
+
+        <FeedbackForm />
 
         <div style={{ border: '1px solid rgba(239,68,68,0.35)', borderRadius: 12, padding: 14, background: 'rgba(239,68,68,0.04)' }}>
           {!confirmDelete ? (

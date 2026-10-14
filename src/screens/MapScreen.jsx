@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { Crosshair, Loader2, Navigation, Heart, MapPin } from 'lucide-react';
 import { API } from '../constants/index.js';
 import { getFavorites, addFavorite, removeFavorite } from '../lib/auth.js';
+import { recordCheckInEvent } from '../hooks/useCheckIn.js';
 import { useLanguage } from '../app/useLanguage.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 
@@ -113,6 +114,7 @@ export default function MapScreen() {
     try {
       const next = isFav ? await removeFavorite(id) : await addFavorite(id);
       setFavorites(next);
+      if (!isFav) recordCheckInEvent(id, 'saved');
     } catch {
       setFavorites((prev) => (isFav ? [...prev, id] : prev.filter((x) => x !== id)));
     }

@@ -141,6 +141,27 @@ export const removeFavorite = async (restaurantId) => {
   return (await res.json()).favorites || [];
 };
 
+export const postRating = async ({ restaurant_id, stars, note, context }) => {
+  const res = await authFetch('/ratings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurant_id, stars, note, context }),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error?.message || 'Could not save rating');
+  return (await res.json()).data;
+};
+
+export const postReport = async ({ type, message, screen, device, app_version, restaurant_id, screenshot }) => {
+  const res = await authFetch('/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type, message, screen, device, app_version, restaurant_id, screenshot }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message || 'Could not send report');
+  return data.data;
+};
+
 export const tryRefresh = async () => {
   if (!current) return false;
   try {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { API, HERO_PHRASES, STAGES } from '../constants/index.js';
+import { recordCheckInEvent } from './useCheckIn.js';
 import { authFetch, getFavorites, addFavorite, removeFavorite } from '../lib/auth.js';
 
 const HISTORY_KEY = 'nt.history.v1';
@@ -74,6 +75,7 @@ export function useConcierge({ chatEndRef }) {
       setFavorites(next);
       if (!isFav) {
         try { globalThis.dispatchEvent(new Event('nt:good-moment')); } catch { /* noop */ }
+        recordCheckInEvent(restaurantId, 'saved');
       }
     } catch {
       setFavorites((prev) => (isFav ? [...prev, restaurantId] : prev.filter((id) => id !== restaurantId)));
@@ -170,6 +172,7 @@ export function useConcierge({ chatEndRef }) {
         at: new Date().toISOString(),
         recs: recList ? recList.length : 0,
       });
+      try { globalThis.dispatchEvent(new Event('nt:chat-done')); } catch { /* noop */ }
     } catch (err) {
       setMessages((prev) => [...prev, {
         role: 'assistant',
