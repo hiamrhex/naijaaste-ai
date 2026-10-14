@@ -12,7 +12,7 @@ test('signup, nearby, save, sign out', async ({ page }) => {
   await page.getByPlaceholder(/ada obi/i).fill('E2E User');
   await page.getByPlaceholder(/you@example\.com/i).fill(email);
   await page.getByPlaceholder(/at least 8 characters/i).fill('Str0ng!Passw0rd');
-  await page.getByRole('button', { name: /create account$/i }).last().click();
+  await page.locator('form button[type="submit"]').click();
 
   // Lands in the app after signup (auth gate gone, tabs visible).
   await expect(page.getByRole('navigation', { name: /main sections/i })).toBeVisible({ timeout: 15000 });
