@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { API, HERO_PHRASES, STAGES } from '../constants/index.js';
 import { recordCheckInEvent } from './useCheckIn.js';
 import { authFetch, getFavorites, addFavorite, removeFavorite } from '../lib/auth.js';
@@ -142,11 +142,14 @@ export function useConcierge({ chatEndRef }) {
     setShowQuickPrompts(false);
     setMessages((prev) => [...prev, { role: 'user', content: txt }]);
     setLoading(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const res = await authFetch('/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: txt, session_id: sessionId || undefined }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -174,12 +177,20 @@ export function useConcierge({ chatEndRef }) {
       });
       try { globalThis.dispatchEvent(new Event('nt:chat-done')); } catch { /* noop */ }
     } catch (err) {
-      setMessages((prev) => [...prev, {
-        role: 'assistant',
-        content: err.message || 'Connection issue — please try again.',
-        error: true,
-      }]);
+      if (err?.name === 'AbortError') {
+        setMessages((prev) => [...prev, {
+          role: 'assistant',
+          content: 'Stopped — ask me anything else.',
+        }]);
+      } else {
+        setMessages((prev) => [...prev, {
+          role: 'assistant',
+          content: err.message || 'Connection issue — please try again.',
+          error: true,
+        }]);
+      }
     } finally {
+      abortRef.current = null;
       setLoading(false);
     }
   }, [inputVal, loading, sessionId]);
@@ -218,6 +229,11 @@ export function useConcierge({ chatEndRef }) {
 
   const stageIdx = STAGES.indexOf(stage);
 
+  const abortRef = useRef(null);
+  const stop = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
   return {
     heroIdx, heroVisible, messages, sessionId, inputVal, setInputVal,
     loading, stage, stageIdx, persona, recs, meta,
@@ -225,7 +241,7 @@ export function useConcierge({ chatEndRef }) {
     thinkOpen, setThinkOpen, resultsOpen, setResultsOpen,
     showQuickPrompts, favorites, nearby, nearbyLoading, nearbyError,
     showNearby, setShowNearby, geoCache,
-    toggleFavorite, findNearby, sendMsg, generateReview, reset,
+    toggleFavorite, findNearby, sendMsg, stop, generateReview, reset,
   };
 }
 

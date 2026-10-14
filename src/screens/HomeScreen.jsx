@@ -1,6 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
-  Send, ChefHat, Utensils, Zap,
+  Send, ChefHat, Utensils, Zap, Square,
   RefreshCw, ChevronDown, Globe, Clock, BarChart3, MessageSquare, ArrowRight, MapPin, Sparkles, CheckCircle, Flame,
 } from 'lucide-react';
 import { HERO_PHRASES, QUICK_PROMPTS, STAGES, STAGE_LABELS, STAGE_TIPS } from '../constants/index.js';
@@ -10,9 +10,13 @@ import { Header, Footer } from '../components/Shell.jsx';
 import { useAuth } from '../app/useAuth.js';
 import { useConcierge } from '../hooks/useConcierge.js';
 import { haversineKm } from '../utils/geo.js';
+import { VoiceButton } from '../components/VoiceButton.jsx';
+import { useLanguage } from '../app/useLanguage.js';
 
 export default function HomeScreen() {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
+  const [voiceError, setVoiceError] = useState(null);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const c = useConcierge({ chatEndRef });
@@ -277,22 +281,53 @@ export default function HomeScreen() {
               />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                 <span style={{ fontSize: 10, color: 'var(--text-hint)' }} aria-hidden="true">{c.inputVal.length}/500</span>
-                <button
-                  onClick={() => c.sendMsg()}
-                  disabled={!c.inputVal.trim() || c.loading}
-                  aria-label="Send message"
-                  style={{
-                    width: 36, height: 36, borderRadius: 10,
-                    background: c.inputVal.trim() && !c.loading ? 'var(--orange)' : 'var(--bg-card-hover)',
-                    border: 'none', cursor: c.inputVal.trim() && !c.loading ? 'pointer' : 'default',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 0.2s, transform 0.1s',
-                  }}
-                >
-                  <Send size={15} color={c.inputVal.trim() && !c.loading ? '#ffffff' : 'var(--text-hint)'} />
-                </button>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <VoiceButton
+                    onTranscript={(text) => {
+                      setVoiceError(null);
+                      c.setInputVal((text || '').slice(0, 500));
+                      inputRef.current?.focus();
+                    }}
+                    onError={() => setVoiceError(t('voiceFail'))}
+                  />
+                  {c.loading ? (
+                    <button
+                      onClick={() => c.stop()}
+                      aria-label={t('stop')}
+                      title={t('stop')}
+                      style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        background: 'rgba(239,68,68,0.12)',
+                        border: '1px solid rgba(239,68,68,0.4)', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      <Square size={14} color="#F87171" fill="#F87171" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => c.sendMsg()}
+                      disabled={!c.inputVal.trim()}
+                      aria-label="Send message"
+                      style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        background: c.inputVal.trim() ? 'var(--orange)' : 'var(--bg-card-hover)',
+                        border: 'none', cursor: c.inputVal.trim() ? 'pointer' : 'default',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'background 0.2s, transform 0.1s',
+                      }}
+                    >
+                      <Send size={15} color={c.inputVal.trim() ? '#ffffff' : 'var(--text-hint)'} />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+            {voiceError && (
+              <p role="status" style={{ fontSize: 12, color: 'var(--amber)', margin: '6px 0 0', paddingLeft: 2 }}>
+                {voiceError}
+              </p>
+            )}
             <p style={{ fontSize: 11, color: 'var(--text-hint)', margin: '6px 0 0', paddingLeft: 2 }}>
               Enter to send · Shift+Enter for new line
             </p>

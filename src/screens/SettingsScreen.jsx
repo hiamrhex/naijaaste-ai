@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Trash2, LogOut, Globe, Moon, Sun, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Download, Trash2, LogOut, Globe, Moon, Sun, ShieldCheck, ChevronRight, Bell, BellOff, Bot } from 'lucide-react';
+import { loadPush, allowPush, denyPush, setPushMuted } from '../lib/push.js';
 import { useAuth } from '../app/useAuth.js';
 import { useTheme } from '../app/useTheme.js';
 import { useLanguage } from '../app/useLanguage.js';
@@ -20,6 +21,43 @@ export default function SettingsScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [push, setPushState] = useState(() => {
+    try { return loadPush(); } catch { return { status: 'unasked', muted: false }; }
+  });
+  const [permission, setPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
+  );
+  const [autonomy, setAutonomy] = useState(() => {
+    try { return localStorage.getItem('nt.autonomy.v1') || 'ask'; } catch { return 'ask'; }
+  });
+  const isIOSDevice = typeof navigator !== 'undefined' &&
+    (/iphone|ipad|ipod/i.test(navigator.userAgent || '') ||
+      (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1));
+
+  const chooseAutonomy = (v) => {
+    setAutonomy(v);
+    try { localStorage.setItem('nt.autonomy.v1', v); } catch { /* noop */ }
+    setNotice(v === 'ask'
+      ? 'Noted — the agent will ask before anything that matters. (Enforcement for bookings arrives with booking actions.)'
+      : 'Noted — low-stakes things happen alone; anything permanent still asks first.');
+  };
+
+  const enablePush = async () => {
+    try {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        const res = await Notification.requestPermission();
+        setPermission(res);
+        if (res !== 'granted') {
+          setPushState(denyPush());
+          return;
+        }
+      }
+      setPushState(allowPush());
+      setNotice('Notifications on — one Thursday idea and the odd check-in, nothing else.');
+    } catch {
+      setError('Could not enable notifications in this browser.');
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -173,6 +211,82 @@ export default function SettingsScreen() {
               <br />Taste signals live in your chat sessions; nothing sensitive is stored without your chats.
             </div>
           </div>
+        </div>
+
+        <div style={{ ...row, cursor: 'default', flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Bot size={16} color="var(--orange)" />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: 13.5 }}>Agent autonomy</div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>How much the agent may do alone</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[
+              { v: 'ask', label: t('autonomyAsk') },
+              { v: 'auto', label: t('autonomyAuto') },
+            ].map((o) => (
+              <button
+                key={o.v}
+                onClick={() => chooseAutonomy(o.v)}
+                aria-pressed={autonomy === o.v}
+                style={{
+                  flex: 1, border: `1px solid ${autonomy === o.v ? 'rgba(249,115,22,0.5)' : 'var(--border)'}`,
+                  background: autonomy === o.v ? 'rgba(249,115,22,0.1)' : 'transparent',
+                  color: autonomy === o.v ? 'var(--orange)' : 'var(--text-muted)',
+                  borderRadius: 10, padding: '10px 8px', fontSize: 12.5, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit', minHeight: 44,
+                }}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ ...row, cursor: 'default', flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {push.muted ? <BellOff size={16} color="var(--text-hint)" /> : <Bell size={16} color="var(--orange)" />}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: 13.5 }}>{t('pushTitle')}</div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('pushBody')}</div>
+            </div>
+          </div>
+          {isIOSDevice && (
+            <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
+              iPhone: notifications need the installed app (Add to Home Screen) running iOS 16.4+.
+            </p>
+          )}
+          {push.status !== 'allowed' ? (
+            <button
+              onClick={enablePush}
+              style={{
+                background: 'linear-gradient(120deg, #F97316, #FB923C)', border: 'none', borderRadius: 10,
+                padding: '12px 14px', fontSize: 13.5, fontWeight: 700, color: '#fff',
+                cursor: 'pointer', fontFamily: 'inherit', minHeight: 48,
+              }}
+            >
+              {t('pushAllow')}
+            </button>
+          ) : (
+            <button
+              onClick={() => setPushState(setPushMuted(!push.muted))}
+              aria-pressed={push.muted}
+              style={{
+                background: 'transparent', border: '1px solid var(--border)', borderRadius: 10,
+                padding: '12px 14px', fontSize: 13, fontWeight: 600,
+                color: push.muted ? 'var(--text-muted)' : 'var(--text-secondary)',
+                cursor: 'pointer', fontFamily: 'inherit', minHeight: 48,
+              }}
+            >
+              {push.muted ? 'Unmute notifications' : t('pushMute')}
+            </button>
+          )}
+          {push.status === 'allowed' && (
+            <p style={{ fontSize: 11, color: 'var(--text-hint)', margin: 0 }}>
+              Status: on{push.muted ? ' (muted)' : ''} · browser permission: {permission}
+            </p>
+          )}
         </div>
 
         <button onClick={exportData} style={{ ...row, cursor: 'pointer' }}>
