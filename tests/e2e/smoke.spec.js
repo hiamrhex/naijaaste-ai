@@ -22,7 +22,9 @@ test('signup, nearby, save, sign out', async ({ page }) => {
   await page.context().setGeolocation({ latitude: 6.5095, longitude: 3.3711 });
   await page.getByRole('link', { name: /^map$/i }).click();
   await page.getByRole('button', { name: /near me/i }).click();
-  await expect(page.getByText(/spots? within|no spots/i).first()).toBeVisible({ timeout: 20000 });
+  // Either populated cards or the honest empty state (geolocation is stubbed,
+  // but live data varies) — both prove the flow completed.
+  await expect(page.locator('[role="listitem"], :text("No spots within")').first()).toBeVisible({ timeout: 20000 });
 
   // Save the first spot if any appeared.
   const saveBtn = page.getByRole('button', { name: /save spot/i }).first();

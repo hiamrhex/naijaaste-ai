@@ -10,7 +10,15 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    {
+      name: 'mobile',
+      use: {
+        ...devices['Pixel 7'],
+        // Local runs without downloaded browsers: PW_CHANNEL=msedge.
+        // CI leaves this unset (uses Playwright's bundled Chromium).
+        ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
+      },
+    },
   ],
   webServer: [
     {
