@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 
@@ -23,7 +23,7 @@ describe('security headers + token storage (item 4)', () => {
 
   it('access token never touches localStorage; refresh rehydrates it', async () => {
     const seen = [];
-    globalThis.fetch = vi.fn(async (url, options = {}) => {
+    globalThis.fetch = vi.fn(async (url) => {
       seen.push(String(url));
       if (String(url).endsWith('/auth/refresh')) {
         return {
