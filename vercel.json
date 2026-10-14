@@ -9,6 +9,7 @@
   },
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api" },
-    { "source": "/((?!api/|landing\\.html|landing\\.css|landing\\.js|favicon\\.svg).*)", "destination": "/index.html" }
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/app/:path*", "destination": "/app/index.html" }
   ]
 }

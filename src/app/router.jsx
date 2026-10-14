@@ -49,9 +49,11 @@ const errorRoute = (which) => ({
 
 /* Expired/invalid sessions land on /login — see SessionExpiry.jsx. */
 
-// BrowserRouter: real shareable URLs (/login, /settings…) instead of hash
-// fragments — required for shared links, auth deep-links and social previews.
-// Served via vercel.json SPA fallback (and vite preview/dev fallback locally).
+// BrowserRouter: real shareable URLs (/app/login, /app/settings…) instead of
+// hash fragments — required for shared links, auth deep-links and social
+// previews. The app is served under /app (landing owns /); basename keeps
+// every Link/navigate correct. Served via vercel.json SPA fallback for /app/*
+// (and vite preview/dev fallback locally).
 export const router = createBrowserRouter([
   {
     element: <SessionExpiryRoot />,
@@ -85,4 +87,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+], { basename: '/app' });

@@ -79,6 +79,15 @@ describe('contract group (layers 19/20/25/26/27)', () => {
     expect(cfg.rewrites.some((r) => r.source.startsWith('/api/'))).toBe(true);
   });
 
+  it('vercel.json serves the SPA shell under /app (landing owns /)', () => {
+    const cfg = JSON.parse(readFileSync(join(__dirname, '..', 'vercel.json'), 'utf-8'));
+    const dests = cfg.rewrites.map((r) => `${r.source} -> ${r.destination}`);
+    expect(dests).toContain('/app -> /app/index.html');
+    expect(dests).toContain('/app/:path* -> /app/index.html');
+    // No catch-all may swallow the API or the landing page.
+    expect(cfg.rewrites.some((r) => r.source === '/(.*)')).toBe(false);
+  });
+
   it('api/index.js default-exports a function handler without listening', async () => {
     const mod = await import('../api/index.js');
     expect(typeof mod.default).toBe('function');
