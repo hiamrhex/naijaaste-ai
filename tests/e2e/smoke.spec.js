@@ -7,31 +7,31 @@ test('signup, nearby, save, sign out', async ({ page }) => {
   const email = `e2e${stamp}@example.com`;
 
   await page.goto('/app/signup');
-  await expect(page.getByRole('heading', { name: /create|sign/i }).first()).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole('button', { name: /create account/i }).first()).toBeVisible({ timeout: 15000 });
 
-  await page.getByPlaceholder(/ada obi|full name|name/i).fill('E2E User');
-  await page.getByPlaceholder(/you@example|email/i).fill(email);
-  await page.getByPlaceholder(/at least 8|password/i).first().fill('Str0ng!Passw0rd');
-  await page.getByRole('button', { name: /create account/i }).click();
+  await page.getByPlaceholder(/ada obi/i).fill('E2E User');
+  await page.getByPlaceholder(/you@example\.com/i).fill(email);
+  await page.getByPlaceholder(/at least 8 characters/i).fill('Str0ng!Passw0rd');
+  await page.getByRole('button', { name: /create account$/i }).last().click();
 
-  // Lands in the app after signup.
-  await expect(page).toHaveURL(/\/app\/?(\?.*)?(#.*)?$/, { timeout: 15000 });
+  // Lands in the app after signup (auth gate gone, tabs visible).
+  await expect(page.getByRole('navigation', { name: /main sections/i })).toBeVisible({ timeout: 15000 });
 
   // Nearby via the Map tab (geolocation stubbed to Yaba, Lagos).
   await page.context().grantPermissions(['geolocation']);
   await page.context().setGeolocation({ latitude: 6.5095, longitude: 3.3711 });
-  await page.getByRole('link', { name: /map/i }).click();
+  await page.getByRole('link', { name: /^map$/i }).click();
   await page.getByRole('button', { name: /near me/i }).click();
   await expect(page.getByText(/spots? within|no spots/i).first()).toBeVisible({ timeout: 20000 });
 
-  // Save the first spot, then verify it persists via API.
+  // Save the first spot if any appeared.
   const saveBtn = page.getByRole('button', { name: /save spot/i }).first();
   if (await saveBtn.count()) {
     await saveBtn.click();
   }
 
   // Sign out from Settings.
-  await page.getByRole('link', { name: /settings/i }).click();
+  await page.getByRole('link', { name: /^settings$/i }).click();
   await page.getByRole('button', { name: /sign out/i }).click();
   await expect(page).toHaveURL(/\/app\/login/, { timeout: 15000 });
 });

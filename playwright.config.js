@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 60000,
   retries: 1,
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: 'http://localhost:5173',
     viewport: { width: 390, height: 844 },
     trace: 'retain-on-failure',
   },
