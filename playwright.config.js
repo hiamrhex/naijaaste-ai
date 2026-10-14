@@ -4,6 +4,9 @@ export default defineConfig({
   testDir: './tests/e2e',
   timeout: 60000,
   retries: 1,
+  expect: {
+    timeout: 15000,
+  },
   use: {
     baseURL: 'http://localhost:5173',
     viewport: { width: 390, height: 844 },
