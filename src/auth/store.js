@@ -196,3 +196,28 @@ export const countFavorites = async () => {
   const { rows } = await pool.query('SELECT count(*)::int AS n FROM favorites');
   return rows[0].n;
 };
+
+// Full account erasure (Settings → delete account): removes ratings,
+// favorites, refresh tokens, sessions, reports, OTPs, then the user row.
+// Transactional — all or nothing.
+export const deleteUserAccount = async (userId) => {
+  const pool = await getPool();
+  const { rows: u } = await pool.query('SELECT id, email FROM users WHERE id = $1', [userId]);
+  if (!u.length) return { ok: false, error: 'USER_NOT_FOUND' };
+  const email = u[0].email;
+  await pool.query('BEGIN');
+  try {
+    await pool.query('DELETE FROM ratings WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM favorites WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM sessions WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM reports WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM otps WHERE email = $1', [email]);
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+    await pool.query('COMMIT');
+    return { ok: true };
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    throw err;
+  }
+};

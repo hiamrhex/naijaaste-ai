@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
-import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser } from '../auth/store.js';
+import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
 import { issueOtp, verifyOtp } from '../auth/otp.js';
@@ -161,6 +161,25 @@ router.post('/auth/signout', async (req, res) => {
 
 router.get('/auth/me', requireAuth, (req, res) => {
   return res.json({ success: true, user: req.user });
+});
+
+router.delete('/auth/me', requireAuth, async (req, res) => {
+  try {
+    const result = await deleteUserAccount(req.user.id);
+    if (!result.ok) {
+      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
+    }
+    res.clearCookie('refreshToken', {
+      path: '/',
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+    return res.json({ success: true, deleted: true });
+  } catch (err) {
+    req.log?.error({ err }, 'auth delete-account failed');
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not delete account' } });
+  }
 });
 
 // ─── Google sign-in (identity services credential) ──────────────────────────

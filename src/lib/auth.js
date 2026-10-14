@@ -85,6 +85,15 @@ export const signout = async () => {
   }
 };
 
+export const deleteAccount = async () => {
+  const res = await authFetch('/auth/me', { method: 'DELETE' });
+  if (!res.ok) throw new Error(await parseError(res));
+  dropAuth();
+  try {
+    for (const k of ['nt.history.v1', 'nt.plans.v1', 'nt.theme.v1', 'nt.lang.v1']) localStorage.removeItem(k);
+  } catch { /* private mode */ }
+};
+
 // Returns { message, dev_otp? } — dev_otp only present outside production.
 export const forgotPassword = async ({ email }) => {
   const res = track(await fetch(`${API}/auth/forgot-password`, {

@@ -21,21 +21,25 @@ const authRoute = (mode) => ({
 
 const adminRoute = {
   lazy: async () => {
-    const { default: Soon } = await import('../screens/Soon.jsx');
+    const { default: AdminScreen } = await import('../screens/AdminScreen.jsx');
     const GuardedAdmin = () => (
       <AdminOnly>
-        <Soon title="Admin" />
+        <AdminScreen />
       </AdminOnly>
     );
     return { Component: GuardedAdmin };
   },
 };
 
-const soonRoute = (title) => ({
+const screenRoute = (name) => ({
   lazy: async () => {
-    const { default: Soon } = await import('../screens/Soon.jsx');
-    const SoonWithTitle = () => <Soon title={title} />;
-    return { Component: SoonWithTitle };
+    const screens = {
+      Map: () => import('../screens/MapScreen.jsx'),
+      Plan: () => import('../screens/PlanScreen.jsx'),
+      History: () => import('../screens/HistoryScreen.jsx'),
+      Settings: () => import('../screens/SettingsScreen.jsx'),
+    };
+    return { Component: (await screens[name]()).default };
   },
 });
 
@@ -71,10 +75,10 @@ export const router = createBrowserRouter([
         children: [
           { index: true, ...homeRoute },
           { path: 'dashboard', ...homeRoute },
-          { path: 'map', ...soonRoute('Map') },
-          { path: 'plan', ...soonRoute('Plan') },
-          { path: 'history', ...soonRoute('History') },
-          { path: 'settings', ...soonRoute('Settings') },
+          { path: 'map', ...screenRoute('Map') },
+          { path: 'plan', ...screenRoute('Plan') },
+          { path: 'history', ...screenRoute('History') },
+          { path: 'settings', ...screenRoute('Settings') },
           { path: 'admin', ...adminRoute },
         ],
       },

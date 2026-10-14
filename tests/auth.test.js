@@ -151,4 +151,21 @@ describe('Auth system', () => {
     const cleared = setCookie.find((c) => c.startsWith('refreshToken=;'));
     expect(cleared || setCookie.join(';')).toContain('refreshToken=');
   });
+
+  it('DELETE /auth/me erases the account and kills the session', async () => {
+    const r = await request(app).post('/auth/signup').send({
+      name: 'Gone Soon', email: `gone${Date.now()}@example.com`, password: 'Str0ng!Passw0rd',
+    }).expect(201);
+    const tok = r.body.accessToken;
+    await request(app).delete('/auth/me')
+      .set('Authorization', `Bearer ${tok}`)
+      .expect(200);
+    await request(app).get('/auth/me')
+      .set('Authorization', `Bearer ${tok}`)
+      .expect(401);
+  });
+
+  it('DELETE /auth/me without token is 401', async () => {
+    await request(app).delete('/auth/me').expect(401);
+  });
 });

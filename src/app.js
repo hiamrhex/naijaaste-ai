@@ -60,6 +60,7 @@ const ENDPOINTS = [
   "POST /api/v1/auth/refresh",
   "POST /api/v1/auth/signout",
   "GET  /api/v1/auth/me",
+  "DELETE /api/v1/auth/me",
   "POST /api/v1/auth/google",
   "POST /api/v1/auth/forgot-password",
   "POST /api/v1/auth/reset-password",

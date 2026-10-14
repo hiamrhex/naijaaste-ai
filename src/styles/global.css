@@ -350,3 +350,32 @@ textarea::placeholder {
 .pressable:active {
   transform: scale(0.96);
 }
+
+/* Leaflet custom pins (DivIcon — no image assets to break under Vite) */
+.nt-pin-wrap {
+  background: none;
+  border: none;
+}
+
+.nt-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(-45deg);
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.nt-pin.me {
+  border-radius: 50%;
+  transform: none;
+  background: #10b981;
+  font-size: 10px;
+}
