@@ -10,12 +10,18 @@ const loadStored = () => {
 };
 
 let current = typeof localStorage !== 'undefined' ? loadStored() : null;
+// The access token lives in memory only — localStorage keeps { user } so a
+// stolen/injected script cannot lift a long-lived bearer (item 4). The
+// httpOnly refresh cookie rehydrates it via tryRefresh().
+if (current && typeof current === 'object' && 'accessToken' in current) {
+  delete current.accessToken;
+}
 
 export const getAuth = () => current;
 
 export const setAuth = (auth) => {
   current = auth;
-  try { localStorage.setItem(KEY, JSON.stringify(auth)); } catch { /* private mode */ }
+  try { localStorage.setItem(KEY, JSON.stringify({ user: auth?.user ?? null })); } catch { /* private mode */ }
 };
 
 export const dropAuth = () => {
@@ -176,9 +182,19 @@ export const tryRefresh = async () => {
   } catch { return false; }
 };
 
-// Fetch wrapper: attaches Bearer token, auto-refreshes once on 401.
+// Fetch wrapper: attaches Bearer token, auto-refreshes once on 401 — and
+// refreshes proactively when the in-memory token is absent (fresh page load:
+// user is known from storage, token rehydrated from the httpOnly cookie).
 export const authFetch = async (path, options = {}) => {
   if (!current) throw new Error('Not authenticated');
+  if (!current.accessToken) {
+    const refreshed = await tryRefresh();
+    if (!refreshed) {
+      dropAuth();
+      globalThis.dispatchEvent(new Event('auth:expired'));
+      throw new Error('Session expired — please sign in again');
+    }
+  }
   const doFetch = () => fetch(`${API}${path}`, {
     ...options,
     credentials: 'include',

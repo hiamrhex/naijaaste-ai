@@ -25,7 +25,27 @@ export const app = express();
 
 // ─── Security Middleware ──────────────────────────────────────────────────────
 app.set("trust proxy", env.TRUST_PROXY);
-app.use(helmet({ contentSecurityPolicy: false }));
+// Strict CSP minus style 'unsafe-inline': the SPA sets styles through React
+// (CSSOM, allowed) but AuthGate injects one <style> element and Google Fonts
+// ships a stylesheet — both need it. Scripts stay locked to self + GIS.
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://accounts.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "http://localhost:3000", "https://accounts.google.com"],
+      frameSrc: ["https://accounts.google.com"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // would break GIS/tiles without COOP/COEP pairing
+}));
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" })); // prevent oversized payloads
