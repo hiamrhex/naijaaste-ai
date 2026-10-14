@@ -4,7 +4,7 @@
 
 ## Database down (Neon unreachable / suspended)
 
-- **Symptoms:** 500s spike, `requestId`-correlated PG errors in logs; `/health` still 200 (it doesn't probe the DB — known gap).
+- **Symptoms:** 500s spike, `requestId`-correlated PG errors in logs; `/health` still 200 by design (liveness never probes the DB) — use `GET /health/ready` which returns 503 `{"db":"down"}` while the DB is unreachable (2s bounded probe).
 - **First 5 min:** confirm Neon dashboard status + compute state (suspended = quota or 5-min idle wake: first query is slow, not dead). Check `DATABASE_URL` (pooled) vs direct mix-up.
 - **Diagnose:** `SELECT 1` against pooled URL; check CU-hours/storage caps on free plan.
 - **Mitigate:** wake compute with a cheap query; if suspended on quota, upgrade or wait for monthly reset. Restart API after recovery (pg pool recovers automatically).

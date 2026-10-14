@@ -20,6 +20,7 @@ import { fail } from "./lib/respond.js";
 import { env } from "./env.js";
 import { logger } from "./lib/logger.js";
 import { googleAuthEnabled } from "./auth/google.js";
+import { readinessProbe } from "./lib/readiness.js";
 
 export const app = express();
 
@@ -75,6 +76,7 @@ app.use(
 // (probes must not break across versions).
 const ENDPOINTS = [
   "GET  /health",
+  "GET  /health/ready",
   "POST /api/v1/auth/signup",
   "POST /api/v1/auth/signin",
   "POST /api/v1/auth/refresh",
@@ -119,7 +121,7 @@ const apiLimiter = rateLimit({
   limit: env.RATE_LIMIT_API_MAX,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  skip: (req) => req.path === "/health", // probes never throttled
+  skip: (req) => req.path === "/health" || req.path === "/health/ready", // probes never throttled
   handler: limiterHandler(900),
 });
 
@@ -148,6 +150,19 @@ app.get("/health", (_req, res) => {
     timestamp: new Date().toISOString(),
     features: { google_auth: googleAuthEnabled() },
     endpoints: ENDPOINTS,
+  });
+});
+
+// Readiness: probes the DB (bounded 2s) — 503 while the database is down so
+// orchestrators/deploy gates can act; liveness (/health) stays independent.
+app.get("/health/ready", async (_req, res) => {
+  const { ready, db } = await readinessProbe();
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "ok" : "unavailable",
+    service: "NaijaTaste AI",
+    ready,
+    db,
+    timestamp: new Date().toISOString(),
   });
 });
 

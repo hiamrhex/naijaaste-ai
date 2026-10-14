@@ -7,8 +7,8 @@ Windows/PowerShell 5.1 environment; dates in UTC.
 
 ```
 npm run lint            → clean (0 problems)
-npm test                → Test Files 25 passed (25) | Tests 151 passed (151)
-npm run build           → ✓ built in 14.32s
+npm test                → Test Files 26 passed (26) | Tests 155 passed (155)
+npm run build           → ✓ built in 3.48s
 ```
 
 ## Item 3 — XSS hardening (commit 7fb9fe4)
@@ -43,6 +43,12 @@ Notes: `style-src 'unsafe-inline'` retained for AuthGate's `<style>` + Google Fo
 - `tests/recommend-fallback.test.js` (2 tests): with `callRecommendLLM` mocked to throw `CIRCUIT_OPEN`, `getRecommendations` returns `success:true, fallback:true` with 1–5 deterministic ranked picks + honest `message`, `meta.candidates_sent_to_llm: 0`; zero-match persona still fails closed (no invented rows).
 - LLM call path: 20s per-attempt timeout (`LLM_TIMEOUT_MS`) + exponential backoff retry (429/422/5xx only) + circuit breaker (5 failures / 60s cooldown) + corrective JSON retry only on genuine parse errors.
 
+## Item 7 — Observability: liveness/readiness split
+
+- `GET /health` = liveness, never touches the DB (must stay 200 during outages).
+- `GET /health/ready` = readiness, `SELECT 1` with a 2s bounded race → 200 `{db:"up"}` or 503 `{db:"down"}`; skipped by the rate limiter; listed in `/health` endpoints manifest.
+- `tests/readiness.test.js` (4 tests): liveness doesn't query; ready 200 on success; 503 on query error; 503 on hung query (no hang). RUNBOOK's former "known gap" line now documents the split.
+
 ## Item 2 — Break-it battery (scripts/break-it.mjs)
 
 Run: `node scripts/break-it.mjs` (BASE=http://127.0.0.1:3001) — **14 passed, 0 failed**:
@@ -72,6 +78,7 @@ Server booted with `DATABASE_URL=postgresql://dead:dead@127.0.0.1:5433/dead` (po
 
 ```
 GET  /health          → 200 (liveness independent of DB)
+GET  /health/ready    → 503 {"status":"unavailable","ready":false,"db":"down"}  (2s bounded probe — added this day)
 POST /auth/signup     → 500 {"error":{"code":"INTERNAL","message":"Signup failed"}}  (no stack/DSN leak)
 POST /auth/signin     → 500 generic INTERNAL
 GET  /health again    → 200 — process survived both failures
