@@ -7,7 +7,7 @@ let app;
 let userToken;
 let adminToken;
 
-const signup = async (name, email, password = 'Str0ng!Passw0rd') => {
+const signup = async (name, email, password = 'Str0ng!Passw0rd') => { // secret-scan: allow — throwaway test-account fixture, never a real credential
   const res = await request(app).post('/auth/signup').send({ name, email, password });
   return res.body;
 };

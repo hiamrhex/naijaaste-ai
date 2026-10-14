@@ -10,8 +10,8 @@
 
 > **Live demo:** not deployed yet — run it locally in 3 minutes ([Quick start](#quick-start--3-minutes)) or deploy via [Deployment](#deployment). The marketing front door lives at `/`, the app at `/app`.
 
-![NaijaTaste AI home screen](docs/media/shot-home-desktop.png)
-![NaijaTaste AI on mobile](docs/media/shot-home-mobile.png)
+![NaijaTaste landing page](docs/media/shot-landing-desktop.png)
+![NaijaTaste sign-in on mobile](docs/media/shot-login-mobile.png)
 ![Product tour](docs/media/demo.gif)
 
 ## Table of contents

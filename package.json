@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "evaluate": "node src/evaluate.js",
     "db:migrate": "node src/db/migrate.js",
-    "data:refresh": "node src/data/import-osm.js"
+    "data:refresh": "node src/data/import-osm.js",
+    "scan:secrets": "node scripts/scan-secrets.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",
@@ -45,6 +46,7 @@
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

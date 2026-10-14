@@ -30,3 +30,9 @@ Out of scope (explicit): DDoS absorption (provider edge), device compromise, Gem
 ## Reporting vulnerabilities
 
 **Do not open public issues for security bugs.** See [`SECURITY.md`](../SECURITY.md): email the maintainer with repro steps, impact, and affected version; expect acknowledgement within 72 hours and coordinated disclosure.
+
+## Dependency triage (audit gate policy)
+
+- `npm audit --omit=dev --audit-level=critical` blocks CI. Zero criticals as of 2026-10-14.
+- Known HIGHs (all in the Vite build chain: `vite`, `postcss`, `brace-expansion`, `nanoid`, `source-map-js`; 1 moderate in `uuid`): unreachable at request-serving runtime — the served app never executes build tooling. Re-triage on every Vite major bump.
+- `npm run scan:secrets` (repo-native, offline) blocks CI. One allowlisted fixture (`tests/engagement.test.js` throwaway password, annotated in-line).

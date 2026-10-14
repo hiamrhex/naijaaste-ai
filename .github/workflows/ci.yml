@@ -19,3 +19,38 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Fails only on CRITICAL in prod deps. Known HIGHs are build-toolchain
+      # (Vite chain, unreachable at runtime) — triaged in docs/SECURITY.md.
+      - run: npm audit --omit=dev --audit-level=critical
+      - run: npm run scan:secrets
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          GEMINI_API_KEY: ci-not-needed
+          JWT_ACCESS_SECRET: ci-access-secret-0123456789abcdef
+          JWT_REFRESH_SECRET: ci-refresh-secret-fedcba9876543210
+      - run: npx playwright test
+        env:
+          GEMINI_API_KEY: ci-not-needed
+          JWT_ACCESS_SECRET: ci-access-secret-0123456789abcdef
+          JWT_REFRESH_SECRET: ci-refresh-secret-fedcba9876543210
