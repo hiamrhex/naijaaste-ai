@@ -10,6 +10,36 @@ import { env } from '../env.js';
 
 const FROM = env.SMTP_FROM || 'NaijaTaste AI <noreply@localhost>';
 
+// User-controlled display names are interpolated into HTML mail — escape
+// every interpolated value at the template boundary (stored-XSS defense).
+export const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+export const otpHtml = ({ name, code }) => `
+<div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#080810;padding:32px 16px;color:#F9FAFB">
+  <div style="max-width:420px;margin:0 auto;background:#111827;border:1px solid #1F2937;border-radius:16px;padding:32px 28px">
+    <div style="font-weight:800;font-size:18px;letter-spacing:-0.3px;margin-bottom:4px">
+      NaijaTaste <span style="color:#F97316">AI</span>
+    </div>
+    <p style="font-size:14px;color:#9CA3AF;line-height:1.6;margin:16px 0 8px">
+      Hi ${escapeHtml(name) || 'there'}, someone requested a password reset for your account.
+      Use the code below within 10 minutes:
+    </p>
+    <div style="background:#0D0D1A;border:1px solid #1F2937;border-radius:12px;padding:20px;text-align:center;margin:16px 0">
+      <span style="font-family:ui-monospace,'Cascadia Mono',monospace;font-size:34px;font-weight:700;letter-spacing:10px;color:#F97316">${escapeHtml(code)}</span>
+    </div>
+    <p style="font-size:13px;color:#6B7280;line-height:1.6;margin:0">
+      This code expires in 10 minutes and can be used 5 times max.
+      If you didn't request this, ignore this email — your password is unchanged.
+    </p>
+  </div>
+</div>`;
+
 const smtpConfigured = () =>
   Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
 
@@ -26,26 +56,6 @@ const getTransporter = () => {
   }
   return transporter;
 };
-
-const otpHtml = ({ name, code }) => `
-<div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#080810;padding:32px 16px;color:#F9FAFB">
-  <div style="max-width:420px;margin:0 auto;background:#111827;border:1px solid #1F2937;border-radius:16px;padding:32px 28px">
-    <div style="font-weight:800;font-size:18px;letter-spacing:-0.3px;margin-bottom:4px">
-      NaijaTaste <span style="color:#F97316">AI</span>
-    </div>
-    <p style="font-size:14px;color:#9CA3AF;line-height:1.6;margin:16px 0 8px">
-      Hi ${name || 'there'}, someone requested a password reset for your account.
-      Use the code below within 10 minutes:
-    </p>
-    <div style="background:#0D0D1A;border:1px solid #1F2937;border-radius:12px;padding:20px;text-align:center;margin:16px 0">
-      <span style="font-family:ui-monospace,'Cascadia Mono',monospace;font-size:34px;font-weight:700;letter-spacing:10px;color:#F97316">${code}</span>
-    </div>
-    <p style="font-size:13px;color:#6B7280;line-height:1.6;margin:0">
-      This code expires in 10 minutes and can be used 5 times max.
-      If you didn't request this, ignore this email — your password is unchanged.
-    </p>
-  </div>
-</div>`;
 
 /**
  * Send a password-reset OTP email over SMTP.
