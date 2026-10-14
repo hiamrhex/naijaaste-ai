@@ -72,6 +72,9 @@ export function useConcierge({ chatEndRef }) {
     try {
       const next = isFav ? await removeFavorite(restaurantId) : await addFavorite(restaurantId);
       setFavorites(next);
+      if (!isFav) {
+        try { globalThis.dispatchEvent(new Event('nt:good-moment')); } catch { /* noop */ }
+      }
     } catch {
       setFavorites((prev) => (isFav ? [...prev, restaurantId] : prev.filter((id) => id !== restaurantId)));
     }

@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { TabBar } from '../components/TabBar.jsx';
+import { InstallSheet } from '../components/InstallSheet.jsx';
 import { useTheme } from './useTheme.js';
 
 /* Pure theme wrapper — auth gating now lives in route guards (guards.jsx),
@@ -51,6 +52,7 @@ export function AppLayout() {
           <Outlet />
         </div>
         <TabBar />
+        <InstallSheet />
       </Suspense>
     </Shell>
   );

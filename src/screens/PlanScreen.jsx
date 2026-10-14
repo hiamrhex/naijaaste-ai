@@ -64,6 +64,7 @@ export default function PlanScreen() {
       const list = data.recommendations?.recommendations || data.recommendations || [];
       setRecs(list);
       setStatus('ready');
+      try { globalThis.dispatchEvent(new Event('nt:good-moment')); } catch { /* noop */ }
       writePlans([{ id: `plan-${Date.now()}`, at: new Date().toISOString(), inputs: { groupSize: size, budget, area, occasion, dietary }, recs: list }, ...readPlans()]);
     } catch (err) {
       setError(err.message || t('genericError'));
