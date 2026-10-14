@@ -11,6 +11,20 @@ const root = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [
     react(),
+    {
+      // Dev-only: serve the SPA shell for /app/* (mirrors the Vercel rewrite).
+      // Preview/prod behavior is covered by contract tests, not this plugin.
+      name: 'spa-app-fallback',
+      apply: 'serve',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url === '/app' || req.url.startsWith('/app/') || req.url.startsWith('/app?')) {
+            req.url = '/app/index.html';
+          }
+          next();
+        });
+      },
+    },
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
@@ -52,7 +66,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(root, 'index.html'),
-        app: resolve(root, 'app.html'),
+        app: resolve(root, 'app/index.html'),
       },
     },
   },

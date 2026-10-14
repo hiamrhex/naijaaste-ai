@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    exclude: ['node_modules', 'dist', 'tests/e2e/**'],
     // Integration-style suite (bcrypt + per-file pg-mem init); generous
     // timeouts so parallel CI load causes retries, not flakes.
     testTimeout: 30000,

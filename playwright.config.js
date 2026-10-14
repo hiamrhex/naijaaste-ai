@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 60000,
   retries: 1,
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: 'http://127.0.0.1:5173',
     viewport: { width: 390, height: 844 },
     trace: 'retain-on-failure',
   },
@@ -20,8 +20,10 @@ export default defineConfig({
       env: { ...process.env, NODE_ENV: 'test' },
     },
     {
-      command: 'npx vite preview --port 4173 --strictPort',
-      port: 4173,
+      // Vite dev (not preview): the spa-app-fallback plugin serves the SPA
+      // shell for /app/* exactly like the Vercel rewrites do in prod.
+      command: 'npx vite --port 5173 --strictPort',
+      port: 5173,
       reuseExistingServer: true,
     },
   ],
