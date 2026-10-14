@@ -1,14 +1,12 @@
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
-import AuthGate from '../components/AuthGate.jsx';
 import { TabBar } from '../components/TabBar.jsx';
-import { useAuth } from './useAuth.js';
 import { useTheme } from './useTheme.js';
 
+/* Pure theme wrapper — auth gating now lives in route guards (guards.jsx),
+   so public pages (login/signup) render without the app chrome. */
 export function Shell({ children }) {
-  const { user, setUser } = useAuth();
   const { t } = useTheme();
-  if (!user) return <AuthGate onAuth={(u) => setUser(u)} />;
   return (
     <div style={{
       ...t,
@@ -25,20 +23,34 @@ export function Shell({ children }) {
   );
 }
 
-export function AuthedOutlet() {
+const loadingFallback = (
+  <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+    Loading…
+  </div>
+);
+
+/* Public pages: theme only, no tab bar. */
+export function PublicLayout() {
   return (
     <Shell>
-      <Suspense
-        fallback={(
-          <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-            Loading…
-          </div>
-        )}
-      >
+      <Suspense fallback={loadingFallback}>
+        <div className="app-main public">
+          <Outlet />
+        </div>
+      </Suspense>
+    </Shell>
+  );
+}
+
+/* App pages: theme + tab bar. Guards (not Shell) decide who gets in. */
+export function AppLayout() {
+  return (
+    <Shell>
+      <Suspense fallback={loadingFallback}>
         <div className="app-main">
-        <Outlet />
-      </div>
-      <TabBar />
+          <Outlet />
+        </div>
+        <TabBar />
       </Suspense>
     </Shell>
   );

@@ -180,6 +180,17 @@ textarea::placeholder {
   padding-bottom: calc(84px + env(safe-area-inset-bottom));
 }
 
+/* Public pages (login/signup/404) render without the tab bar. */
+.app-main.public {
+  padding-bottom: 24px;
+}
+
+@media (min-width: 900px) {
+  .app-main.public {
+    padding-left: 0;
+  }
+}
+
 .tabbar {
   position: fixed;
   z-index: 200;

@@ -91,8 +91,10 @@ const KEYFRAMES = `
 .err-shake { animation: shake 0.4s ease; }
 `;
 
-export default function AuthGate({ onAuth }) {
-  const [mode, setMode] = useState('signin');
+const AUTH_MODES = ['signin', 'signup', 'forgot', 'reset'];
+
+export default function AuthGate({ onAuth, initialMode = 'signin' }) {
+  const [mode, setMode] = useState(AUTH_MODES.includes(initialMode) ? initialMode : 'signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
