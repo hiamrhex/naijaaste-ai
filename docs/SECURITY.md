@@ -1,7 +1,7 @@
 # Security
 
 > Threat-model thinking, controls inventory, and disclosure live here.
-> Last verified: 2026-10-14.
+> Last verified: 2026-10-16. Threat model deep-dive: [`THREAT_MODEL.md`](THREAT_MODEL.md).
 
 ## Threat model (summary)
 
@@ -23,9 +23,8 @@ Out of scope (explicit): DDoS absorption (provider edge), device compromise, Gem
 - [x] Timing-safe OTP compare; HMAC-hashed codes; 10-min TTL
 - [x] `Retry-After` + draft-7 `RateLimit` headers on every 429
 - [x] CORS allowlist, fail-closed boot in production
-- [x] Helmet headers; CSP: **report-only, not yet enforced** (see Limitations)
-- [ ] CSP enforced (blocked: React inline styles need an audited policy first)
-- [ ] Access token out of `localStorage` (memory + refresh flow; planned)
+- [x] Helmet headers; CSP **enforced** in production (strict `script-src 'self'` + Google; `object-src 'none'`, `frame-ancestors 'self'`)
+- [x] Access token memory-only on client; localStorage holds `{ user }` only (`src/lib/auth.js:13-17`); refresh cookie httpOnly
 
 ## Reporting vulnerabilities
 
@@ -33,6 +32,6 @@ Out of scope (explicit): DDoS absorption (provider edge), device compromise, Gem
 
 ## Dependency triage (audit gate policy)
 
-- `npm audit --omit=dev --audit-level=critical` blocks CI. Zero criticals as of 2026-10-14.
+- `npm audit --omit=dev --audit-level=critical` blocks CI. Zero criticals as of 2026-10-16.
 - Known HIGHs (all in the Vite build chain: `vite`, `postcss`, `brace-expansion`, `nanoid`, `source-map-js`; 1 moderate in `uuid`): unreachable at request-serving runtime — the served app never executes build tooling. Re-triage on every Vite major bump.
 - `npm run scan:secrets` (repo-native, offline) blocks CI. One allowlisted fixture (`tests/engagement.test.js` throwaway password, annotated in-line).

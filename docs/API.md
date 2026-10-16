@@ -1,6 +1,7 @@
 # API reference
 
-> Last verified: 2026-10-14 against `src/routes/` + live `/health` (27 endpoints).
+> Last verified: 2026-10-16 against `src/routes/` + live `/health` (29 endpoints).
+> Full endpoint table in [README](../README.md#api-summary).
 > All errors: `{ error: { code, message, details?, requestId } }`. All 429s add `Retry-After`.
 
 Conventions: legacy `/` + canonical `/api/v1` serve identical handlers (use `/api/v1`).

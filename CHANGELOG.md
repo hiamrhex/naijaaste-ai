@@ -4,9 +4,11 @@ All notable changes, newest first. Dates are commit dates (UTC).
 
 ## Unreleased
 
-- Landing page at `/`, SPA under `/app` (multi-page build, router basename).
-- Honest 413/400 for oversized/malformed bodies (was: fake 502).
-- Real auth URLs (`/login`, `/signup`, `/forgot-password`) with guards, 403/404 screens, SPA fallback.
+- **Reliability:** chat LLM failures now return clean `502 UPSTREAM_FAILURE` (was raw `500`); 20s LLM timeout, exponential backoff, circuit breaker, deterministic recommend fallback. Proven by drill (8/8).
+- **Readiness:** `GET /health/ready` probes the DB (2s bound, `503` while down); `/health` stays up. Vercel `/health` → `/api` rewrite.
+- **Operations:** SLO, threat model, postmortem template + one written postmortem, MATURITY scorecard, break-it battery (14) + agent-safety probes (5) with evidence in `docs/EVIDENCE.md`.
+- **Docs:** README rewritten as a verified 381-line front door (156 tests, 29 endpoints, real screens, PWA status, Mermaid architecture + ER + auth diagrams). `SECURITY.md` root pointer. `check:docs` drift gate wired into CI (stale numbers, broken links, missing npm scripts).
+- **Data:** Neon restore drill PASS (logical dump/restore, counts identical). Runtime JSON state untracked; all state in Postgres.
 
 ## 2026-10-14 — Postgres migration
 

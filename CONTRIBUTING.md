@@ -10,7 +10,7 @@ cd naijaaste-ai
 npm ci                    # Node 24
 cp .env.example .env      # Windows: copy .env.example .env
 # fill GEMINI_API_KEY + JWT_* (see README env table)
-npm test                  # 127 tests, ~20s, no Docker needed (pg-mem)
+npm test                  # 156 tests, 26 files, ~35s, no Docker needed (pg-mem)
 npm run dev               # SPA :5173  (API: npm start → :3000)
 ```
 

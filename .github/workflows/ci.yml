@@ -33,6 +33,10 @@ jobs:
       # (Vite chain, unreachable at runtime) — triaged in docs/SECURITY.md.
       - run: npm audit --omit=dev --audit-level=critical
       - run: npm run scan:secrets
+      # Docs drift gate: stale numbers, broken internal links, unbalanced
+      # Mermaid fences, or an `npm run <x>` referenced in README that doesn't
+      # exist. Fails the build — code wins over docs.
+      - run: npm run check:docs
 
   e2e:
     runs-on: ubuntu-latest

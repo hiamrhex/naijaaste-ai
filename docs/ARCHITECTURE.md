@@ -1,6 +1,7 @@
 # Architecture
 
-> Last verified: 2026-10-14 against `src/` + `migrations/`. If code and doc disagree, code wins — open an issue.
+> Last verified: 2026-10-16 against `src/` + `migrations/`. If code and doc disagree, code wins — open an issue.
+> Diagrams: [README](../README.md#architecture) · full ER + deployment topology there.
 
 ## Components
 
