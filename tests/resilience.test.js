@@ -1,5 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createBreaker, llmBreaker } from '../src/services/llm.service.js';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 // withTimeout lives inside the module closure; exercise it through a local
 // copy of the contract is wrong — instead verify the exported constant and
@@ -62,5 +66,31 @@ describe('circuit breaker (item 6)', () => {
     expect(llmBreaker.state).toBe('closed');
     expect(typeof llmBreaker.exec).toBe('function');
     expect(typeof llmBreaker.reset).toBe('function');
+  });
+});
+
+// Regression: a known upstream failure must surface as a clean 502, not a 500.
+// Proven by breaking the live server earlier — CIRCUIT_OPEN reached Express as
+// a generic 500 (logs 2026-10-15).
+describe('chat maps upstream LLM failure to a clean 502', () => {
+  it('processChat throws UpstreamError (502 UPSTREAM_FAILURE) when the circuit is open', async () => {
+    vi.resetModules();
+    vi.doMock('../src/services/llm.service.js', () => ({
+      callLLMJson: async () => {
+        const err = new Error('LLM circuit is open — upstream failing, request skipped');
+        err.code = 'CIRCUIT_OPEN';
+        throw err;
+      },
+    }));
+    const { processChat } = await import('../src/services/chat.service.js');
+    const { ApiError } = await import('../src/lib/errors.js');
+
+    await expect(processChat('00000000-0000-4000-8000-000000000000', 'hi')).rejects.toMatchObject({
+      status: 502,
+      code: 'UPSTREAM_FAILURE',
+    });
+    await expect(processChat('00000000-0000-4000-8000-000000000000', 'hi')).rejects.toBeInstanceOf(ApiError);
+    vi.doUnmock('../src/services/llm.service.js');
+    vi.resetModules();
   });
 });

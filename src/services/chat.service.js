@@ -3,7 +3,15 @@ import { callLLMJson } from './llm.service.js';
 import { getRecommendations } from './recommend.service.js';
 import { getPool } from '../db/pool.js';
 import { logger } from '../lib/logger.js';
+import { UpstreamError } from '../lib/errors.js';
 import { v4 as uuidv4 } from 'uuid';
+
+// Circuit open or upstream unreachable → a known, clean 502, not a 500.
+const isUpstreamFailure = (err) =>
+  err?.code === 'CIRCUIT_OPEN' ||
+  err?.code === 'LLM_TIMEOUT' ||
+  err?.status === 429 ||
+  (typeof err?.status === 'number' && err.status >= 500);
 
 // Session expiry — 24 hours
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -100,7 +108,16 @@ export const processChat = async (sessionId, userMessage) => {
     session.extracted_persona
   )}`;
 
-  const llmResponse = await callLLMJson(combinedPrompt, 1500);
+  let llmResponse;
+  try {
+    llmResponse = await callLLMJson(combinedPrompt, 1500);
+  } catch (err) {
+    if (isUpstreamFailure(err)) {
+      logger.warn({ err: err.code || err.message }, 'chat turn: upstream LLM unavailable');
+      throw new UpstreamError('The AI service is busy right now. Please try again in a moment.');
+    }
+    throw err;
+  }
 
   // Merge extracted persona
   if (llmResponse.extracted_persona) {
