@@ -121,6 +121,76 @@ real bug (upstream failure surfacing as 500), fixed and re-proven same day; see
 unit-proven in `tests/limits-llm.test.js` and wired on the LLM routes in
 `src/app.js:138-140`.
 
+## Neon restore drill (2026-10-16) — PASS
+
+Method: `pg_dump` (custom format) of the live Neon project → `CREATE DATABASE
+naijataste_restore_drill_<ts>` on the same project (direct URL) → `pg_restore`
+→ row-count comparison source vs restored → `DROP DATABASE`.
+Honest scope note: this is a **logical restore into an isolated database**,
+not a Neon *branch* — branch creation requires the Neon API/console (no API
+key available). PITR branch restore remains Unverified.
+
+```
+pg_dump prod   : 36.53s   (dump size 42.6 KB)
+CREATE DATABASE: ok (direct URL)
+pg_restore     : 30.76s
+source  : restaurants=210 migrations=2 users=17 sessions=7 ratings=2 reports=2
+restored: restaurants=210 migrations=2 users=17 sessions=7 ratings=2 reports=2
+VERIFIED: row counts identical
+dropped naijataste_restore_drill_20261016090737
+DRILL RESULT: PASS
+```
+
+First attempt failed (`pg_restore: database "sslmode=..." does not exist`):
+PowerShell parsed `"$drillDb?"` as one variable token, emptying the URI path.
+Fixed with `${drillDb}` — recorded because the failure shape is a useful
+reference for any script building URIs in PS 5.1.
+
+## Load ramp — local, NOT representative (2026-10-16)
+
+**These numbers are measured on one Windows laptop calling a remote Neon
+project over the public internet, with the per-IP limiter raised to 100000.
+They say nothing about what Vercel would serve.** Do not quote them as
+production capacity.
+
+`autocannon`, 15s per step, `GET /api/v1/nearby?lat=6.52&lng=3.38&limit=10&radius_km=50`:
+
+| Concurrency | rps | p97.5 | p99 | non-2xx | errors |
+|---|---|---|---|---|---|
+| 10 | 3 | 7268ms | 9670ms | 0 | 0 |
+| 50 | 1 | 9545ms | 9545ms | 0 | 39 timeouts |
+| 200 | 1 | 9673ms | 9673ms | 0 | 194 timeouts |
+
+Where it first degrades: between c=10 and c=50 — throughput falls to 1 rps and
+every request past the first ~11 in a window times out.
+
+**Why, isolated with measurements:**
+
+| Component | Measurement |
+|---|---|
+| `SELECT 1` round-trip to Neon | 175–230ms (5 samples) |
+| Box query, 50km radius (164 rows returned of 210 total) | 177–204ms, stable across 8 samples |
+| `src/db/pool.js:18` | `max: 3` — three pooled clients for 210 concurrent requests |
+
+So the bottleneck is **connection-pool size versus concurrency**, not query
+cost and not an N+1 (`nearby.routes.js:22` issues exactly one box query; the
+haversine filter at line 29 is in-process). With 3 clients and ~200ms per
+round trip, the ceiling is roughly 15 queries/s across all in-flight requests —
+which is what 3 rps at c=10 reflects. Raising the pool is not free: Neon's
+free plan caps total connections, so this is a real trade to resolve with the
+plan's actual limit (recorded in Unverified).
+
+Control measurement, same box, no DB — `GET /health`, in-process only:
+
+| Concurrency | rps | p97.5 | p99 | non-2xx |
+|---|---|---|---|---|
+| 10 | 1687 | 13ms | 18ms | 0 |
+| 50 | 1804 | 53ms | 60ms | 0 |
+| 200 | 1939 | 154ms | 174ms | 0 |
+
+Same app, same machine: 1939 rps with no DB round trip versus 1 rps at c=200
+with one. The ~200ms network hop is the entire difference.
+
 ## Earlier sessions (selected)
 
 - CI full green on `95fc8f2` (jobs: verify, audit, e2e) — via `api.github.com/repos/hiamrhex/naijaaste-ai/actions/runs`.
