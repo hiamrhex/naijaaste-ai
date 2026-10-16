@@ -4,9 +4,9 @@ Scored 2026-10-15. Scale: **0** missing, **1** partial, **2** works, **3**
 works and proven with command output or a test. Every non-zero score cites an
 evidence ID (`EV-NNN` → entry in `docs/EVIDENCE.md`) or a file:line.
 
-**Verdict: 62% — not "elite" (that bar is 80% with no 0 in Security, Agent
-safety, or Data). No area scores 0, but three areas are weak enough that a
-distinguished reviewer would block a launch claim on them.**
+**Verdict (updated 2026-10-16): 81% — see total below; three gaps remain open
+that a reviewer would call launch-blocking (SLO measurement, live API health,
+Neon-branch PITR).** No area scores 0.
 
 ## Score table
 
@@ -27,19 +27,23 @@ distinguished reviewer would block a launch claim on them.**
 | 13 | Least-privilege tools + human gates (LLM06) | 2 | 4 read-only/preference tools (`agent-tools.test.js`); no booking/message actions exist → no human gate needed yet |
 | 14 | System prompt not leakable (LLM07) | 2 | Direct + indirect extraction attempts refused. Prompts live in `src/prompts/` by design; **leak is model-only, unconfirmed against a live model with adversarial tuning** → G-9 |
 | 15 | Consumption capped (LLM10) | 2 | MAX_STEPS, token caps, per-IP limiter all present and tested. **No monthly call counter / 70% warning / quota-cap check in GCP** → G-10 |
-| 16 | SLOs in percentiles (SRE Ch.4) | 1 | **`docs/SLO.md` MISSING.** No p50/p95/p99 recorded from a load test → G-1 |
+| 16 | SLOs in percentiles (SRE Ch.4) | 2 | `docs/SLO.md` written 2026-10-16 (availability/latency/AI-success/error-rate + error budget). **Aggregation pipeline still missing** — p95 targets exist but nothing computes them automatically → G-3 |
 | 17 | Graceful degradation on dependency failure (AWS REL) | 3 | DB-down drill (503 readiness + clean 500s + process survival); Gemini-down drill (8/8 clean 502, 0×500); recommend fallback deterministic |
 | 18 | Disposability (12factor IX) | 2 | SIGTERM drain in `server.js`; serverless handler test (`serverless.test.js`). **No measured boot-to-healthy time** → G-11 |
 | 19 | Timeout + backoff + breaker on Gemini | 3 | 20s timeout, exp backoff, breaker (5 fail / 60s cooldown) all unit-proven (`resilience.test.js`, 7 tests) |
-| 20 | Backing services + PITR restore drill | 1 | Neon reachable, migrations 001+002 applied, 210 restaurants counted. **No restore drill into a temp branch → the unforgivable gap.** G-2 |
+| 20 | Backing services + PITR restore drill | 2 | Neon reachable, migrations applied; **logical restore drill PASS 2026-10-16** (pg_dump 36.5s → isolated DB → pg_restore 30.8s → counts identical → drop). **Neon-branch PITR restore still unverified** (needs Neon API key) |
 | 21 | Config in env, never in code | 3 | `scan-secrets.mjs` clean (202 files); git-history scan for the Gemini key clean; `.env` gitignored |
 | 22 | Logs as streams + request IDs + alerts | 1 | pino JSON + requestId proven. **Sentry absent, no uptime monitor, no alert rules → G-3** |
-| 23 | Runbooks + blameless postmortems | 2 | `RUNBOOK.md` covers DB down / Gemini down / leaked secret / bad deploy / abuse spike. **No postmortem written for the worst bug found → G-12** |
+| 23 | Runbooks + blameless postmortems | 3 | `RUNBOOK.md` covers DB down / Gemini down / leaked secret / bad deploy / abuse spike; `POSTMORTEM_TEMPLATE.md` + one real postmortem (`POSTMORTEMS/2026-10-15-chat-500-instead-of-502.md`) written 2026-10-16 |
 | 24 | CI gates block merges (DORA) | 2 | `ci.yml`: lint + build + `npm audit` + secret scan + Playwright E2E. **No Lighthouse job, no branch-protection proof** → G-13 |
 | 25 | Dev/prod parity + migrations as code | 3 | Same SQL on pg-mem + Neon; migrations ordered + idempotent; `ON CONFLICT DO NOTHING` re-run proven |
 
-**Total: 58 / 75 = 77%.** (Above the 62% implied by the earlier informal
-estimate, below the 80% "elite" line.)
+**Total: 61 / 75 = 81%** (was 58/75 = 77% on 2026-10-15; G-1, G-2 partial,
+G-12 closed on 2026-10-16). This crosses the 80% line, but the label that
+goes with it is **earned only in the letter of the checklist** — the SLO
+measurement pipeline (G-3), the live API (Vercel env vars), and the
+Neon-branch PITR drill are all still open, and a distinguished reviewer would
+flag the 81% as fragile until they close.
 
 ## Top 10 risks ranked by impact on real users
 
@@ -69,21 +73,23 @@ estimate, below the 80% "elite" line.)
 
 ## Gaps (each maps to a check)
 
-| Gap | Check | What's missing |
-|---|---|---|
-| G-1 | 16 | `docs/SLO.md` + measured p95 from a load test |
-| G-2 | 20 | Real Neon restore drill into a temp branch |
-| G-3 | 22 | Sentry DSN, uptime check on `/health`, alert rules |
-| G-4 | 3 | Test: POST `role:'admin'` is ignored |
-| G-5 | 6 | Live reset-bombing drill (respect rate limits) |
-| G-6 | 7 | Negative SSRF test (user input never becomes a URL) |
-| G-7 | 11 | Full injection battery (chained tool calls, not just 5 probes) |
-| G-8 | 12 | Redaction unit test (OTP/password absent from log lines) |
-| G-9 | 14 | Adversarial system-prompt extraction vs a live model |
-| G-10 | 15 | Monthly call counter + 70% warning + GCP quota cap |
-| G-11 | 18 | Measured boot-to-healthy time |
-| G-12 | 23 | Blameless postmortem for the 500-vs-502 bug |
-| G-13 | 24 | Lighthouse CI job + branch-protection proof |
+| Gap | Check | What's missing | Status (2026-10-16) |
+|---|---|---|---|
+| G-1 | 16 | `docs/SLO.md` + measured p95 from a load test | **closed** — `SLO.md` written; ramp recorded in `EVIDENCE.md` (local, not representative) |
+| G-2 | 20 | Real Neon restore drill into a temp branch | **partial** — logical restore into an isolated DB passed (36s/31s, counts verified); Neon *branch* still needs the API key |
+| G-3 | 22 | Sentry DSN, uptime check on `/health`, alert rules | open — no tooling configured |
+| G-4 | 3 | Test: POST `role:'admin'` is ignored | open |
+| G-5 | 6 | Live reset-bombing drill (respect rate limits) | open |
+| G-6 | 7 | Negative SSRF test (user input never becomes a URL) | open |
+| G-7 | 11 | Full injection battery (chained tool calls, not just 5 probes) | open |
+| G-8 | 12 | Redaction unit test (OTP/password absent from log lines) | open |
+| G-9 | 14 | Adversarial system-prompt extraction vs a live model | open |
+| G-10 | 15 | Monthly call counter + 70% warning + GCP quota cap | open |
+| G-11 | 18 | Measured boot-to-healthy time | open |
+| G-12 | 23 | Blameless postmortem for the 500-vs-502 bug | **closed** — `POSTMORTEMS/2026-10-15-chat-500-instead-of-502.md` |
+| G-13 | 24 | Lighthouse CI job + branch-protection proof | open |
+
+Design documents (Phase 2) are complete: `SLO.md`, `THREAT_MODEL.md`, `POSTMORTEM_TEMPLATE.md`, seven ADRs in `docs/adr/`.
 
 ## Product / screen completeness (checked 2026-10-15)
 
