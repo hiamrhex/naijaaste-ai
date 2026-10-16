@@ -200,7 +200,7 @@ cp .env.example .env      # Windows: copy .env.example .env
 npm run db:migrate         # needs DATABASE_URL_DIRECT; safe no-op without a DB
 npm start                  # API on :3000  (second terminal:)
 npm run dev                # SPA on :5173, app at /app
-curl http://127.0.0.1:3000/health   # 29 endpoints inventoried
+curl http://127.0.0.1:3000/health   # 31 endpoints inventoried
 ```
 
 No Gemini key? The API still boots; LLM routes return a clean 502 and the
@@ -238,7 +238,7 @@ on in-process pg-mem.
 
 ## API summary
 
-29 endpoints (live count from `/health`). Full reference with request/response examples: [`docs/API.md`](docs/API.md).
+31 endpoints (live count from `/health`). Full reference with request/response examples: [`docs/API.md`](docs/API.md).
 
 <details>
 <summary>Endpoints by area (click to expand)</summary>
@@ -246,7 +246,7 @@ on in-process pg-mem.
 | Area | Endpoints |
 |---|---|
 | Health | `GET /health` · `GET /health/ready` (DB probe, 2s bounded) |
-| Auth | `POST /auth/signup` · `POST /auth/signin` · `POST /auth/refresh` · `POST /auth/signout` · `GET /auth/me` · `DELETE /auth/me` · `POST /auth/google` · `POST /auth/forgot-password` · `POST /auth/reset-password` · `GET/POST /auth/favorites` · `DELETE /auth/favorites/:restaurant_id` |
+| Auth | `POST /auth/signup` · `POST /auth/signin` · `POST /auth/refresh` · `POST /auth/signout` · `GET /auth/me` · `DELETE /auth/me` · `POST /auth/google` · `POST /auth/forgot-password` · `POST /auth/reset-password` · `GET/POST /auth/favorites` · `DELETE /auth/favorites/:restaurant_id` · `POST /auth/saved-places` |
 | Discovery | `GET /nearby` · `GET /restaurants/geo` |
 | Agent + chat | `POST /agent` · `POST /chat` · `GET /chat/:sessionId` · `DELETE /chat/:sessionId` |
 | Taste | `POST /extract-persona` · `POST /update-preference` · `POST /recommend` · `POST /generate-review` |
