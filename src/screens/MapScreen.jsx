@@ -14,6 +14,8 @@ const TILES = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_MAP_T
   'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 const pinIcon = (i) => L.divIcon({
   className: 'nt-pin-wrap',
   html: `<div class="nt-pin">${i + 1}</div>`,
@@ -69,7 +71,7 @@ export default function MapScreen() {
     results.forEach((r, i) => {
       if (typeof r.lat !== 'number' || typeof r.lng !== 'number') return;
       L.marker([r.lat, r.lng], { icon: pinIcon(i) })
-        .bindPopup(`<b>${r.name}</b><br/>${r.area || ''}, ${r.city || ''}`)
+        .bindPopup(`<b>${esc(r.name)}</b><br/>${esc(r.area || '')}, ${esc(r.city || '')}`)
         .addTo(layer);
     });
   }, [origin, results]);

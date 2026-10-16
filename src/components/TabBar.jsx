@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Map, ClipboardList, History, Settings, ShieldCheck } from 'lucide-react';
+import { Home, Map, ClipboardList, History, Settings, ShieldCheck, Heart } from 'lucide-react';
 import { useAuth } from '../app/useAuth.js';
 
 const TABS = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/map', label: 'Map', icon: Map },
   { to: '/plan', label: 'Plan', icon: ClipboardList },
+  { to: '/saved', label: 'Saved', icon: Heart },
   { to: '/history', label: 'History', icon: History },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];

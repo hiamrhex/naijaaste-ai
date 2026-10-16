@@ -147,6 +147,22 @@ export const removeFavorite = async (restaurantId) => {
   return (await res.json()).favorites || [];
 };
 
+export const getSavedPlaces = async () => {
+  const res = await authFetch('/auth/saved-places');
+  if (!res.ok) throw new Error('Could not load saved spots');
+  return (await res.json()).places || [];
+};
+
+export const addSavedPlace = async (name) => {
+  const res = await authFetch('/auth/saved-places', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error?.message || 'Could not save spot');
+  return (await res.json()).place;
+};
+
 export const postRating = async ({ restaurant_id, stars, note, context }) => {
   const res = await authFetch('/ratings', {
     method: 'POST',

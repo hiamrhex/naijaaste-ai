@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Users, Wallet, MapPin, Sparkles, Share2, Check } from 'lucide-react';
 import { API } from '../constants/index.js';
-import { RestaurantCard } from '../components/index.js';
+import { RestaurantCard } from '../components/RestaurantCard.jsx';
 import { ReviewModal } from '../components/ReviewModal.jsx';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 import { useLanguage } from '../app/useLanguage.js';
@@ -115,11 +115,11 @@ export default function PlanScreen() {
   };
 
   const field = { display: 'block' };
-  const label = { fontSize: 12, color: '#9CA3AF', fontWeight: 600, display: 'block', marginBottom: 6 };
+  const label = { fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 };
   const control = {
-    width: '100%', boxSizing: 'border-box', background: '#0A0B10',
-    border: '1px solid #1C1D2A', borderRadius: 11, padding: '12px 14px',
-    fontSize: 14, color: '#F9FAFB', fontFamily: 'inherit', outline: 'none', minHeight: 48,
+    width: '100%', boxSizing: 'border-box', background: 'var(--input-bg)',
+    border: '1px solid var(--border)', borderRadius: 11, padding: '12px 14px',
+    fontSize: 14, color: 'var(--text-primary)', fontFamily: 'inherit', outline: 'none', minHeight: 48,
   };
 
   return (

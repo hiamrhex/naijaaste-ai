@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChefHat, ArrowRight, Loader2, Eye, EyeOff, Shield, KeyRound, ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import GithubIcon from './GithubIcon.jsx';
 import { signin, signup, forgotPassword, resetPassword, googleSignIn } from '../lib/auth.js';
-import { API } from '../constants/index.js';
+import { API, GITHUB_REPO_URL } from '../constants/index.js';
 
 const S = {
   wrap: {
@@ -496,7 +496,7 @@ export default function AuthGate({ onAuth, initialMode = 'signin' }) {
 
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
           <a
-            href="https://github.com/hiamrhex/naijaaste-ai"
+            href={GITHUB_REPO_URL}
             target="_blank" rel="noopener noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,

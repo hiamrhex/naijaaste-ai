@@ -38,6 +38,7 @@ const screenRoute = (name) => ({
       Plan: () => import('../screens/PlanScreen.jsx'),
       History: () => import('../screens/HistoryScreen.jsx'),
       Settings: () => import('../screens/SettingsScreen.jsx'),
+      Saved: () => import('../screens/SavedScreen.jsx'),
     };
     return { Component: (await screens[name]()).default };
   },
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', ...homeRoute },
           { path: 'map', ...screenRoute('Map') },
           { path: 'plan', ...screenRoute('Plan') },
+          { path: 'saved', ...screenRoute('Saved') },
           { path: 'history', ...screenRoute('History') },
           { path: 'settings', ...screenRoute('Settings') },
           { path: 'admin', ...adminRoute },

@@ -39,4 +39,21 @@ describe('saved_places save-anything (RED)', () => {
     expect(res.body.place.price_source).toBe('unknown');
     expect(res.body.place.hours).toBe(null);
   });
+
+  it('GET lists only my saved spots with names — owner-scoped, no catalogue lookup', async () => {
+    await request(app)
+      .post('/auth/saved-places')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Terra Kulture TBS' })
+      .expect(201);
+    const res = await request(app)
+      .get('/auth/saved-places')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(res.body.success).toBe(true);
+    const names = res.body.places.map((p) => p.name);
+    expect(names).toContain('Terra Kulture TBS');
+    expect(names).toContain('Buka Queen Yaba — IG find');
+    expect(res.body.places[0].status).toBe('unverified');
+  });
 });

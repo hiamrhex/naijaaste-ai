@@ -6,6 +6,8 @@ export const API =
     ? 'http://localhost:3000'
     : '/api');
 
+export const GITHUB_REPO_URL = 'https://github.com/hiamrhex/naijaaste-ai';
+
 export const HERO_PHRASES = [
   { lang: "Yoruba",  text: "Se o ti jeun?",                  suffix: "" },
   { lang: "Hausa",   text: "Kun ci abinci?",                 suffix: "" },

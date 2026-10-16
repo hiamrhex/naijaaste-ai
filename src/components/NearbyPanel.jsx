@@ -61,16 +61,13 @@ export function NearbyPanel({ loading, error, nearby, onRetry, onClose, favorite
         </div>
       )}
 
-      {/* Keyless Google Map embed centered on user location */}
+      {/* Map lives on the Map tab (Leaflet + OSM, single map contract).
+          No third-party embed here — keeps tiles, attribution and privacy consistent. */}
       {nearby && (
-        <div style={{ margin: '0 16px 12px', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)' }}>
-          <iframe
-            title="Nearby restaurants map"
-            src={`https://maps.google.com/maps?q=${nearby.origin.lat},${nearby.origin.lng}&z=13&output=embed&hl=en`}
-            style={{ width: '100%', height: 160, border: 0, display: 'block', filter: 'grayscale(0.15)' }}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+        <div style={{ margin: '0 16px 12px', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)', padding: '10px 12px', background: 'var(--bg-card-hover)' }}>
+          <a href="/app/map" style={{ fontSize: 12.5, color: 'var(--orange)', textDecoration: 'none', fontWeight: 700 }}>
+            View {nearby.count} spot{nearby.count === 1 ? '' : 's'} on the map →
+          </a>
         </div>
       )}
 

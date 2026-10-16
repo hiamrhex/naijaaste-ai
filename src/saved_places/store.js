@@ -5,6 +5,25 @@ const MAX_SAVED = 50;
 
 // Minimal green for TDD slice 1: save-anything by name.
 // Nullable price/hours, status unverified, never touches catalogue.
+export const listSavedPlaces = async (userId) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    'SELECT id, name, area, price_per_head_ngn, price_source, hours, hours_source, status, created_at FROM saved_places WHERE user_id = $1 ORDER BY created_at',
+    [userId]
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    area: r.area,
+    price_per_head_ngn: r.price_per_head_ngn,
+    price_source: r.price_source,
+    hours: r.hours,
+    hours_source: r.hours_source,
+    status: r.status,
+    created_at: r.created_at instanceof Date ? r.created_at.toISOString() : r.created_at,
+  }));
+};
+
 export const createSavedPlace = async (userId, { name }) => {
   const pool = await getPool();
   const clean = (name || '').trim().slice(0, 100);

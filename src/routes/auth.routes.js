@@ -9,7 +9,7 @@ import { sendOtpEmail } from '../services/email.service.js';
 import { verifyGoogleCredential, googleAuthEnabled } from '../auth/google.js';
 import { env } from '../env.js';
 import { getRestaurantsByCodes, findRestaurantByCode } from '../db/catalogue.js';
-import { createSavedPlace } from '../saved_places/store.js';
+import { createSavedPlace, listSavedPlaces } from '../saved_places/store.js';
 
 const router = Router();
 
@@ -311,6 +311,11 @@ router.delete('/auth/favorites/:restaurant_id', requireAuth, async (req, res) =>
 });
 
 // ─── Saved places (memory-first wishlist) ───────────────────────────────────
+router.get('/auth/saved-places', requireAuth, async (req, res) => {
+  const places = await listSavedPlaces(req.user.id);
+  return res.json({ success: true, places });
+});
+
 router.post('/auth/saved-places', requireAuth, async (req, res) => {
   const { name } = req.body || {};
   if (!name || typeof name !== 'string' || !name.trim()) {

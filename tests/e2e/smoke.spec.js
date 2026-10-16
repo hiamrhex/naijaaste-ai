@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-// Mobile-viewport smoke: signup → nearby → save favorite → sign out.
-// No LLM calls (CI has no Gemini key): exercises auth, geo, favorites, session.
-test('signup, nearby, save, sign out', async ({ page }) => {
+// Mobile-viewport smoke: signup → nearby → save favorite → saved wishlist → sign out.
+// No LLM calls (CI has no Gemini key): exercises auth, geo, favorites, saved_places, session.
+test('signup, nearby, save, saved wishlist, sign out', async ({ page }) => {
   const stamp = Date.now();
   const email = `e2e${stamp}@example.com`;
 
@@ -31,6 +31,13 @@ test('signup, nearby, save, sign out', async ({ page }) => {
   if (await saveBtn.count()) {
     await saveBtn.click();
   }
+
+  // Saved wishlist: save-by-name appears in Fits/Might-fit the same session.
+  await page.getByRole('link', { name: /^saved$/i }).click();
+  await expect(page.getByPlaceholder(/save a spot/i)).toBeVisible({ timeout: 15000 });
+  await page.getByPlaceholder(/save a spot/i).fill(`E2E Buka ${stamp}`);
+  await page.getByRole('button', { name: /^save$/i }).click();
+  await expect(page.getByText(`E2E Buka ${stamp}`).first()).toBeVisible({ timeout: 15000 });
 
   // Sign out from Settings (test id: the global header has its own sign-out).
   await page.getByRole('link', { name: /^settings$/i }).click();

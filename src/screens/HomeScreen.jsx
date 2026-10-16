@@ -4,9 +4,13 @@ import {
   RefreshCw, ChevronDown, Globe, Clock, BarChart3, MessageSquare, ArrowRight, MapPin, Sparkles, CheckCircle, Flame,
 } from 'lucide-react';
 import { HERO_PHRASES, QUICK_PROMPTS, STAGES, STAGE_LABELS, STAGE_TIPS } from '../constants/index.js';
-import { Tag, PersonaCard, RestaurantCard, ReviewModal, ThinkingDots } from '../components/index.js';
+import { Tag } from '../components/Tag.jsx';
+import { PersonaCard } from '../components/PersonaCard.jsx';
+import { RestaurantCard } from '../components/RestaurantCard.jsx';
+import { ReviewModal } from '../components/ReviewModal.jsx';
+import { ThinkingDots } from '../components/ThinkingDots.jsx';
 import { NearbyPanel } from '../components/NearbyPanel.jsx';
-import { Header, Footer } from '../components/Shell.jsx';
+import { Header, Footer } from '../components/SiteChrome.jsx';
 import { useAuth } from '../app/useAuth.js';
 import { useConcierge } from '../hooks/useConcierge.js';
 import { haversineKm } from '../utils/geo.js';

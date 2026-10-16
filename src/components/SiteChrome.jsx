@@ -1,6 +1,7 @@
 import { ChefHat, LogOut, User, Crosshair, Sun, Moon, RefreshCw } from 'lucide-react';
 import GithubIcon from './GithubIcon.jsx';
 import { useTheme } from '../app/useTheme.js';
+import { GITHUB_REPO_URL } from '../constants/index.js';
 
 export function Header({ user, onSignOut, onNearMe, nearbyLoading, showNearby, onReset }) {
   const { dark, toggle } = useTheme();
@@ -37,7 +38,7 @@ export function Header({ user, onSignOut, onNearMe, nearbyLoading, showNearby, o
           DSN × BCT Challenge 3.0
         </span>
         <a
-          href="https://github.com/hiamrhex/naijaaste-ai"
+          href={GITHUB_REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
           title="View on GitHub"
