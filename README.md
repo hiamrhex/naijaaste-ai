@@ -1,14 +1,14 @@
-# NaijaTaste AI — Stop scrolling. Start tasting.
+# NaijaTaste AI
 
-**An autonomous Nigerian dining concierge.** Chat once about your city, budget and cravings — get ranked restaurant picks with reasons, directions and AI-written reviews.
+**Chat once about your city, budget and cravings — get ranked Nigerian restaurant picks with reasons, directions and AI-written reviews.**
 
 [![CI](https://github.com/hiamrhex/naijaaste-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/hiamrhex/naijaaste-ai/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Node 24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)
-![Postgres](https://img.shields.io/badge/Postgres-Neon_%2F_pg--mem-blue)
-![No secrets in repo](https://img.shields.io/badge/secrets-scanned_clean-success)
+![Node ≥24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)
+[![Tests](https://img.shields.io/badge/tests-156%20passed-brightgreen)](#testing-and-quality)
+[![Secrets scanned](https://img.shields.io/badge/secrets-scanned_clean-success)](#security-summary)
 
-> **Live demo:** not deployed yet — run it locally in 3 minutes ([Quick start](#quick-start--3-minutes)) or deploy via [Deployment](#deployment). The marketing front door lives at `/`, the app at `/app`.
+> **Status:** landing page and app shell are live at [naijaaste-ai.vercel.app](https://naijaaste-ai.vercel.app). The API serverless function is **not yet serving** — five environment variables are pending in the Vercel project (see [Deployment](#deployment)). Everything below is verified against the code today; evidence lives in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 ![NaijaTaste landing page](docs/media/shot-landing-desktop.png)
 ![NaijaTaste sign-in on mobile](docs/media/shot-login-mobile.png)
@@ -41,21 +41,22 @@
 
 Choosing where to eat in a Nigerian city means forty open tabs, generic directories that rank by ads, and picks that ignore your budget, spice tolerance and side of town.
 
-NaijaTaste AI flips it: **one conversation → a taste persona → a ranked shortlist with reasons.** A ReAct agent searches, scores, reviews and remembers — and shows its work in a visible tool trace.
+NaijaTaste AI flips it: **one conversation → a taste persona → a ranked shortlist with reasons.** A ReAct agent searches, scores, reviews and remembers — and shows its work in a visible tool trace. When Gemini is down, deterministic scoring keeps recommendations flowing instead of failing.
 
 ## Features
 
 | Capability | How | Status |
 |---|---|---|
-| 🤖 ReAct agent chat | Gemini reasons in a 6-step loop over 4 typed tools; every step traced in the UI | Live |
-| 🧬 Taste persona | City, budget, spice, ambience, dietary flags extracted from chat | Live |
-| 📍 Near-you search | Bounding-box prefilter + haversine sort, one-tap Google Maps directions | Live |
-| ❤️ Favorites | Per-account, synced across devices | Live |
-| ✍️ AI reviews | Written from your persona, matched to the restaurant | Live (LLM-dependent) |
-| 🔐 Real auth | JWT (15-min access + rotating refresh), bcrypt-12, email-OTP reset, Google sign-in, admin roles | Live |
-| ⭐ Ratings + reports | 1–5 check-ins and a feedback inbox with ticket IDs | Stored; ratings not yet consumed by ranking |
-| 🗺️ Map / Plan / History / Settings / Admin screens | Bottom tabs + sidebar shell exist | **Placeholders** — only Home is a real screen |
-| 📲 Installable PWA | Plugin installed | **Unwired** — no manifest/service worker yet |
+| ReAct agent chat | Gemini reasons in a ≤6-step loop over 4 typed tools; every step traced in the UI | Live |
+| Taste persona | City, budget, spice, ambience, dietary flags extracted from chat | Live |
+| Near-you search | Indexed bounding-box prefilter + haversine sort, one-tap Google Maps directions | Live |
+| Favorites | Per-account, synced across devices | Live |
+| AI reviews | Written from your persona, matched to the restaurant by ID first | Live (LLM-dependent) |
+| Deterministic fallback | Pre-scored shortlist + honest message when the LLM circuit is open | Live (8/8 drill) |
+| Real auth | JWT (15-min access + rotating refresh), bcrypt-12, email-OTP reset, Google sign-in, admin roles | Live |
+| Ratings + reports | 1–5 check-ins and a feedback inbox with ticket IDs | Stored; ratings not yet consumed by ranking |
+| Map / Plan / History / Settings / Admin screens | Real React screens (Leaflet map, planner form, history search, settings with account deletion, admin stats inbox) | Live |
+| Installable PWA | `vite-plugin-pwa` manifest + offline fallback page | Live (manifest + `offline.html` in build) |
 
 ## How it works
 
@@ -90,7 +91,7 @@ sequenceDiagram
     participant S as API
     C->>S: POST /auth/signup (name, email, password)
     S-->>C: 201 { user, accessToken } + httpOnly refresh cookie (Path=/)
-    C->>S: POST /api/v1/auth/refresh (cookie, expired access)
+    C->>S: POST /auth/refresh (cookie, expired access)
     S-->>C: 200 rotated pair (old jti revoked)
     C->>S: POST /auth/signout (cookie)
     S-->>C: 200, cookie cleared (mirrored attrs), jti revoked
@@ -113,17 +114,13 @@ flowchart LR
   AUTH -.->|"HMAC OTP"| SM[("SMTP (nodemailer)\n + explicit dev fallback")]
 ```
 
-Component responsibilities: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (request lifecycle, failure modes, scaling limits, first bottlenecks).
+Component responsibilities, request lifecycle, failure modes and the first scaling bottlenecks: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 Entity model (abridged — full DDL in `migrations/001_restaurants.sql`, `migrations/002_core_tables.sql`):
 
 ```mermaid
 erDiagram
-    users ||--o{ refresh_tokens : "jti, revolved on rotation"
-    users ||--o{ favorites : "user_id + restaurant_id"
-    users ||--o{ ratings : "1-5 stars"
-    users ||--o{ reports : "ticket inbox"
-    users ||--o{ sessions : "nullable owner"
+    users ||--o{ sessions : "chat sessions, nullable owner"
     users {
       TEXT id PK
       TEXT email UK
@@ -142,6 +139,12 @@ erDiagram
       DOUBLE lng
       JSONB meta "full curated object"
     }
+    sessions ||--o{ ratings : "check-in 1-5"
+    sessions {
+      TEXT id PK
+      TEXT user_id "nullable owner"
+      JSONB state "persona, stage, recommendations"
+    }
     otps {
       TEXT email PK
       TEXT code_hash "HMAC, never plaintext"
@@ -156,34 +159,35 @@ flowchart TB
   V["Vercel:\n/ → landing (static)\n/app/* → SPA\n/api/* → serverless fn (60s)"] --> N[("Neon Postgres\npooled URL at runtime\ndirect URL for migrate")]
   V --> G["Gemini API"]
   V -.->|"SMTP (Gmail app password)"| M["Email delivery"]
-  GH["GitHub Actions:\nCI (lint/test/build)\nDaily OSM refresh"] -.-> N
+  GH["GitHub Actions:\nCI (lint/test/build/audit/scan/e2e)\nDaily OSM refresh"] -.-> N
 ```
 
 ## Key decisions
 
 | Decision | Alternatives | Why | Trade-off | ADR |
 |---|---|---|---|---|
-| Same SQL on Neon + pg-mem | Prisma/Drizzle, JSON stores | Zero ORM, tests prove prod queries | Hand-written SQL reviewed carefully | [`docs/adr/001-postgres.md`](docs/adr/001-postgres.md) |
-| Same-origin `/api` on Vercel | Separate API host, CORS setup | No CORS in hot path, cookies just work | Vercel Hobby 300s/4.5MB ceilings apply | [`docs/adr/002-vercel-same-origin.md`](docs/adr/002-vercel-same-origin.md) |
-| Landing at `/`, app at `/app` | SPA at root, subdomain split | Marketing front door + shareable app URLs | Dev serves app at `/app.html` (documented) | [`docs/adr/003-front-door.md`](docs/adr/003-front-door.md) |
-| Deterministic pre-score + LLM narrative | Pure LLM ranking | Rankings survive LLM outages; cheaper calls | Two code paths to maintain | [`docs/adr/004-hybrid-scoring.md`](docs/adr/004-hybrid-scoring.md) |
-| JWT + rotating refresh (jti table) | Sessions table, opaque tokens | Stateless API + per-token revocation | Refresh store lookup per rotation | [`docs/adr/005-jwt-rotation.md`](docs/adr/005-jwt-rotation.md) |
-| OSM + curated seed catalogue | Google Places (needs card) | Free, no key, ODbL-clean | Sparse Nigerian coverage; unverified listings | [`docs/adr/006-osm-data.md`](docs/adr/006-osm-data.md) |
+| Same SQL on Neon + pg-mem | Prisma/Drizzle, JSON stores | Zero ORM, tests prove prod queries | Hand-written SQL reviewed carefully | [`001`](docs/adr/001-postgres.md) |
+| Same-origin `/api` on Vercel | Separate API host | No CORS in hot path, cookies just work | Vercel Hobby 300s/4.5MB ceilings | [`002`](docs/adr/002-vercel-same-origin.md) |
+| Landing at `/`, app at `/app` | SPA at root | Marketing front door + shareable app URLs | Two HTML entry points | [`003`](docs/adr/003-front-door.md) |
+| Deterministic pre-score + LLM narrative | Pure LLM ranking | Rankings survive LLM outages; cheaper calls | Two code paths to maintain | [`004`](docs/adr/004-hybrid-scoring.md) |
+| JWT + rotating refresh (jti table) | Sessions table, opaque tokens | Stateless API + per-token revocation | Refresh store lookup per rotation | [`005`](docs/adr/005-jwt-rotation.md) |
+| OSM + curated seed catalogue | Google Places (needs card) | Free, no key, ODbL-clean | Sparse coverage outside Lagos | [`006`](docs/adr/006-osm-data.md) |
+| pg-mem for tests | Docker Postgres in CI | Same-SQL guarantee without containers | A few pg-mem gaps worked around (dynamic `IN`) | [`007`](docs/adr/007-pg-mem-tests.md) |
 
 ## Tech stack
 
 | Layer | Choice | Why |
 |---|---|---|
-| Runtime | Node 24 (local v24.12.0, CI `node:24`) | Current LTS line; native fetch/structuredClone |
+| Runtime | Node 24 (v24.12.0 local, `node:24` in CI) | Current LTS line; native fetch |
 | API | Express 4.19, helmet, cors, express-rate-limit | Boring, debuggable, huge hiring pool |
-| Validation | zod 3.25 schemas + `validate()` middleware | One contract language, client-safe errors |
-| Auth | jsonwebtoken 9 (HS256), bcrypt 6, google-auth-library | Proven primitives, no auth SaaS bill |
+| Validation | zod 3.25 + `validate()` middleware | One contract language, client-safe errors |
+| Auth | jsonwebtoken 9 (HS256), bcrypt 6 (cost 12), google-auth-library | Proven primitives, no auth SaaS bill |
 | Data | `pg` 8 + Neon; pg-mem (dev-only) for tests | Same-SQL guarantee without Docker in CI |
 | Agent | `@google/genai`, `gemini-3.8-flash` (env-overridable) | Cheap + fast; isolated behind `runAgent` |
 | Email | nodemailer 10 over SMTP | Any relay works; explicit dev fallback |
-| Frontend | React 19, Vite 8, react-router-dom 7, lucide icons | Lazy routes, real URLs, tiny icon set |
-| Landing | Zero-dependency HTML/CSS/JS (~29KB) | Loads in milliseconds, nothing to break |
-| Tests | Vitest 5 + supertest, ESLint 10 | Same runner for unit + HTTP contract tests |
+| Frontend | React 19, Vite 8, react-router-dom 7, Leaflet, lucide icons | Lazy routes, real URLs, offline-capable map |
+| Landing | Zero-dependency HTML/CSS/JS (28,875 bytes total) | Loads in milliseconds, nothing to break |
+| Tests | Vitest 5 + supertest + Playwright, ESLint 10 | Same runner for unit + HTTP contract + e2e |
 
 ## Quick start (~3 minutes)
 
@@ -192,18 +196,22 @@ git clone https://github.com/hiamrhex/naijaaste-ai.git
 cd naijaaste-ai
 npm ci
 cp .env.example .env      # Windows: copy .env.example .env
-# Fill GEMINI_API_KEY + JWT_* secrets (see Environment)
-npm run db:migrate         # needs DATABASE_URL_DIRECT (no-op safely without a DB)
+# Fill GEMINI_API_KEY + JWT_ACCESS_SECRET + JWT_REFRESH_SECRET (see Environment)
+npm run db:migrate         # needs DATABASE_URL_DIRECT; safe no-op without a DB
 npm start                  # API on :3000  (second terminal:)
-npm run dev                # SPA on :5173 (app also at /app.html in dev)
-curl http://127.0.0.1:3000/health   # 27 endpoints inventoried
+npm run dev                # SPA on :5173, app at /app
+curl http://127.0.0.1:3000/health   # 29 endpoints inventoried
 ```
+
+No Gemini key? The API still boots; LLM routes return a clean 502 and the
+nearby/favorites/auth paths fully work. No database? Tests and keyless dev run
+on in-process pg-mem.
 
 ## Environment
 
 | Variable | Required? | Purpose |
 |---|---|---|
-| `GEMINI_API_KEY` / `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | **Yes** — boot fails without them | LLM auth, token signing, OTP pepper |
+| `GEMINI_API_KEY` / `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | **Yes** — boot fails without them | LLM auth, token signing |
 | `DATABASE_URL` (pooled) | **Yes in production** — boot fails without it | runtime Postgres |
 | `CORS_ORIGIN` | **Yes in production** — boot fails without it | allowed frontend origin(s) |
 | `DATABASE_URL_DIRECT` | Migrate only | direct URL for `npm run db:migrate` |
@@ -230,69 +238,83 @@ curl http://127.0.0.1:3000/health   # 27 endpoints inventoried
 
 ## API summary
 
-27 endpoints (live count from `/health`). Full reference with request/response examples: [`docs/API.md`](docs/API.md).
+29 endpoints (live count from `/health`). Full reference with request/response examples: [`docs/API.md`](docs/API.md).
 
-| Area | Highlights |
+<details>
+<summary>Endpoints by area (click to expand)</summary>
+
+| Area | Endpoints |
 |---|---|
-| Auth | signup/signin (bcrypt-12) · rotating refresh (root-path cookie, mirrored clear) · OTP reset (HMAC, 5 attempts, cooldown, no enumeration) · Google ID-token sign-in · `me` with role |
-| Agent + chat | `POST /agent` (JWT, owner-bound sessions, trace) · `POST /chat` + UUID-validated session CRUD |
-| Discovery | `GET /nearby` (box prefilter + haversine) · `GET /restaurants/geo` (pin coords) |
-| Taste | `POST /extract-persona` · `/update-preference` · `/recommend` (city pushdown) · `/generate-review` (id-first lookup) |
-| Engagement | `POST/GET /ratings` (1–5, own history) · `POST /reports` (ticket + diagnostics) |
-| Admin | `GET /admin/stats` · inbox + triage (role-gated, 401/403 tested) |
+| Health | `GET /health` · `GET /health/ready` (DB probe, 2s bounded) |
+| Auth | `POST /auth/signup` · `POST /auth/signin` · `POST /auth/refresh` · `POST /auth/signout` · `GET /auth/me` · `DELETE /auth/me` · `POST /auth/google` · `POST /auth/forgot-password` · `POST /auth/reset-password` · `GET/POST /auth/favorites` · `DELETE /auth/favorites/:restaurant_id` |
+| Discovery | `GET /nearby` · `GET /restaurants/geo` |
+| Agent + chat | `POST /agent` · `POST /chat` · `GET /chat/:sessionId` · `DELETE /chat/:sessionId` |
+| Taste | `POST /extract-persona` · `POST /update-preference` · `POST /recommend` · `POST /generate-review` |
+| Engagement | `POST /ratings` · `GET /ratings` · `POST /reports` |
+| Admin | `GET /admin/stats` · `GET /admin/reports` · `PATCH /admin/reports/:ticket` |
 
-Every error is `{ error: { code, message, details?, requestId } }`; 429s add `Retry-After`; oversized bodies get honest `413`, malformed JSON `400` — never a fake 502.
+</details>
+
+Every error is `{ error: { code, message, details?, requestId } }`; 429s add `Retry-After` + `RateLimit` headers; oversized bodies get honest `413`, malformed JSON `400` — never a fake 502. Upstream LLM failures return `502 UPSTREAM_FAILURE` (proven by drill: 8/8, zero 500s).
 
 ## Security summary
 
-Threat model, controls and disclosure: [`docs/SECURITY.md`](docs/SECURITY.md) (report via `SECURITY.md`).
+Threat model (STRIDE), controls inventory and disclosure policy: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) · [`docs/SECURITY.md`](docs/SECURITY.md) · [`SECURITY.md`](SECURITY.md).
 
 - Ownership enforced: cross-user session/favorite/rating access → 403/404 (tested).
-- Refresh rotation with reuse detection; logout revokes server-side.
+- Refresh rotation with reuse detection; logout revokes server-side; access tokens never touch localStorage.
 - OTP: HMAC-hashed, 10-min TTL, 5 attempts, 60s cooldown, timing-safe compare, generic responses.
-- Rate limits per surface (auth 20, reset 10, LLM 10/min, global 600/15min); `/health` exempt.
-- Pino redaction covers OTP/password/credential/token shapes (tested); `dev_otp` gated behind an explicit flag.
-- CORS allowlist, fail-closed boot in production; helmet headers; refresh cookie `httpOnly` + root path.
+- Rate limits per surface (auth 20/15min, reset 10/min, LLM 10/min, global 600/15min); `/health` exempt.
+- Strict CSP (`script-src 'self'` + Google), helmet headers, nosniff, frame-ancestors self.
+- CORS allowlist, fail-closed boot in production; refresh cookie `httpOnly` + `sameSite=strict` + root path.
+- Break-it battery (14 attacks) and agent-safety probes (5) recorded in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 ## Testing and quality
 
 ```bash
-npm test           # 127 tests, 20 files — same SQL on pg-mem as Neon runs
+npm test           # 156 tests, 26 files — same SQL on pg-mem as Neon runs
 npm run lint       # ESLint — clean
 npm run evaluate   # NDCG@5 + RMSE over LLM reviews (needs GEMINI_API_KEY)
 ```
 
+CI on every push ([`ci.yml`](.github/workflows/ci.yml)): lint · test · build · `npm audit --omit=dev --audit-level=critical` · secret scan · Playwright e2e (signup → nearby → save → sign-out).
+
 - Contract tests pin 400/401/403/404/409/413/429 shapes; ownership tests use two live users; limiter tests trip real 429s; redaction tests assert secret absence.
-- No flaky-timer/network tests: LLM paths are mocked in-suite (`sessions.test.js`) or assert validation-only 400s.
+- Failure-path tests: DB down (503 readiness), LLM down (deterministic fallback + clean 502), hung query (bounded timeout).
 
 ## Performance and reliability
 
-Only measured numbers, with method:
+Only measured numbers, with method. Full ledger: [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 | Metric | Value | How measured |
 |---|---|---|
-| `GET /health` localhost | p50 52ms · p95 112ms · max 321ms | 50 sequential requests, n=50, dev laptop |
-| Full suite | ~17–24s, 20 files | `npm test` wall time |
-| Landing weight | 28,863 bytes, 3 files | `stat` on `public/landing.*` |
-| Catalogue seed | 60 rows | `node -e` count of `restaurants.json` |
-| Neon live rows | 60 curated + 150 OSM at import day | live SQL counts (re-query needs `DATABASE_URL`; not re-verified today) |
+| `GET /health` local (no DB) | 1,687–1,939 rps across c=10→200; p97.5 13→154ms | autocannon, 15s/step, laptop |
+| `GET /nearby` local → Neon (remote) | 3 rps at c=10; p97.5 7.3s; collapse at c=50 | autocannon, same setup; bottleneck: pool `max: 3` + ~180ms RTT |
+| Full test suite | 156 tests / 26 files, ~38s | `npm test` wall time |
+| Landing weight | 28,875 bytes (3 files) | `stat` on `index.html` + `public/landing.*` |
+| Catalogue | 60 curated seed rows; 210 rows live in Neon | JSON count; SQL count during restore drill |
+| Neon restore | dump 36.5s → isolated DB → restore 30.8s → counts identical | `pg_dump`/`pg_restore` drill, 2026-10-16 |
 
-What these do **not** prove: multi-user concurrency, production latency, or 100k-row query plans. k6 + `EXPLAIN ANALYZE` are queued (see Roadmap).
+> **These are local numbers from one laptop to a remote database over the public internet. They are not representative of Vercel same-region serving.** No production load test has been run.
 
-Reliability built in: SIGTERM drain, fail-fast env, per-mount rate limits, LLM 502 mapping without message leaks, session TTL pruning.
+SLO targets (availability 99.5%, non-AI p95 <500ms, AI p95 <10s, AI success ≥95%) and the error-budget policy: [`docs/SLO.md`](docs/SLO.md). Measurement pipeline is not yet built — the SLOs are review targets, not enforced alerts.
+
+Reliability built in: 20s LLM timeout · exponential backoff · circuit breaker (5 fails/60s cooldown) · deterministic recommend fallback · SIGTERM drain · fail-fast env · session TTL pruning.
 
 ## Operations
 
-- Health: `GET /health` (endpoint inventory + feature flags). Uptime check: point UptimeRobot at it (free).
-- Logs: pino JSON with `requestId` on every request and error; `LOG_LEVEL` per environment.
-- Docs: [`docs/RUNBOOK.md`](docs/RUNBOOK.md) (DB down, Gemini down, leaked secret, bad deploy + rollback).
+- Health: `GET /health` (inventory + feature flags), `GET /health/ready` (DB probe, 503 while down).
+- Logs: pino JSON with `requestId` on every request and error; secrets redacted (tested).
+- Runbook: [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — DB down, Gemini down, leaked secret, bad deploy, abuse spike.
+- Postmortems: [`docs/POSTMORTEMS/`](docs/POSTMORTEMS/) — one written ([2026-10-15 chat 500→502](docs/POSTMORTEMS/2026-10-15-chat-500-instead-of-502.md)).
+- Not yet configured: uptime monitor, Sentry, SLO alerting (tracked in [`docs/AUDIT.md`](docs/AUDIT.md) gap G-3).
 
 ## Deployment
 
 1. **Neon** (free, no card): create project → `npm run db:migrate` with the direct URL → runtime uses the pooled URL.
-2. **Vercel**: import repo (Vite preset, `dist/`). `vercel.json`: `/` serves the landing, `/app/*` the SPA shell, `/api/*` the function (60s budget). Set the env table with `NODE_ENV=production`.
+2. **Vercel**: import repo (Vite preset, `dist/`). `vercel.json` routes `/` → landing, `/app/*` → SPA, `/api/*` → function (60s budget). Set the env table with `NODE_ENV=production` — **the function refuses to boot without `GEMINI_API_KEY`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`, `DATABASE_URL`** (`src/env.js:40-54`).
 3. **Secrets**: repo secrets `DATABASE_URL` + `DATABASE_URL_DIRECT` power the daily OSM refresh (`.github/workflows/refresh.yml`, manual trigger included).
-4. **Post-launch**: verify `/health` + `/` + `/app/login`, create your account (admin via `ADMIN_EMAILS`).
+4. **Post-launch verify**: `/health` 200 · `/health/ready` 200 · `/` 200 · `/app/login` 200 · one signup → nearby → sign-out round-trip.
 
 ## Data and attribution
 
@@ -300,52 +322,54 @@ Details: [`docs/DATA.md`](docs/DATA.md). 60-row curated seed (verified fields, N
 
 ## Roadmap and known limitations
 
-- [ ] k6 load profile + `EXPLAIN ANALYZE` on hot queries (honest numbers before any scale claim).
-- [ ] PWA: wire manifest + service worker, or drop the dependency.
+- [ ] Production load test on the live Vercel URL (k6 or autocannon, off-peak, free-tier respectful).
+- [ ] SLO measurement pipeline + uptime monitor + Sentry (gap G-3 in AUDIT).
+- [ ] Neon-branch PITR restore drill (needs Neon API key; logical restore drill done).
 - [ ] Admin inbox UI (API-only today) and ratings→recommendations loop (stored, not consumed).
-- [ ] Map/Plan/History/Settings screens (shell + tabs exist; `Soon` placeholders today).
-- [ ] Neon restore drill into a temp branch (6h PITR window on free plan).
-- [x] Postgres for all runtime state · [x] Same-origin Vercel deploy · [x] Failure-shaped errors (413/400/502) · [x] Session ownership · [x] Log redaction.
-- LLM success depends on Google-side capacity (clean 502s, never leaks); Overpass reachability varies by network (cron covers it).
+- [ ] Chained prompt-injection battery (current: 5 standalone probes, gap G-7).
+- [x] Postgres for all runtime state · [x] Same-origin Vercel deploy · [x] Failure-shaped errors (413/400/502) · [x] Session ownership · [x] Log redaction · [x] LLM timeout + breaker + fallback · [x] Restore drill (logical) · [x] SLOs documented
+- Known platform limits: LLM success depends on Google-side capacity (clean 502s, never leaks); Overpass reachability varies by network (cron covers it); Neon free tier = single region.
 
 ## Project structure
 
 ```
-api/           Vercel serverless entry (strips /api mount prefix)
-app.html       SPA shell (/app in prod, /app.html in dev)
-index.html     Landing page (front door /)
+api/            Vercel serverless entry (strips /api mount prefix)
+index.html      Landing page (front door /)
+app/index.html  SPA shell (/app in prod and dev)
 src/
-  agent/       ReAct loop, tool schemas + dispatcher, id-first lookup
-  app/         BrowserRouter (/app basename), guards, theme/auth/language providers
-  auth/        OTP (HMAC+timing-safe), JWT tokens, PG user store
-  db/          pool (Neon/pg-mem), migrations runner, catalogue loader + seed
-  routes/      auth · agent · chat · nearby · persona · recommend · review · ratings · reports · admin
-  screens/     Home (real) · Auth · Soon placeholders · 404/403
-  services/    email (SMTP), chat, persona, recommend, review, places-cache
+  agent/        ReAct loop, tool schemas + dispatcher, id-first lookup
+  app/          BrowserRouter (/app basename), guards, providers
+  auth/         OTP (HMAC+timing-safe), JWT tokens, PG user store
+  db/           pool (Neon/pg-mem), migrations runner, catalogue + seed
+  routes/       auth · agent · chat · nearby · persona · recommend · review · ratings · reports · admin
+  screens/      Home · Map (Leaflet) · Plan · History · Settings · Admin · Auth · 404/403
+  services/     email (SMTP), chat, persona, recommend, review, llm (breaker/timeout), places-cache
+  lib/          auth client, logger (redaction), errors, readiness, push
   ratings/ reports/  PG stores (check-ins, feedback inbox)
-  components/  cards, panels, tab bar, auth gate, shell
-  data/        restaurants.json — seed fixture only (runtime state is Postgres)
-migrations/    001 restaurants · 002 users/sessions/OTP/ratings/reports
-tests/         20 files — contracts, ownership, limiter, redaction, PG-backed suites
-plans/         audit history + implementation plans (008–014 shipped)
-public/        landing.css/js, favicon, icons (landing.html moved to root index.html)
-docs/          ARCHITECTURE · API · SECURITY · RUNBOOK · DATA · adr/ · media/
+  components/   cards, sheets, tab bar, auth gate, shell
+  data/         restaurants.json — seed fixture only (runtime state is Postgres)
+migrations/     001 restaurants · 002 users/sessions/OTP/ratings/reports
+tests/          26 files — contracts, ownership, limiter, redaction, resilience, PG-backed suites
+tests/e2e/      Playwright smoke (signup → nearby → save → sign-out)
+scripts/        break-it battery · agent-safety probes · secret scan · env audit
+public/         landing.css/js, favicon, icons, offline.html
+docs/           ARCHITECTURE · API · SECURITY · THREAT_MODEL · SLO · RUNBOOK · DATA · AUDIT · MATURITY · EVIDENCE · adr/ · media/ · POSTMORTEMS/
 ```
 
 ## Troubleshooting
 
-Eight errors actually hit in this repo's sessions (not imagined):
+Eight errors actually hit in this repo's sessions:
 
 | Symptom | Cause | Fix |
 |---|---|---|
 | `EADDRINUSE :::3000` | zombie node from a prior run | `taskkill /F /PID <id>` (`Stop-Process` silently fails on stuck nodes) |
-| Signup shows “Request failed” locally | `CORS_ORIGIN` set to prod URL, or API not running | comment it out locally; `npm start` the API |
+| Signup shows "Request failed" locally | `CORS_ORIGIN` set to prod URL, or API not running | comment it out locally; `npm start` the API |
+| `FUNCTION_INVOCATION_FAILED` on Vercel | one of the 5 required env vars missing in the project | set all five; see [Deployment](#deployment) step 2 |
 | `dev_otp` missing in response | `DEV_OTP_ENABLED` not `true` | set it locally only — never in prod |
-| OTP 400s in tests | clock/attempt drift | tests drive `__setOtpExpiry`; don't hand-roll codes |
-| OSM import `OSM_FETCH_FAILED` | egress blocks Overpass from some networks | mirrors retry, then daily cron from GitHub's network |
 | `= ANY($1)` returns [] on pg-mem | pg-mem array-param gap | use dynamic `IN (...)` lists (portable both drivers) |
+| OSM import `OSM_FETCH_FAILED` | egress blocks Overpass from some networks | mirrors retry, then daily cron from GitHub's network |
 | Suite timeouts under parallel load | per-file pg-mem init + bcrypt | `hookTimeout: 60000` in `vitest.config.js`; batched seed INSERT |
-| PowerShell `$env:X=''` deletes the var | PS 5.1 empty-string semantics | use `Remove-Item Env:X` intentionally; `127.0.0.1` not `localhost` |
+| PowerShell `$env:X=''` deletes the var | PS 5.1 empty-string semantics | use `Remove-Item Env:X`; prefer `127.0.0.1` over `localhost` |
 
 ## Contributing
 
@@ -353,4 +377,4 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) (setup <10 min, conventional commits, n
 
 ## License, author, acknowledgements
 
-MIT © [Team PRiME](https://github.com/hiamrhex) — built for the DSN × BCT LLM Agent Challenge 3.0. Restaurant data © OpenStreetMap contributors (ODbL). Standards consulted: OWASP API Top 10 2023, OWASP LLM Top 10 2025, SRE workbook (SLOs), Twelve-Factor App, DORA capabilities, Neon + Vercel limits docs.
+MIT © [Team PRiME](https://github.com/hiamrhex) — built for the DSN × BCT LLM Agent Challenge 3.0. Restaurant data © OpenStreetMap contributors (ODbL). Standards consulted: [OWASP API Top 10 2023](https://owasp.org/API-Security/), [OWASP LLM Top 10 2025](https://genai.owasp.org/llm-top-10/), [Google SRE Book](https://sre.google/sre-book/service-level-objectives/), [Twelve-Factor App](https://12factor.net/), [DORA](https://dora.dev/capabilities/), [Neon limits](https://neon.com/docs/introduction/plans), [Vercel Functions limits](https://vercel.com/docs/functions/limitations). Research and scoring: [`docs/STANDARDS.md`](docs/STANDARDS.md) · [`docs/AUDIT.md`](docs/AUDIT.md) · [`docs/MATURITY.md`](docs/MATURITY.md).
