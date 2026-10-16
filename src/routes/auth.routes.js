@@ -9,6 +9,7 @@ import { sendOtpEmail } from '../services/email.service.js';
 import { verifyGoogleCredential, googleAuthEnabled } from '../auth/google.js';
 import { env } from '../env.js';
 import { getRestaurantsByCodes, findRestaurantByCode } from '../db/catalogue.js';
+import { createSavedPlace } from '../saved_places/store.js';
 
 const router = Router();
 
@@ -307,6 +308,26 @@ router.delete('/auth/favorites/:restaurant_id', requireAuth, async (req, res) =>
     return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
   }
   return res.json({ success: true, favorites: result.favorites, removed: result.removed });
+});
+
+// ─── Saved places (memory-first wishlist) ───────────────────────────────────
+router.post('/auth/saved-places', requireAuth, async (req, res) => {
+  const { name } = req.body || {};
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'name is required' } });
+  }
+  try {
+    const place = await createSavedPlace(req.user.id, { name });
+    return res.status(201).json({ success: true, place });
+  } catch (err) {
+    if (err.code === 'SAVED_FULL') {
+      return res.status(409).json({ success: false, error: { code: 'SAVED_FULL', message: err.message } });
+    }
+    if (err.code === 'USER_NOT_FOUND') {
+      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
+    }
+    throw err;
+  }
 });
 
 export { router as authRoutes };
