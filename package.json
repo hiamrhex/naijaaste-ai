@@ -10,6 +10,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:sw": "node --test scripts/sw.mjs",
+    "test:all": "vite build && npm run test:sw && vitest run",
     "preview": "vite preview",
     "evaluate": "node src/evaluate.js",
     "db:migrate": "node src/db/migrate.js",

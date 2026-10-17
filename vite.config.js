@@ -8,6 +8,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
+// Bump when the navigation/offline behaviour changes so old precaches are
+// dropped on activate (see public/sw.js + its tests).
+const SW_CACHE_VERSION = 'v1';
+
 export default defineConfig({
   plugins: [
     react(),
@@ -27,6 +31,18 @@ export default defineConfig({
     },
     VitePWA({
       registerType: 'autoUpdate',
+      // InjectManifest: we ship our own sw.js so navigation is network-first
+      // and the offline page appears ONLY on a genuine network failure —
+      // never as a stand-in for a server 4xx/5xx. (generateSW's
+      // navigateFallback serves the cached fallback for EVERY navigation,
+      // which is the bug this replaces. See tests/sw.test.js.)
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      injectManifest: {
+        // Must match the glob precache + the version const inside public/sw.js.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+      },
       manifest: {
         name: 'NaijaTaste AI',
         short_name: 'NaijaTaste',
@@ -36,27 +52,11 @@ export default defineConfig({
         display: 'standalone',
         scope: '/app/',
         start_url: '/app/',
+        version: SW_CACHE_VERSION,
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      workbox: {
-        // Offline navigations fall back to a static page (never a cached API response).
-        navigateFallback: '/offline.html',
-        navigateFallbackDenylist: [/^\/api\//],
-        runtimeCaching: [
-          {
-            // Public restaurant data only: safe to revalidate in background.
-            // NEVER matches POSTs, /auth/*, /ratings, /reports, /admin, /agent, /chat.
-            urlPattern: ({ url }) => url.pathname === '/nearby' || url.pathname === '/restaurants/geo',
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'restaurant-data',
-              expiration: { maxEntries: 60, maxAgeSeconds: 6 * 3600 },
-            },
-          },
         ],
       },
     }),

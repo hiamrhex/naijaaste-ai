@@ -37,4 +37,23 @@ export default defineConfig([
     files: ['public/landing.js'],
     languageOptions: { globals: globals.browser },
   },
+  {
+    // Service worker: runs in the SW global scope, not a page or Node.
+    // Only the two SW-specific globals Workbox relies on; `window`/`document`
+    // stay undefined so accidental DOM access is still caught.
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker,
+        self: 'readonly',
+        caches: 'readonly',
+        fetch: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        URL: 'readonly',
+        RegExp: 'readonly',
+        console: 'readonly',
+      },
+    },
+  },
 ])
