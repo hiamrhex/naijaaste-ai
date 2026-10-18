@@ -1,27 +1,27 @@
-/* NaijaTaste service worker.
+/* NaijaTaste service worker — TRUE NETWORK-FIRST.
  *
- * Navigation is NETWORK-FIRST. The offline page is served only when the
- * network genuinely fails — never as a stand-in for a server 4xx/5xx.
- * That is the bug this file replaces: generateSW's navigateFallback registers
- * a NavigationRoute that returns the cached fallback for EVERY navigation,
- * including ones where the server answered with an error. See tests/sw.test.js.
+ * Navigations: always fetch from network. A 4xx/5xx is a REAL response
+ * and is returned untouched so the app renders its own error state.
+ * Only a THROWN fetch (offline / DNS / connection reset / timeout) reaches
+ * the catch handler → offline.html.
+ *
+ * No networkTimeoutSeconds. No handlerDidError for navigations.
+ * Precached shell is NOT a navigation fallback.
  */
-import { precacheAndRoute, cleanupOutdatedCaches, getCacheKeyForURL } from 'workbox-precaching';
-import { registerRoute, NavigationRoute, setCatchHandler } from 'workbox-routing';
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
 import { NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { setCatchHandler } from 'workbox-routing';
 
 const OFFLINE_URL = '/offline.html';
-// Keep in sync with SW_CACHE_VERSION in vite.config.js. Bump on any change to
-// navigation/offline behaviour so old precaches are dropped on activate.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2'; // bumped: navigation behaviour changed
 
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// Public restaurant data only. NEVER matches POSTs, /auth/*, /ratings,
-// /reports, /admin, /agent or /chat.
+// Public restaurant data only — safe to revalidate in background.
 registerRoute(
   ({ url, request }) =>
     request.method === 'GET' &&
@@ -38,35 +38,20 @@ registerRoute(
   })
 );
 
-// Navigation: always go to the network first. A 4xx/5xx is a real response
-// and is returned untouched so the app can render its own error state.
-// Only a thrown fetch (offline / DNS / connection reset) reaches the catch.
+// Navigation: TRUE NETWORK-FIRST.
+// - No timeout: wait for network indefinitely.
+// - 4xx/5xx pass through — they are real responses, not errors.
+// - Only a THROWN fetch (offline/DNS/connection reset) reaches catch handler.
 registerRoute(
-  new NavigationRoute(
-    new NetworkOnly({
-      networkTimeoutSeconds: 8,
-      plugins: [
-        {
-          // Precached shell for the SPA routes when the network is up but the
-          // server has no opinion (unknown deep link). Real HTTP errors pass
-          // straight through — they are not cache misses.
-          handlerDidError: async ({ request }) => {
-            const url = new URL(request.url);
-            if (url.pathname.startsWith('/app')) {
-              const shell = getCacheKeyForURL('/app/index.html');
-              if (shell) return (await caches.match(shell)) || Response.error();
-            }
-            return Response.error();
-          },
-        },
-      ],
-    }),
-    // Never intercept the API or the offline page itself.
-    { denylist: [/^\/api\//, /^\/offline\.html$/] }
-  )
+  ({ request }) => request.mode === 'navigate',
+  new NetworkOnly({
+    // No plugins = no handlerDidError = 4xx/5xx pass through untouched.
+  }),
+  // Never intercept API or offline page itself.
+  { denylist: [/^\/api\//, /^\/offline\.html$/] }
 );
 
-// Last resort for anything that still failed: genuine network failure only.
+// Catch: ONLY thrown fetches (genuine network failure) land here.
 setCatchHandler(async ({ request }) => {
   if (request.mode === 'navigate') {
     const cached = await caches.match(OFFLINE_URL);
@@ -75,18 +60,16 @@ setCatchHandler(async ({ request }) => {
   return Response.error();
 });
 
-// New SW takes control immediately so the offline fix applies without a
-// second visit.
+// Skip waiting so new SW controls immediately.
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      // Precached assets use content hashes (workbox-precache-v…), so we
-      // cannot filter by CACHE_VERSION there. Delete only OUR versioned
-      // runtime caches, plus any stale precache revision set from a prior
-      // build (workbox cleans those via cleanupOutdatedCaches above).
+      // Delete OUR versioned runtime caches from prior versions.
+      // Precaches are cleaned by cleanupOutdatedCaches().
       const keys = await caches.keys();
       const ours = [`restaurant-data-${CACHE_VERSION}`];
       const staleRuntime = keys.filter(

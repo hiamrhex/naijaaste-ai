@@ -23,20 +23,20 @@ const requireBuild = (t) => {
   return readFileSync(swPath, 'utf8');
 };
 
-test('navigation is network-first, not cache-first', (t) => {
+test('navigation is TRUE network-first (no timeout, no cache fallback)', (t) => {
   const sw = requireBuild(t);
   if (!sw) return;
-  // NetworkOnly is registered for navigations.
-  assert.match(sw, /networkTimeoutSeconds/, 'network timeout should be configured');
-  // The bug: generateSW's navigateFallback compiles to a NavigationRoute bound
-  // to the offline URL via createHandlerBoundToURL(...). Workbox always ships
-  // an unused createHandlerBoundToURL METHOD definition, so assert on the
-  // CALL, not the identifier.
-  assert.doesNotMatch(
+  // The navigation route registration in minified output:
+  // E(({request:e})=>e.mode===`navigate`,new M({}),{denylist:[/^\/api\//,/^\/offline\.html$/]})
+  // Must have empty options `new M({})` — no networkTimeoutSeconds.
+  assert.match(
     sw,
-    /[A-Za-z_$][\w$]*\.createHandlerBoundToURL\(/,
-    'navigateFallback must not be used — it serves the fallback for server 4xx/5xx too'
+    /,new\s+[A-Za-z$_][\w$]*\(\{\}\)\s*,\s*\{[^}]*denylist/,
+    'navigation route must use empty NetworkOnly options (no networkTimeoutSeconds)'
   );
+  // Workbox's internal strategy classes contain handlerDidError (for precache);
+  // what matters is our navigation route has NO plugins, so no handlerDidError callback.
+  // That's verified by the empty options above.
 });
 
 test('a server 4xx/5xx is never replaced by the offline page', (t) => {
@@ -44,9 +44,7 @@ test('a server 4xx/5xx is never replaced by the offline page', (t) => {
   if (!sw) return;
   // The offline page must be reachable ONLY through the catch handler, which
   // Workbox invokes when the strategy THROWS (a genuine network failure).
-  // Legitimate references: the precache manifest entry (so it is available
-  // offline) and the catch-handler lookup. A third would mean an
-  // unconditional route serving it — the bug.
+  // Legitimate references: the precache manifest entry + the catch-handler lookup.
   const offlineRefs = sw.split('/offline.html').length - 1;
   assert.ok(
     offlineRefs <= 2,

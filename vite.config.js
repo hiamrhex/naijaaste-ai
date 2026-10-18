@@ -10,7 +10,7 @@ const root = dirname(fileURLToPath(import.meta.url));
 
 // Bump when the navigation/offline behaviour changes so old precaches are
 // dropped on activate (see public/sw.js + its tests).
-const SW_CACHE_VERSION = 'v1';
+const SW_CACHE_VERSION = 'v2';
 
 export default defineConfig({
   plugins: [
