@@ -278,3 +278,22 @@ with one. The ~200ms network hop is the entire difference.
 4. **k6 / Playwright browsers not local** — perf ramp relies on CI-equivalent runs; local e2e uses `PW_CHANNEL=msedge`.
 5. **SMTP** — App Password pending; email delivery only verified by template unit tests.
 6. **B-delete-a-favorite 200 idempotency** — decide if foreign-row DELETE should be 404 instead of silent 200.
+
+## 2026-10-19 — post-deploy live matrix (fix phase)
+
+Push `b9f6f1f..da850bd` (9 commits). Vercel deploy detected at **23:42:37**
+(`/api/v1/auth/me` stopped returning `ROUTE_NOT_FOUND`). All probes against
+`https://naijaaste-ai.vercel.app`, 2026-10-19 23:42–23:44 UTC+01:00. This
+supersedes Unverified #1 (live API) and #2 (prod DB present in `.env`).
+
+| ID | Claim | Method | Result today |
+|---|---|---|---|
+| F21-08 | Canonical `/api/v1/*` paths live | `GET /api/v1/auth/me`, `GET /api/v1/nearby?lat=6.52&lng=3.38&limit=3` | 401 `UNAUTHENTICATED`; 200 with 3 results |
+| F21-09 | Legacy `/api/*` paths unchanged | `GET /api/auth/me`, `GET /api/nearby?lat=6.52&lng=3.38&limit=3` | 401 `UNAUTHENTICATED`; 200 with 3 results |
+| F21-10 | Health live | `GET /health` | 200 `{"status":"ok","service":"NaijaTaste AI"}` |
+| F21-11 | saved-places DELETE route is auth-gated | unauth `DELETE /api/v1/auth/saved-places/x` | 401 `UNAUTHENTICATED` |
+| F21-12 | saved-places DELETE round-trip | throwaway signup 201 → `POST /auth/saved-places` 201 → `DELETE /:id` 200 → repeat 404 → `DELETE /auth/me` 200 | `removed:true`; second delete `NOT_FOUND`; account cleanup `deleted:true`; throwaway `audit-1792449851@example.com` |
+| F21-13 | Sentry PII patch | `npx vitest run tests/monitoring.test.js` | 8/8 — `/nearby?lat=6.52&lng=3.38&token=abc` through `errorHandler` leaves no lat/lng/token in the captured payload |
+| F21-14 | Pre-push gates | `npm run lint` · `check:docs` · `check:ng-data` · `scan:secrets` · `test:all` | clean · OK · 4 files clean · 231 files clean · 29 files / 175 tests passed |
+| F21-15 | Data gate has every required file | `git cat-file -e HEAD:data/ng/dishes.json` | present from `da850bd` (was missing on `HEAD` before this push — CI would have failed) |
+| F21-16 | Sentry armed? | `SENTRY_DSN` unset in local `.env`; Vercel env not inspected | **NOT ARMED** — code is live but no events are sent until `SENTRY_DSN` is set in the Vercel project |
