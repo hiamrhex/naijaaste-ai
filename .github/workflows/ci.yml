@@ -41,6 +41,11 @@ jobs:
       # Mermaid fences, or an `npm run <x>` referenced in README that doesn't
       # exist. Fails the build — code wins over docs.
       - run: npm run check:docs
+      # Data-quality gate: schema, duplicate keys, and provenance — every
+      # source_ref must resolve to a registered source in data/ng/sources.md.
+      # Fails the build so unresolved or duplicate records can never merge
+      # (and can therefore never feed recommendations downstream).
+      - run: npm run check:ng-data
 
   e2e:
     runs-on: ubuntu-latest

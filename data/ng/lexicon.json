@@ -1,0 +1,3707 @@
+[
+  {
+    "term": "chop",
+    "language": "pcm",
+    "meaning": "to eat / food",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "I don chop",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "chop life",
+    "language": "pcm",
+    "meaning": "enjoy life / live well",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Make we chop life",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "buka",
+    "language": "pcm",
+    "meaning": "local restaurant / canteen",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Make we go buka",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "mama put",
+    "language": "pcm",
+    "meaning": "street food vendor (female)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Mama put dey sell rice",
+    "region": [
+      "southwest",
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "abeg",
+    "language": "pcm",
+    "meaning": "please",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Abeg help me",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "omo",
+    "language": "pcm",
+    "meaning": "wow / man / guy (expression)",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "Omo! This food sweet",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ehn",
+    "language": "pcm",
+    "meaning": "right? / isn't it? / really?",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "The pepper soup hot ehn",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "dey",
+    "language": "pcm",
+    "meaning": "is / are / be (copula)",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "Food dey sweet",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "don",
+    "language": "pcm",
+    "meaning": "has / have (perfect aspect)",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "I don chop",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "go",
+    "language": "pcm",
+    "meaning": "will / going to (future)",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "I go chop later",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "wetin",
+    "language": "pcm",
+    "meaning": "what",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "Wetin you want chop?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "wey",
+    "language": "pcm",
+    "meaning": "which / that / who (relative)",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "The buka wey I dey talk",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "sabi",
+    "language": "pcm",
+    "meaning": "to know / understand / be skilled",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "You sabi cook?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "fit",
+    "language": "pcm",
+    "meaning": "can / able to",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "I fit chop am",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "no fit",
+    "language": "pcm",
+    "meaning": "cannot / unable to",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "I no fit chop pounded yam",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "wahala",
+    "language": "pcm",
+    "meaning": "trouble / problem / stress",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "This traffic na wahala",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "sharp sharp",
+    "language": "pcm",
+    "meaning": "quickly / immediately",
+    "register": "slang",
+    "category": "quantity",
+    "example_sentence": "Make we go sharp sharp",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "small small",
+    "language": "pcm",
+    "meaning": "gradually / bit by bit",
+    "register": "informal",
+    "category": "quantity",
+    "example_sentence": "Chop am small small",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "well well",
+    "language": "pcm",
+    "meaning": "properly / thoroughly",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "Wash the meat well well",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "die",
+    "language": "pcm",
+    "meaning": "very / extremely (intensifier)",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "The pepper soup sweet die",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "scatter",
+    "language": "pcm",
+    "meaning": "destroy / ruin / mess up",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "No scatter my food",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "pepper don red",
+    "language": "pcm",
+    "meaning": "pepper is hot / situation is intense",
+    "register": "slang",
+    "category": "spice",
+    "example_sentence": "Bros, pepper don red",
+    "region": [
+      "southwest",
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "yaji",
+    "language": "pcm",
+    "meaning": "suya spice blend",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Put plenty yaji for the suya",
+    "region": [
+      "northwest",
+      "northeast",
+      "northcentral"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "suya",
+    "language": "pcm",
+    "meaning": "spiced grilled meat",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Suya don ready",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "kilishi",
+    "language": "pcm",
+    "meaning": "spiced dried beef",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Kilishi sweet with groundnut",
+    "region": [
+      "northwest",
+      "northeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "massa",
+    "language": "pcm",
+    "meaning": "rice cake (Masa)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Massa and miyan kuka",
+    "region": [
+      "northwest",
+      "northeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "fura",
+    "language": "pcm",
+    "meaning": "millet balls",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Fura da nono",
+    "region": [
+      "northwest",
+      "northeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "nono",
+    "language": "pcm",
+    "meaning": "fermented milk",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Fura da nono cold well well",
+    "region": [
+      "northwest",
+      "northeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "kunu",
+    "language": "pcm",
+    "meaning": "millet/sorghum drink",
+    "register": "informal",
+    "category": "drink",
+    "example_sentence": "Kunu zaki sweet well well",
+    "region": [
+      "northwest",
+      "northeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "zobo",
+    "language": "pcm",
+    "meaning": "hibiscus drink",
+    "register": "informal",
+    "category": "drink",
+    "example_sentence": "Zobo dey sweet for afternoon",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "chapman",
+    "language": "pcm",
+    "meaning": "Nigerian cocktail",
+    "register": "informal",
+    "category": "drink",
+    "example_sentence": "Make we order Chapman",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "palm wine",
+    "language": "pcm",
+    "meaning": "fermented palm sap",
+    "register": "informal",
+    "category": "drink",
+    "example_sentence": "Palm wine sweet pass beer",
+    "region": [
+      "southwest",
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "emу",
+    "language": "yo",
+    "meaning": "palm wine",
+    "register": "informal",
+    "category": "drink",
+    "example_sentence": "Emu ti o dun",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "nkwu",
+    "language": "ig",
+    "meaning": "palm wine",
+    "register": "informal",
+    "category": "drink",
+    "example_sentence": "Nkwu di mma",
+    "region": [
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "mmanya nkwu",
+    "language": "ig",
+    "meaning": "palm wine (full term)",
+    "register": "formal",
+    "category": "drink",
+    "example_sentence": "Mmanya nkwu bu mma",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "amala",
+    "language": "yo",
+    "meaning": "yam flour swallow",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Amala ati ewedu jeun ti o dun",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ewedu",
+    "language": "yo",
+    "meaning": "jute leaf soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ewedu mi o si iyanu",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "gbegiri",
+    "language": "yo",
+    "meaning": "bean soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Gbegiri funfun dun",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "abula",
+    "language": "yo",
+    "meaning": "gbegiri + ewedu mix",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Abula ni mo fe je",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "iyan",
+    "language": "yo",
+    "meaning": "pounded yam",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Iyan ati egusi jeun onile",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "egusi",
+    "language": "yo",
+    "meaning": "melon seed soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Egusi ti mo se dun die",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "efo riro",
+    "language": "yo",
+    "meaning": "spinach stew",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Efo riro ti o gun",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ofada",
+    "language": "yo",
+    "meaning": "local rice variety",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ofada ati ayamase",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ayamase",
+    "language": "yo",
+    "meaning": "designer stew (green pepper)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ayamase pepper don red",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ewa agoyin",
+    "language": "yo",
+    "meaning": "mashed beans with pepper sauce",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ewa agoyin ti Iya Basira",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "moin moin",
+    "language": "yo",
+    "meaning": "steamed bean pudding",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Moin moin elewe dun",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "akara",
+    "language": "yo",
+    "meaning": "bean fritters",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Akara ati ogi jo jeun alejo",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ogi",
+    "language": "yo",
+    "meaning": "fermented maize pap",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ogi tutu dun",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "dodo",
+    "language": "yo",
+    "meaning": "fried ripe plantain",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Dodo ati eja",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "bole",
+    "language": "yo",
+    "meaning": "roasted plantain",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Bole ati epiya",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "aso ebi",
+    "language": "yo",
+    "meaning": "matching outfit for events",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Aso ebi ti owambe",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "owambe",
+    "language": "yo",
+    "meaning": "lavish party / celebration",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Owambe ti weekend yen",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "nna",
+    "language": "ig",
+    "meaning": "brother / man (address)",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Nna, kedu?",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "kedu",
+    "language": "ig",
+    "meaning": "how are you / hello",
+    "register": "formal",
+    "category": "greeting",
+    "example_sentence": "Kedu ka i mere?",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "o di mma",
+    "language": "ig",
+    "meaning": "it is good / delicious",
+    "register": "formal",
+    "category": "slang",
+    "example_sentence": "Nni a di mma",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "akpu",
+    "language": "ig",
+    "meaning": "fermented cassava fufu",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Akpu na ofe onugbu",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ofe onugbu",
+    "language": "ig",
+    "meaning": "bitter leaf soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ofe onugbu nwere ike",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ofe oha",
+    "language": "ig",
+    "meaning": "oha leaf soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ofe oha bu mma",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ofe akwu",
+    "language": "ig",
+    "meaning": "palm nut soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ofe akwu na osikapa",
+    "region": [
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ofe nsala",
+    "language": "ig",
+    "meaning": "white soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ofe nsala di mma nke ukwu",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "nkwobi",
+    "language": "ig",
+    "meaning": "spiced cow foot",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Nkwobi na nkwu",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "isi ewu",
+    "language": "ig",
+    "meaning": "spiced goat head",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Isi ewu di mma nke ukwu",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "abacha",
+    "language": "ig",
+    "meaning": "African salad (cassava)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Abacha na ugba",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ugba",
+    "language": "ig",
+    "meaning": "fermented oil bean",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ugba buru n'anya",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "utazi",
+    "language": "ig",
+    "meaning": "Gongronema latifolium leaf",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Utazi na nkwobi",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "okazi",
+    "language": "ig",
+    "meaning": "afang leaf (Gnetum)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Okazi na ofe",
+    "region": [
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "uziza",
+    "language": "ig",
+    "meaning": "piper guineense (seeds/leaves)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Uziza nwere oyi",
+    "region": [
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ehuru",
+    "language": "ig",
+    "meaning": "African nutmeg (Monodora)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ehuru na ofe nsala",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "uda",
+    "language": "ig",
+    "meaning": "negro pepper (Xylopia)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Uda na pepper soup",
+    "region": [
+      "southeast",
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "nni ji",
+    "language": "ig",
+    "meaning": "pounded yam",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Nni ji na egusi",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "osa",
+    "language": "ig",
+    "meaning": "rice",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Osa dindin na anara",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "anara",
+    "language": "ig",
+    "meaning": "garden egg / eggplant",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Anara na ose oji",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ose oji",
+    "language": "ig",
+    "meaning": "peanut sauce",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Ose oji bu mma",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "banga",
+    "language": "pcm",
+    "meaning": "palm nut soup",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Banga soup sweet die",
+    "region": [
+      "southsouth",
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "starch",
+    "language": "pcm",
+    "meaning": "cassava starch swallow (Usi)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Starch and banga na correct combo",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "usi",
+    "language": "pcm",
+    "meaning": "cassava starch (proper name)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Usi yellow well well",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "afang",
+    "language": "pcm",
+    "meaning": "afang soup",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Afang na waterleaf",
+    "region": [
+      "southsouth",
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "edikang ikong",
+    "language": "pcm",
+    "meaning": "vegetable soup (waterleaf + ugwu)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Edikang ikong na correct soup",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "pepper soup",
+    "language": "pcm",
+    "meaning": "spicy broth",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Pepper soup hot die",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "point and kill",
+    "language": "pcm",
+    "meaning": "select live fish for pepper soup",
+    "register": "slang",
+    "category": "food",
+    "example_sentence": "Make we go point and kill",
+    "region": [
+      "southsouth",
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "banga rice",
+    "language": "pcm",
+    "meaning": "rice cooked in palm nut soup",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Banga rice sweet pass jollof",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "tuwo",
+    "language": "ha",
+    "meaning": "swallow (generic)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Tuwo da miya",
+    "region": [
+      "northwest",
+      "northeast",
+      "northcentral"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "tuwo shinkafa",
+    "language": "ha",
+    "meaning": "rice swallow",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Tuwo shinkafa da miyan kuka",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "tuwo masara",
+    "language": "ha",
+    "meaning": "cornmeal swallow",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Tuwo masara da miyan taushe",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "miyan kuka",
+    "language": "ha",
+    "meaning": "baobab leaf soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Miyan kuka tana da kyau",
+    "region": [
+      "northwest",
+      "northeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "miyan taushe",
+    "language": "ha",
+    "meaning": "pumpkin soup",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Miyan taushe da tuwo",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "daddawa",
+    "language": "ha",
+    "meaning": "fermented locust bean",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Daddawa da miya — daddawa goes in the stew",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "massa",
+    "language": "ha",
+    "meaning": "rice cakes",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Massa da miyar kuka",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "dan wake",
+    "language": "ha",
+    "meaning": "bean dumplings",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Dan wake da yaji",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "koko",
+    "language": "ha",
+    "meaning": "millet porridge",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Koko da kosai",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "kosai",
+    "language": "ha",
+    "meaning": "bean fritters (akara)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Kosai da suka",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "fura da nono",
+    "language": "ha",
+    "meaning": "millet balls + fermented milk",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Fura da nono tana shirya",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "burkina",
+    "language": "ha",
+    "meaning": "millet + yogurt drink",
+    "register": "informal",
+    "category": "drink",
+    "example_sentence": "Burkina ya karasa",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "wallahi",
+    "language": "ha",
+    "meaning": "by Allah / I swear",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "Wallahi, abinci ya yi dadi",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "kai",
+    "language": "ha",
+    "meaning": "wow / oh my",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "Kai! Miyan yawa",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "in sha allah",
+    "language": "ha",
+    "meaning": "God willing",
+    "register": "formal",
+    "category": "slang",
+    "example_sentence": "In sha Allah za mu je",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "bajin",
+    "language": "pcm",
+    "meaning": "very / extremely",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "Food bajin sweet",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "scatter head",
+    "language": "pcm",
+    "meaning": "confuse / overwhelm",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "The pepper scatter my head",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "chop knuckle",
+    "language": "pcm",
+    "meaning": "fist bump / respect",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Bros, chop knuckle",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "gbas gbos",
+    "language": "pcm",
+    "meaning": "back and forth / tit for tat",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "Na gbas gbos we dey do",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "pepper body",
+    "language": "pcm",
+    "meaning": "spicy food sensation",
+    "register": "slang",
+    "category": "spice",
+    "example_sentence": "This pepper soup pepper my body",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "run stomach",
+    "language": "pcm",
+    "meaning": "diarrhea",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "The beans make me run stomach",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "belle full",
+    "language": "pcm",
+    "meaning": "stomach full / satisfied",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "My belle full well well",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "hunger dey catch me",
+    "language": "pcm",
+    "meaning": "I'm hungry",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Hunger dey catch me die",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "i never chop",
+    "language": "pcm",
+    "meaning": "I haven't eaten",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "I never chop since morning",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "make we go chop",
+    "language": "pcm",
+    "meaning": "let's go eat",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Make we go chop for that buka",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "the thing sweet",
+    "language": "pcm",
+    "meaning": "it's delicious",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "The thing sweet die",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "no be small thing",
+    "language": "pcm",
+    "meaning": "it's serious / impressive",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "That jollof no be small thing",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "correct",
+    "language": "pcm",
+    "meaning": "genuine / proper / authentic",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "Na correct suya",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "fake",
+    "language": "pcm",
+    "meaning": "not genuine / poor quality",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "This suya na fake",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "original",
+    "language": "pcm",
+    "meaning": "authentic / the real deal",
+    "register": "informal",
+    "category": "slang",
+    "example_sentence": "Na original kilishi from Kano",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "lash",
+    "language": "pcm",
+    "meaning": "to eat heartily",
+    "register": "slang",
+    "category": "food",
+    "example_sentence": "I go lash the pounded yam",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "demolish",
+    "language": "pcm",
+    "meaning": "eat completely / finish",
+    "register": "slang",
+    "category": "food",
+    "example_sentence": "We demolish the jollof",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "wack",
+    "language": "pcm",
+    "meaning": "bad / terrible",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "That buka food wack",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "fire",
+    "language": "pcm",
+    "meaning": "excellent / amazing",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "The pepper soup na fire",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "lit",
+    "language": "pcm",
+    "meaning": "exciting / amazing",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "The party lit die",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "vibes",
+    "language": "pcm",
+    "meaning": "atmosphere / feeling",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "The buka get vibes",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "small chops",
+    "language": "pcm",
+    "meaning": "finger foods at parties",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Small chops don land",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "puff puff",
+    "language": "pcm",
+    "meaning": "fried dough balls",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Puff puff hot hot",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "meat pie",
+    "language": "pcm",
+    "meaning": "savoury pastry",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Meat pie and coke",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "sausage roll",
+    "language": "pcm",
+    "meaning": "sausage in pastry",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Sausage roll sweet",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "scotch egg",
+    "language": "pcm",
+    "meaning": "egg wrapped in sausage",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Scotch egg for small chops",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "spring roll",
+    "language": "pcm",
+    "meaning": "fried vegetable roll",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Spring roll crispy",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "samosa",
+    "language": "pcm",
+    "meaning": "triangular fried pastry",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Samosa hot",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "chicken",
+    "language": "pcm",
+    "meaning": "chicken (often implies fried)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Chicken and chips",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "chips",
+    "language": "pcm",
+    "meaning": "french fries",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Chicken and chips",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "jollof",
+    "language": "pcm",
+    "meaning": "jollof rice",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Jollof don ready",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "party jollof",
+    "language": "pcm",
+    "meaning": "smoky bottom-pot jollof",
+    "register": "slang",
+    "category": "food",
+    "example_sentence": "Party jollof na the best",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "concoction rice",
+    "language": "pcm",
+    "meaning": "mixed rice with everything",
+    "register": "slang",
+    "category": "food",
+    "example_sentence": "Concoction rice for boys",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "native rice",
+    "language": "pcm",
+    "meaning": "local rice dish (ofada style)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Native rice and stew",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "white rice and stew",
+    "language": "pcm",
+    "meaning": "plain rice with tomato stew",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "White rice and stew simple",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "beans and bread",
+    "language": "pcm",
+    "meaning": "beans stew with bread",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Beans and Agege bread",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ewa agoyin",
+    "language": "pcm",
+    "meaning": "mashed beans with pepper sauce",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ewa agoyin and bread",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "agege bread",
+    "language": "pcm",
+    "meaning": "stretchy Lagos bread",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Agege bread stretch well well",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "eba",
+    "language": "pcm",
+    "meaning": "cassava flour swallow",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Eba and egusi",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "garri",
+    "language": "pcm",
+    "meaning": "cassava flakes (eba raw)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Garri Ijebu sharp sharp",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "ijebu garri",
+    "language": "pcm",
+    "meaning": "fine white garri from Ijebu",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ijebu garri soak with groundnut",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "yellow garri",
+    "language": "pcm",
+    "meaning": "fermented yellow garri",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Yellow garri for eba",
+    "region": [
+      "southwest",
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "semovita",
+    "language": "pcm",
+    "meaning": "wheat semolina brand",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Semovita and egusi",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "semolina",
+    "language": "pcm",
+    "meaning": "wheat semolina (generic)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Semolina quick quick",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "pounded yam",
+    "language": "pcm",
+    "meaning": "pounded yam swallow",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Pounded yam and egusi",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "fufu",
+    "language": "pcm",
+    "meaning": "fermented cassava swallow",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Fufu and ogbono",
+    "region": [
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "akpu",
+    "language": "pcm",
+    "meaning": "fermented cassava fufu (Igbo)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Akpu strong well well",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "swallow",
+    "language": "pcm",
+    "meaning": "any starchy dumpling eaten with soup",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Which swallow you want?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "soup",
+    "language": "pcm",
+    "meaning": "stew / sauce for swallow",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "The soup sweet die",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "stew",
+    "language": "pcm",
+    "meaning": "tomato-based sauce",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Stew plenty for the rice",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "draw soup",
+    "language": "pcm",
+    "meaning": "slimy soup (ogbono, okra)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ogbono na draw soup",
+    "region": [
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "caking",
+    "language": "pcm",
+    "meaning": "egusi preparation method (clumping)",
+    "register": "slang",
+    "category": "food",
+    "example_sentence": "The egusi caking well",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "stockfish",
+    "language": "pcm",
+    "meaning": "dried cod",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Stockfish soft well well",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "dry fish",
+    "language": "pcm",
+    "meaning": "smoked dried fish",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Dry fish for the soup",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ponmo",
+    "language": "pcm",
+    "meaning": "cow skin",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ponmo soft like foam",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "kpomo",
+    "language": "pcm",
+    "meaning": "cow skin (variant)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Kpomo for the pepper soup",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "shaki",
+    "language": "pcm",
+    "meaning": "cow tripe",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Shaki and roundabout",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "roundabout",
+    "language": "pcm",
+    "meaning": "cow intestine",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Roundabout sweet for pepper soup",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "book",
+    "language": "pcm",
+    "meaning": "cow lung",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Book soft for old man",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "fworo",
+    "language": "pcm",
+    "meaning": "cow spleen",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Fworo for the soup",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "assorted",
+    "language": "pcm",
+    "meaning": "mixed offal (shaki, roundabout, book)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Assorted meat complete",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "goat meat",
+    "language": "pcm",
+    "meaning": "goat meat",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Goat meat pepper soup",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "cow meat",
+    "language": "pcm",
+    "meaning": "beef",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Cow meat tough",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "bush meat",
+    "language": "pcm",
+    "meaning": "wild game meat",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Bush meat pepper soup",
+    "region": [
+      "southwest",
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "snail",
+    "language": "pcm",
+    "meaning": "giant African land snail",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Peppered snail sweet",
+    "region": [
+      "southwest",
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "periwinkle",
+    "language": "pcm",
+    "meaning": "small sea snail",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Periwinkle for afang",
+    "region": [
+      "southsouth",
+      "southeast"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "crayfish",
+    "language": "pcm",
+    "meaning": "dried crayfish powder (ground)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Crayfish powder enter the soup",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ogiri",
+    "language": "pcm",
+    "meaning": "fermented locust bean",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ogiri for the bitter leaf",
+    "region": [
+      "southeast",
+      "southsouth"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "iru",
+    "language": "yo",
+    "meaning": "fermented locust bean",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Iru wa ninu efo riro",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "palm oil",
+    "language": "pcm",
+    "meaning": "red palm oil",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Palm oil red well well",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "groundnut oil",
+    "language": "pcm",
+    "meaning": "peanut oil",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Groundnut oil for fry",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "vegetable oil",
+    "language": "pcm",
+    "meaning": "refined cooking oil",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Vegetable oil no get taste",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "bleached oil",
+    "language": "pcm",
+    "meaning": "heated palm oil (for ayamase)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Bleached oil for ayamase",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "maggi",
+    "language": "pcm",
+    "meaning": "bouillon cube (generic)",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Put two maggi",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "knorr",
+    "language": "pcm",
+    "meaning": "bouillon cube brand",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Knorr chicken",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "salt",
+    "language": "pcm",
+    "meaning": "salt",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Salt small small",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "pepper",
+    "language": "pcm",
+    "meaning": "pepper (generic)",
+    "register": "informal",
+    "category": "spice",
+    "example_sentence": "Pepper plenty",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ata rodo",
+    "language": "yo",
+    "meaning": "scotch bonnet pepper",
+    "register": "formal",
+    "category": "spice",
+    "example_sentence": "Ata rodo ti o ba",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "tatashe",
+    "language": "yo",
+    "meaning": "bell pepper / red pepper",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Tatashe for the stew",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "shombo",
+    "language": "yo",
+    "meaning": "long red pepper",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Shombo for pepper soup",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "green pepper",
+    "language": "pcm",
+    "meaning": "unripe pepper (hotter)",
+    "register": "informal",
+    "category": "spice",
+    "example_sentence": "Green pepper for ayamase",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "onions",
+    "language": "pcm",
+    "meaning": "onions",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Onions plenty for the suya",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "tomatoes",
+    "language": "pcm",
+    "meaning": "tomatoes",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Tomatoes red well well",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "seasoning",
+    "language": "pcm",
+    "meaning": "seasoning cube/powder",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Seasoning complete",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "curry",
+    "language": "pcm",
+    "meaning": "curry powder",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Curry and thyme",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "thyme",
+    "language": "pcm",
+    "meaning": "thyme herb",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Thyme for the jollof",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "bay leaf",
+    "language": "pcm",
+    "meaning": "bay leaf",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Bay leaf for the rice",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ginger",
+    "language": "pcm",
+    "meaning": "ginger",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Ginger garlic paste",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "garlic",
+    "language": "pcm",
+    "meaning": "garlic",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Garlic plenty",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "naira",
+    "language": "pcm",
+    "meaning": "Nigerian currency",
+    "register": "formal",
+    "category": "payment",
+    "example_sentence": "How much naira?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "kobo",
+    "language": "pcm",
+    "meaning": "1/100 naira (obsolete)",
+    "register": "formal",
+    "category": "payment",
+    "example_sentence": "No kobo for pocket",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "change",
+    "language": "pcm",
+    "meaning": "small denomination money",
+    "register": "informal",
+    "category": "payment",
+    "example_sentence": "You get change?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "transfer",
+    "language": "pcm",
+    "meaning": "bank transfer",
+    "register": "informal",
+    "category": "payment",
+    "example_sentence": "I go transfer you",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "pos",
+    "language": "pcm",
+    "meaning": "point of sale / card machine",
+    "register": "informal",
+    "category": "payment",
+    "example_sentence": "POS dey work?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "cash",
+    "language": "pcm",
+    "meaning": "physical money",
+    "register": "informal",
+    "category": "payment",
+    "example_sentence": "Cash only for this buka",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "account number",
+    "language": "pcm",
+    "meaning": "bank account number",
+    "register": "formal",
+    "category": "payment",
+    "example_sentence": "Send your account number",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "opay",
+    "language": "pcm",
+    "meaning": "OPay fintech app",
+    "register": "informal",
+    "category": "payment",
+    "example_sentence": "Pay with Opay",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "palmpay",
+    "language": "pcm",
+    "meaning": "PalmPay fintech app",
+    "register": "informal",
+    "category": "payment",
+    "example_sentence": "PalmPay fast",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "moniepoint",
+    "language": "pcm",
+    "meaning": "Moniepoint POS/bank",
+    "register": "informal",
+    "category": "payment",
+    "example_sentence": "Moniepoint POS dey",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "generator",
+    "language": "pcm",
+    "meaning": "power generator",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Generator dey run",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "gen",
+    "language": "pcm",
+    "meaning": "generator (short)",
+    "register": "slang",
+    "category": "location",
+    "example_sentence": "Gen don start",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "nepa",
+    "language": "pcm",
+    "meaning": "public power (NEPA/PHCN)",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "NEPA don take light",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "light",
+    "language": "pcm",
+    "meaning": "electricity",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Light dey?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ac",
+    "language": "pcm",
+    "meaning": "air conditioning",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "The AC dey blow well",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "air con",
+    "language": "pcm",
+    "meaning": "air conditioning",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Air con strong",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "parking",
+    "language": "pcm",
+    "meaning": "parking space",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Parking space dey?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "valet",
+    "language": "pcm",
+    "meaning": "valet parking",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Valet dey outside",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "open late",
+    "language": "pcm",
+    "meaning": "open until late night",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "This place open late?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "24/7",
+    "language": "pcm",
+    "meaning": "open 24 hours",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Suya spot 24/7",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "close early",
+    "language": "pcm",
+    "meaning": "closes early",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "This buka close early",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "landmark",
+    "language": "pcm",
+    "meaning": "reference point for location",
+    "register": "formal",
+    "category": "location",
+    "example_sentence": "Near the landmark",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "junction",
+    "language": "pcm",
+    "meaning": "road intersection",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Meet me for the junction",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "roundabout",
+    "language": "pcm",
+    "meaning": "traffic circle",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "At the roundabout",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "bus stop",
+    "language": "pcm",
+    "meaning": "bus stop (also landmark)",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "For the bus stop",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "under bridge",
+    "language": "pcm",
+    "meaning": "under a bridge (landmark)",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Under bridge buka",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "by the corner",
+    "language": "pcm",
+    "meaning": "at the corner",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "By the corner shop",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "opposite",
+    "language": "pcm",
+    "meaning": "across from",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Opposite the bank",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "next to",
+    "language": "pcm",
+    "meaning": "beside",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Next to the pharmacy",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "behind",
+    "language": "pcm",
+    "meaning": "at the back of",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Behind the mall",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "inside",
+    "language": "pcm",
+    "meaning": "within a compound/mall",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Inside the plaza",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "plaza",
+    "language": "pcm",
+    "meaning": "shopping complex",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "The plaza for VI",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "mall",
+    "language": "pcm",
+    "meaning": "shopping mall",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "The mall for Lekki",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "market",
+    "language": "pcm",
+    "meaning": "traditional market",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Balogun market",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "supermarket",
+    "language": "pcm",
+    "meaning": "modern grocery store",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Shoprite for the mall",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "street",
+    "language": "pcm",
+    "meaning": "street",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Adeniran Ogunsanya street",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "road",
+    "language": "pcm",
+    "meaning": "main road",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Lekki-Epe road",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "express",
+    "language": "pcm",
+    "meaning": "expressway",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Third mainland express",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "bridge",
+    "language": "pcm",
+    "meaning": "bridge",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Third mainland bridge",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "island",
+    "language": "pcm",
+    "meaning": "Lagos Island / Victoria Island area",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "I dey island",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "mainland",
+    "language": "pcm",
+    "meaning": "Lagos Mainland",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "I dey mainland",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "gidi",
+    "language": "pcm",
+    "meaning": "Lagos (slang)",
+    "register": "slang",
+    "category": "location",
+    "example_sentence": "Gidi traffic no be here",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "lasgidi",
+    "language": "pcm",
+    "meaning": "Lagos (slang)",
+    "register": "slang",
+    "category": "location",
+    "example_sentence": "Lasgidi life",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ph",
+    "language": "pcm",
+    "meaning": "Port Harcourt",
+    "register": "slang",
+    "category": "location",
+    "example_sentence": "PH boys dey enjoy",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "abuja",
+    "language": "pcm",
+    "meaning": "Abuja (FCT)",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Abuja big men",
+    "region": [
+      "northcentral"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "fct",
+    "language": "pcm",
+    "meaning": "Federal Capital Territory",
+    "register": "formal",
+    "category": "location",
+    "example_sentence": "FCT minister",
+    "region": [
+      "northcentral"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "kano",
+    "language": "pcm",
+    "meaning": "Kano city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Kano kilishi",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ibadan",
+    "language": "pcm",
+    "meaning": "Ibadan city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Ibadan amala",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "enugu",
+    "language": "pcm",
+    "meaning": "Enugu city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Enugu okpa",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "calabar",
+    "language": "pcm",
+    "meaning": "Calabar city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Calabar food capital",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "benin",
+    "language": "pcm",
+    "meaning": "Benin City",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Benin native soup",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "warri",
+    "language": "pcm",
+    "meaning": "Warri city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Warri no dey carry last",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "sapele",
+    "language": "pcm",
+    "meaning": "Sapele city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Sapele road",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "asaba",
+    "language": "pcm",
+    "meaning": "Asaba city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Asaba airport",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "owerri",
+    "language": "pcm",
+    "meaning": "Owerri city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Owerri nightlife",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "aba",
+    "language": "pcm",
+    "meaning": "Aba city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Aba market",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "umuahia",
+    "language": "pcm",
+    "meaning": "Umuahia city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Umuahia capital",
+    "region": [
+      "southeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "yenagoa",
+    "language": "pcm",
+    "meaning": "Yenagoa city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Yenagoa waterfront",
+    "region": [
+      "southsouth"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "jos",
+    "language": "pcm",
+    "meaning": "Jos city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Jos weather cold",
+    "region": [
+      "northcentral"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "kaduna",
+    "language": "pcm",
+    "meaning": "Kaduna city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Kaduna train",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "zaria",
+    "language": "pcm",
+    "meaning": "Zaria city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Zaria ABU",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "maideguri",
+    "language": "pcm",
+    "meaning": "Maiduguri city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Maiduguri suya",
+    "region": [
+      "northeast"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "sokoto",
+    "language": "pcm",
+    "meaning": "Sokoto city",
+    "register": "informal",
+    "category": "location",
+    "example_sentence": "Sokoto caliphate",
+    "region": [
+      "northwest"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "group",
+    "language": "pcm",
+    "meaning": "group of people",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "My group dey come",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "crew",
+    "language": "pcm",
+    "meaning": "close friends group",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "My crew dey for the party",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "squad",
+    "language": "pcm",
+    "meaning": "tight friend group",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Squad goals",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "bae",
+    "language": "pcm",
+    "meaning": "girlfriend/boyfriend",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Me and my bae",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "boo",
+    "language": "pcm",
+    "meaning": "girlfriend/boyfriend",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "My boo dey wait",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "date",
+    "language": "pcm",
+    "meaning": "romantic outing",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Date night for VI",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "solo",
+    "language": "pcm",
+    "meaning": "alone",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "I dey chop solo",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "family",
+    "language": "pcm",
+    "meaning": "family",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Family outing Sunday",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "work lunch",
+    "language": "pcm",
+    "meaning": "business lunch",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Work lunch with oga",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "client",
+    "language": "pcm",
+    "meaning": "business client",
+    "register": "formal",
+    "category": "social",
+    "example_sentence": "Client meeting for lunch",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "meeting",
+    "language": "pcm",
+    "meaning": "business meeting",
+    "register": "formal",
+    "category": "social",
+    "example_sentence": "Meeting don end",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "after work",
+    "language": "pcm",
+    "meaning": "after working hours",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "After work drinks",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "weekend",
+    "language": "pcm",
+    "meaning": "Saturday-Sunday",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Weekend vibes",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "friday",
+    "language": "pcm",
+    "meaning": "Friday (party start)",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Friday faaji",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "faaji",
+    "language": "yo",
+    "meaning": "enjoyment / party",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Faaji weekend",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "flex",
+    "language": "pcm",
+    "meaning": "show off / enjoy",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Make we flex small",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "ball",
+    "language": "pcm",
+    "meaning": "have money / spend big",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "You dey ball",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "big man",
+    "language": "pcm",
+    "meaning": "wealthy/important person",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Big man tings",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "oga",
+    "language": "pcm",
+    "meaning": "boss / senior / sir",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Oga at the top",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "oga at the top",
+    "language": "pcm",
+    "meaning": "the big boss",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Oga at the top don talk",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "chairman",
+    "language": "pcm",
+    "meaning": "respected man / big spender",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Chairman, wetin you want?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "madam",
+    "language": "pcm",
+    "meaning": "respected woman / boss lady",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Madam, your order",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "alaye",
+    "language": "yo",
+    "meaning": "guy / brother / street smart",
+    "register": "slang",
+    "category": "slang",
+    "example_sentence": "Alaye, wetin dey happen?",
+    "region": [
+      "southwest"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "bros",
+    "language": "pcm",
+    "meaning": "brother / friend",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Bros, how far?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "sister",
+    "language": "pcm",
+    "meaning": "sister / female friend",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Sister, wetin dey?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "uncle",
+    "language": "pcm",
+    "meaning": "older man (respect)",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Uncle, good morning",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "aunty",
+    "language": "pcm",
+    "meaning": "older woman (respect)",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Aunty, the food sweet",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "oga",
+    "language": "pcm",
+    "meaning": "boss / master",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Oga, work dey?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "master",
+    "language": "pcm",
+    "meaning": "skilled craftsman",
+    "register": "informal",
+    "category": "greeting",
+    "example_sentence": "Master, the car ready?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "engineer",
+    "language": "pcm",
+    "meaning": "engineer (respectful address)",
+    "register": "formal",
+    "category": "greeting",
+    "example_sentence": "Engineer, how far?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "doctor",
+    "language": "pcm",
+    "meaning": "doctor (respectful address)",
+    "register": "formal",
+    "category": "greeting",
+    "example_sentence": "Doctor, the patient?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "lawyer",
+    "language": "pcm",
+    "meaning": "lawyer (respectful address)",
+    "register": "formal",
+    "category": "greeting",
+    "example_sentence": "Lawyer, case don finish?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "architect",
+    "language": "pcm",
+    "meaning": "architect (respectful address)",
+    "register": "formal",
+    "category": "greeting",
+    "example_sentence": "Architect, plan ready?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "surveyor",
+    "language": "pcm",
+    "meaning": "surveyor (respectful address)",
+    "register": "formal",
+    "category": "greeting",
+    "example_sentence": "Surveyor, land don measure?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "accountant",
+    "language": "pcm",
+    "meaning": "accountant (respectful address)",
+    "register": "formal",
+    "category": "greeting",
+    "example_sentence": "Accountant, balance sheet?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "banker",
+    "language": "pcm",
+    "meaning": "banker (implies money)",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Banker don pay",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "corper",
+    "language": "pcm",
+    "meaning": "NYSC corps member",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Corper allowance",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "nysc",
+    "language": "pcm",
+    "meaning": "National Youth Service Corps",
+    "register": "formal",
+    "category": "social",
+    "example_sentence": "NYSC camp",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "student",
+    "language": "pcm",
+    "meaning": "student",
+    "register": "formal",
+    "category": "social",
+    "example_sentence": "Student budget",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "undergrad",
+    "language": "pcm",
+    "meaning": "undergraduate",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Undergrad life",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "postgrad",
+    "language": "pcm",
+    "meaning": "postgraduate",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "Postgrad stress",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "phd",
+    "language": "pcm",
+    "meaning": "doctorate degree",
+    "register": "formal",
+    "category": "social",
+    "example_sentence": "PhD student",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "mba",
+    "language": "pcm",
+    "meaning": "Master of Business Administration",
+    "register": "formal",
+    "category": "social",
+    "example_sentence": "MBA from LBS",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "halal",
+    "language": "pcm",
+    "meaning": "Islamic dietary law compliant",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "The suya halal?",
+    "region": [
+      "northwest",
+      "northeast",
+      "northcentral"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "haram",
+    "language": "pcm",
+    "meaning": "forbidden (Islamic)",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Pork na haram",
+    "region": [
+      "northwest",
+      "northeast",
+      "northcentral"
+    ],
+    "needs_native_review": true
+  },
+  {
+    "term": "no pork",
+    "language": "pcm",
+    "meaning": "pork-free",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "No pork for the soup",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "no alcohol",
+    "language": "pcm",
+    "meaning": "alcohol-free",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "No alcohol for the party",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "vegetarian",
+    "language": "pcm",
+    "meaning": "vegetarian",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Vegetarian option dey?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "vegan",
+    "language": "pcm",
+    "meaning": "vegan",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Vegan moin moin",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "gluten free",
+    "language": "pcm",
+    "meaning": "gluten-free",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Gluten free swallow?",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "low oil",
+    "language": "pcm",
+    "meaning": "low oil preparation",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Low oil egusi",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "healthy",
+    "language": "pcm",
+    "meaning": "healthy option",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "Healthy option for fitness",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "diet",
+    "language": "pcm",
+    "meaning": "diet / watching weight",
+    "register": "informal",
+    "category": "food",
+    "example_sentence": "I dey diet",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "fitfam",
+    "language": "pcm",
+    "meaning": "fitness community",
+    "register": "slang",
+    "category": "social",
+    "example_sentence": "Fitfam breakfast",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "gym",
+    "language": "pcm",
+    "meaning": "gymnasium",
+    "register": "informal",
+    "category": "social",
+    "example_sentence": "After gym food",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "protein",
+    "language": "pcm",
+    "meaning": "protein",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Protein plenty for the soup",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "carbs",
+    "language": "pcm",
+    "meaning": "carbohydrates",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Carbs heavy",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  },
+  {
+    "term": "calories",
+    "language": "pcm",
+    "meaning": "calories",
+    "register": "formal",
+    "category": "food",
+    "example_sentence": "Count calories",
+    "region": [
+      "nationwide"
+    ],
+    "needs_native_review": false
+  }
+]
