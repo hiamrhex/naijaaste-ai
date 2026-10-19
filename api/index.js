@@ -13,7 +13,16 @@ import { initMonitoring, captureException } from '../src/lib/monitoring.js';
 await initMonitoring().catch(() => {});
 
 export default (req, res) => {
-  if (req.url === '/api' || req.url.startsWith('/api/')) {
+  // Two documented path shapes arrive here through the /api rewrite:
+  //   /api/v1/…       → the router's CANONICAL base (src/app.js mounts /api/v1)
+  //                       → keep as-is, Express strips the /api/v1 base itself.
+  //   /api/auth|agent… → same-origin lightweight prefix the SPA uses
+  //                       → strip the outer /api so the mounted-at-/ routers match.
+  if (req.url === '/api') {
+    req.url = '/';
+  } else if (req.url.startsWith('/api/v1/') || req.url === '/api/v1') {
+    // keep as-is; the /api/v1 mount handles it
+  } else if (req.url.startsWith('/api/')) {
     req.url = req.url.slice(4) || '/';
   }
   try {
