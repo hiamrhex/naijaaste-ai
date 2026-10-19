@@ -1,0 +1,1302 @@
+[
+  {
+    "dish_id": "dish-amala-ewedu",
+    "name": "Amala and Ewedu",
+    "local_names": {
+      "en": "Amala and Ewedu",
+      "pcm": "Amala and Ewedu",
+      "yo": "Àmàlà àti Ewédú",
+      "ig": "Amala na Ewedu",
+      "ha": "Amala da Ewedu"
+    },
+    "region": ["southwest"],
+    "tags": ["swallow", "yam", "leafy", "traditional", "yoruba"],
+    "spice_level": 4,
+    "category": "swallow",
+    "common_pairings": ["Gbegiri", "Stew", "Ponmo", "Fish", "Meat"],
+    "dietary_flags": ["vegetarian", "gluten_free"],
+    "source_ref": "CURATED-Yoruba-Traditional",
+    "needs_native_review": true,
+    "notes": "Spice level varies by buka; Ewedu is naturally mild but served with spicy stew"
+  },
+  {
+    "dish_id": "dish-eba-egusi",
+    "name": "Eba and Egusi Soup",
+    "local_names": {
+      "en": "Eba and Egusi Soup",
+      "pcm": "Eba and Egusi",
+      "yo": "Ẹ̀bà àti Egusi",
+      "ig": "Eba na Egusi",
+      "ha": "Eba da Egusi"
+    },
+    "region": ["southwest", "southsouth", "southeast", "northcentral"],
+    "tags": ["swallow", "cassava", "melon_seed", "protein_rich", "nationwide"],
+    "spice_level": 3,
+    "category": "swallow",
+    "common_pairings": ["Ponmo", "Stockfish", "Dry Fish", "Ugu Leaves", "Bitter Leaf"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": true,
+    "notes": "Egusi preparation varies regionally (Yoruba vs Igbo vs Delta style)"
+  },
+  {
+    "dish_id": "dish-pounded-yam-egusi",
+    "name": "Pounded Yam and Egusi",
+    "local_names": {
+      "en": "Pounded Yam and Egusi Soup",
+      "pcm": "Pounded Yam and Egusi",
+      "yo": "Iyán àti Egusi",
+      "ig": "Nni Ji na Egusi",
+      "ha": "Tuwon Yam da Egusi"
+    },
+    "region": ["southwest", "southsouth", "southeast", "northcentral"],
+    "tags": ["swallow", "yam", "melon_seed", "celebratory", "premium"],
+    "spice_level": 3,
+    "category": "swallow",
+    "common_pairings": ["Bushmeat", "Stockfish", "Ponmo", "Ugu", "Bitter Leaf"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": true,
+    "notes": "Considered premium; pounded yam texture is critical quality marker"
+  },
+  {
+    "dish_id": "dish-tuwo-shinkafa-miyan-kuka",
+    "name": "Tuwo Shinkafa and Miyan Kuka",
+    "local_names": {
+      "en": "Tuwo Shinkafa and Miyan Kuka",
+      "pcm": "Tuwo Shinkafa and Miyan Kuka",
+      "yo": "Tuwo Shinkafa ati Miyan Kuka",
+      "ig": "Tuwo Shinkafa na Miyan Kuka",
+      "ha": "Tuwo Shinkafa da Miyan Kuka"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["swallow", "rice", "baobab_leaf", "northern", "hausa_fulani"],
+    "spice_level": 2,
+    "category": "swallow",
+    "common_pairings": ["Kilishi", "Suya", "Daddawa", "Yaji", "Fura"],
+    "dietary_flags": ["halal", "gluten_free", "vegetarian"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Miyan Kuka (baobab leaf soup) is distinctly Northern; mild spice profile"
+  },
+  {
+    "dish_id": "dish-tuwo-masara-miyan-taushe",
+    "name": "Tuwo Masara and Miyan Taushe",
+    "local_names": {
+      "en": "Tuwo Masara and Miyan Taushe",
+      "pcm": "Tuwo Masara and Miyan Taushe",
+      "yo": "Tuwo Masara ati Miyan Taushe",
+      "ig": "Tuwo Masara na Miyan Taushe",
+      "ha": "Tuwo Masara da Miyan Taushe"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["swallow", "maize", "pumpkin", "northern", "hausa_fulani"],
+    "spice_level": 2,
+    "category": "swallow",
+    "common_pairings": ["Suya", "Kilishi", "Daddawa", "Yaji"],
+    "dietary_flags": ["halal", "vegetarian"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Tuwo Masara is cornmeal swallow; Miyan Taushe is pumpkin soup"
+  },
+  {
+    "dish_id": "dish-fufu-oha",
+    "name": "Fufu and Oha Soup",
+    "local_names": {
+      "en": "Fufu and Oha Soup",
+      "pcm": "Fufu and Oha",
+      "yo": "Fufu ati Oha",
+      "ig": "Akpu na Oha",
+      "ha": "Fufu da Oha"
+    },
+    "region": ["southeast"],
+    "tags": ["swallow", "cassava_fermented", "oha_leaf", "igbo", "traditional"],
+    "spice_level": 3,
+    "category": "swallow",
+    "common_pairings": ["Stockfish", "Dry Fish", "Ponmo", "Cocoyam", "Uziza"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Oha leaves (Pterocarpus mildbraedii) are distinct from bitter leaf; seasonal"
+  },
+  {
+    "dish_id": "dish-fufu-onugbu",
+    "name": "Fufu and Ofe Onugbu (Bitter Leaf Soup)",
+    "local_names": {
+      "en": "Fufu and Bitter Leaf Soup",
+      "pcm": "Fufu and Bitter Leaf",
+      "yo": "Fufu ati Ewuro",
+      "ig": "Akpu na Onugbu",
+      "ha": "Fufu da Bitter Leaf"
+    },
+    "region": ["southeast", "southsouth"],
+    "tags": ["swallow", "cassava_fermented", "bitter_leaf", "igbo", "traditional"],
+    "spice_level": 3,
+    "category": "swallow",
+    "common_pairings": ["Stockfish", "Dry Fish", "Ponmo", "Cocoyam", "Ogiri"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Bitterness level is a quality marker; properly washed onugbu retains slight bitterness"
+  },
+  {
+    "dish_id": "dish-akpu-banga",
+    "name": "Akpu and Banga Soup",
+    "local_names": {
+      "en": "Akpu and Banga Soup",
+      "pcm": "Akpu and Banga",
+      "yo": "Akpu ati Banga",
+      "ig": "Akpu na Banga",
+      "ha": "Akpu da Banga"
+    },
+    "region": ["southsouth", "southeast"],
+    "tags": ["swallow", "cassava_fermented", "palm_nut", "delta", "efik", "ibibio"],
+    "spice_level": 4,
+    "category": "swallow",
+    "common_pairings": ["Fresh Fish", "Periwinkle", "Stockfish", "Starch", "Ugu"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Delta-Traditional",
+    "needs_native_review": true,
+    "notes": "Banga (palm nut soup) is distinct from Ofe Akwu; spicier, more aromatic"
+  },
+  {
+    "dish_id": "dish-starch-banga",
+    "name": "Starch (Usi) and Banga Soup",
+    "local_names": {
+      "en": "Starch and Banga Soup",
+      "pcm": "Starch and Banga",
+      "yo": "Starch ati Banga",
+      "ig": "Usi na Banga",
+      "ha": "Starch da Banga"
+    },
+    "region": ["southsouth"],
+    "tags": ["swallow", "cassava_starch", "palm_nut", "delta", "efik", "ibibio"],
+    "spice_level": 4,
+    "category": "swallow",
+    "common_pairings": ["Fresh Fish", "Periwinkle", "Stockfish", "Ugu", "Scent Leaf"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Delta-Traditional",
+    "needs_native_review": true,
+    "notes": "Starch (Usi) is fermented cassava starch; yellow from palm oil"
+  },
+  {
+    "dish_id": "dish-eba-okra",
+    "name": "Eba and Okra Soup",
+    "local_names": {
+      "en": "Eba and Okra Soup",
+      "pcm": "Eba and Okro",
+      "yo": "Ẹ̀bà àti Ilá",
+      "ig": "Eba na Okwuru",
+      "ha": "Eba da Okro"
+    },
+    "region": ["southwest", "southsouth", "southeast", "northcentral"],
+    "tags": ["swallow", "cassava", "okra", "slimy", "quick_meal"],
+    "spice_level": 3,
+    "category": "swallow",
+    "common_pairings": ["Ponmo", "Fish", "Meat", "Ugu", "Ogiri"],
+    "dietary_flags": ["gluten_free", "vegetarian"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Okra soup texture (draw) is key quality indicator"
+  },
+  {
+    "dish_id": "dish-amala-gbegiri",
+    "name": "Amala and Gbegiri (Bean Soup)",
+    "local_names": {
+      "en": "Amala and Gbegiri",
+      "pcm": "Amala and Gbegiri",
+      "yo": "Àmàlà àti Gbègírí",
+      "ig": "Amala na Gbegiri",
+      "ha": "Amala da Gbegiri"
+    },
+    "region": ["southwest"],
+    "tags": ["swallow", "yam", "beans", "yoruba", "protein_rich"],
+    "spice_level": 3,
+    "category": "swallow",
+    "common_pairings": ["Ewedu", "Stew", "Ponmo", "Ogi"],
+    "dietary_flags": ["vegetarian", "gluten_free"],
+    "source_ref": "CURATED-Yoruba-Traditional",
+    "needs_native_review": true,
+    "notes": "Often served as Abula (Gbegiri + Ewedu combined); beans must be well-cooked and smooth"
+  },
+  {
+    "dish_id": "dish-semolina-egusi",
+    "name": "Semolina and Egusi Soup",
+    "local_names": {
+      "en": "Semolina and Egusi Soup",
+      "pcm": "Semovita and Egusi",
+      "yo": "Semolina ati Egusi",
+      "ig": "Semolina na Egusi",
+      "ha": "Semolina da Egusi"
+    },
+    "region": ["nationwide"],
+    "tags": ["swallow", "wheat", "melon_seed", "modern", "quick_meal"],
+    "spice_level": 3,
+    "category": "swallow",
+    "common_pairings": ["Stockfish", "Ponmo", "Ugu", "Bitter Leaf"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Modern-Nigerian",
+    "needs_native_review": false,
+    "notes": "Semovita/Semolina is the modern quick-cook alternative to pounded yam/eba"
+  },
+  {
+    "dish_id": "dish-jollof-rice",
+    "name": "Nigerian Jollof Rice",
+    "local_names": {
+      "en": "Jollof Rice",
+      "pcm": "Jollof",
+      "yo": "Jollof",
+      "ig": "Jollof",
+      "ha": "Jollof"
+    },
+    "region": ["nationwide"],
+    "tags": ["rice", "tomato", "party", "celebratory", "nationwide", "owambe"],
+    "spice_level": 3,
+    "category": "rice",
+    "common_pairings": ["Fried Plantain", "Moi Moi", "Chicken", "Beef", "Salad", "Coleslaw"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "The 'Party Jollof' (smoky bottom-pot) is distinct from home-style"
+  },
+  {
+    "dish_id": "dish-fried-rice",
+    "name": "Nigerian Fried Rice",
+    "local_names": {
+      "en": "Fried Rice",
+      "pcm": "Fried Rice",
+      "yo": "Iresi Dindin",
+      "ig": "Osa Dindin",
+      "ha": "Shinkafa Dindin"
+    },
+    "region": ["nationwide"],
+    "tags": ["rice", "vegetables", "party", "celebratory", "mixed_veg"],
+    "spice_level": 2,
+    "category": "rice",
+    "common_pairings": ["Chicken", "Beef", "Plantain", "Moi Moi", "Salad"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Always served with mixed vegetables (carrots, peas, green beans, sweet corn)"
+  },
+  {
+    "dish_id": "dish-ofada-rice-ayamase",
+    "name": "Ofada Rice and Ayamase (Designer Stew)",
+    "local_names": {
+      "en": "Ofada Rice and Ayamase",
+      "pcm": "Ofada Rice and Ayamase",
+      "yo": "Ofada àti Ayamase",
+      "ig": "Ofada na Ayamase",
+      "ha": "Ofada da Ayamase"
+    },
+    "region": ["southwest"],
+    "tags": ["rice", "local_rice", "green_pepper", "yoruba", "premium", "spicy"],
+    "spice_level": 5,
+    "category": "rice",
+    "common_pairings": ["Boiled Egg", "Ponmo", "Assorted Meat", "Plantain"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Yoruba-Traditional",
+    "needs_native_review": true,
+    "notes": "Ayamase (Ofada stew) uses bleached palm oil and green peppers; extremely spicy"
+  },
+  {
+    "dish_id": "dish-coconut-rice",
+    "name": "Coconut Rice",
+    "local_names": {
+      "en": "Coconut Rice",
+      "pcm": "Coconut Rice",
+      "yo": "Iresi Agbon",
+      "ig": "Osa Aki",
+      "ha": "Shinkafa Kwakwa"
+    },
+    "region": ["southsouth", "southeast", "southwest"],
+    "tags": ["rice", "coconut", "coastal", "creamy", "mild"],
+    "spice_level": 2,
+    "category": "rice",
+    "common_pairings": ["Grilled Fish", "Pepper Soup", "Plantain", "Salad"],
+    "dietary_flags": ["vegetarian"],
+    "source_ref": "CURATED-Coastal-Nigerian",
+    "needs_native_review": true,
+    "notes": "Popular in coastal regions; coconut milk replaces water"
+  },
+  {
+    "dish_id": "dish-banga-rice",
+    "name": "Banga Rice",
+    "local_names": {
+      "en": "Banga Rice",
+      "pcm": "Banga Rice",
+      "yo": "Iresi Banga",
+      "ig": "Osa Banga",
+      "ha": "Shinkafa Banga"
+    },
+    "region": ["southsouth", "southeast"],
+    "tags": ["rice", "palm_nut", "delta", "efik", "one_pot"],
+    "spice_level": 4,
+    "category": "rice",
+    "common_pairings": ["Fresh Fish", "Periwinkle", "Plantain", "Scent Leaf"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Delta-Traditional",
+    "needs_native_review": true,
+    "notes": "Rice cooked directly in banga (palm nut) soup; distinct from plain rice + banga soup"
+  },
+  {
+    "dish_id": "dish-beef-suya",
+    "name": "Beef Suya",
+    "local_names": {
+      "en": "Beef Suya",
+      "pcm": "Beef Suya",
+      "yo": "Suya Eranko",
+      "ig": "Suya Anu",
+      "ha": "Tsire Nama"
+    },
+    "region": ["nationwide"],
+    "tags": ["grill", "beef", "peanut_spice", "street_food", "night_food", "hausa_fulani"],
+    "spice_level": 5,
+    "category": "grill",
+    "common_pairings": ["Onions", "Tomatoes", "Cabbage", "Yaji", "Masa", "Kilishi"],
+    "dietary_flags": ["halal", "no_pork"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": false,
+    "notes": "Yaji spice blend is the signature; mallam's recipe is a trade secret"
+  },
+  {
+    "dish_id": "dish-chicken-suya",
+    "name": "Chicken Suya",
+    "local_names": {
+      "en": "Chicken Suya",
+      "pcm": "Chicken Suya",
+      "yo": "Suya Adiye",
+      "ig": "Suya Okuko",
+      "ha": "Tsire Kaza"
+    },
+    "region": ["nationwide"],
+    "tags": ["grill", "chicken", "peanut_spice", "street_food", "hausa_fulani"],
+    "spice_level": 4,
+    "category": "grill",
+    "common_pairings": ["Onions", "Tomatoes", "Cabbage", "Yaji"],
+    "dietary_flags": ["halal", "no_pork"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": false,
+    "notes": "Milder than beef suya; popular with those who prefer white meat"
+  },
+  {
+    "dish_id": "dish-ram-suya",
+    "name": "Ram Suya",
+    "local_names": {
+      "en": "Ram Suya",
+      "pcm": "Ram Suya",
+      "yo": "Suya Agbo",
+      "ig": "Suya Ebune",
+      "ha": "Tsire Rahu"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["grill", "ram", "peanut_spice", "festive", "hausa_fulani", "eid"],
+    "spice_level": 5,
+    "category": "grill",
+    "common_pairings": ["Onions", "Tomatoes", "Yaji", "Kilishi", "Fura"],
+    "dietary_flags": ["halal", "no_pork"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Seasonal (Eid); richer flavour than beef suya"
+  },
+  {
+    "dish_id": "dish-kilishi",
+    "name": "Kilishi (Spiced Dried Beef)",
+    "local_names": {
+      "en": "Kilishi",
+      "pcm": "Kilishi",
+      "yo": "Kilishi",
+      "ig": "Kilishi",
+      "ha": "Kilishi"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["grill", "beef", "dried", "preserved", "snack", "hausa_fulani", "kano_specialty"],
+    "spice_level": 5,
+    "category": "snack",
+    "common_pairings": ["Groundnut", "Kunu", "Fura", "Masa"],
+    "dietary_flags": ["halal", "no_pork", "no_alcohol"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Kano's Gidan Kilishi is the gold standard; paper-thin sheets, intense spice"
+  },
+  {
+    "dish_id": "dish-pepper-soup",
+    "name": "Nigerian Pepper Soup",
+    "local_names": {
+      "en": "Pepper Soup",
+      "pcm": "Pepper Soup",
+      "yo": "Obe Ata",
+      "ig": "Ofe Nsala",
+      "ha": "Miyan Yaji"
+    },
+    "region": ["nationwide"],
+    "tags": ["soup", "spicy", "broth", "medicinal", "goat", "chicken", "fish", "catfish"],
+    "spice_level": 5,
+    "category": "soup",
+    "common_pairings": ["White Rice", "Boiled Plantain", "Yam", "Bread", "Palm Wine", "Beer"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Protein varies by region: goat (North), catfish (South-South), chicken (nationwide)"
+  },
+  {
+    "dish_id": "dish-catfish-pepper-soup",
+    "name": "Catfish Pepper Soup (Point and Kill)",
+    "local_names": {
+      "en": "Catfish Pepper Soup",
+      "pcm": "Catfish Pepper Soup",
+      "yo": "Eja Pepper Soup",
+      "ig": "Azụ Pepper Soup",
+      "ha": "Kifi Pepper Soup"
+    },
+    "region": ["southsouth", "southeast", "southwest"],
+    "tags": ["soup", "catfish", "spicy", "fresh_fish", "delta", "specialty"],
+    "spice_level": 5,
+    "category": "soup",
+    "common_pairings": ["White Rice", "Boiled Plantain", "Starch", "Palm Wine", "Cold Beer"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Delta-Traditional",
+    "needs_native_review": true,
+    "notes": "'Point and Kill' — customer selects live fish from tank; ultra-fresh"
+  },
+  {
+    "dish_id": "dish-goat-meat-pepper-soup",
+    "name": "Goat Meat Pepper Soup",
+    "local_names": {
+      "en": "Goat Meat Pepper Soup",
+      "pcm": "Goat Meat Pepper Soup",
+      "yo": "Asun Pepper Soup",
+      "ig": "Ewu Pepper Soup",
+      "ha": "Akuya Pepper Soup"
+    },
+    "region": ["northwest", "northeast", "northcentral", "southwest"],
+    "tags": ["soup", "goat", "spicy", "medicinal", "hausa_fulani", "yoruba"],
+    "spice_level": 5,
+    "category": "soup",
+    "common_pairings": ["Tuwo", "Rice", "Yam", "Palm Wine", "Kunu"],
+    "dietary_flags": ["halal", "gluten_free"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Northern version uses more aromatic spices (uziza, uda, ehuru)"
+  },
+  {
+    "dish_id": "dish-edikang-ikong",
+    "name": "Edikang Ikong Soup",
+    "local_names": {
+      "en": "Edikang Ikong Soup",
+      "pcm": "Edikang Ikong",
+      "yo": "Edikang Ikong",
+      "ig": "Edikang Ikong",
+      "ha": "Edikang Ikong"
+    },
+    "region": ["southsouth"],
+    "tags": ["soup", "waterleaf", "periwinkle", "efik", "ibibio", "protein_rich", "cross_river"],
+    "spice_level": 3,
+    "category": "soup",
+    "common_pairings": ["Fufu", "Pounded Yam", "Eba", "Starch", "Stockfish"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Efik-Ibibio-Traditional",
+    "needs_native_review": true,
+    "notes": "True Edikang Ikong uses waterleaf AND fluted pumpkin (ugwu); periwinkle is essential"
+  },
+  {
+    "dish_id": "dish-afang-soup",
+    "name": "Afang Soup",
+    "local_names": {
+      "en": "Afang Soup",
+      "pcm": "Afang Soup",
+      "yo": "Afang",
+      "ig": "Afang",
+      "ha": "Afang"
+    },
+    "region": ["southsouth", "southeast"],
+    "tags": ["soup", "afang_leaf", "waterleaf", "efik", "ibibio", "cross_river", "protein_rich"],
+    "spice_level": 3,
+    "category": "soup",
+    "common_pairings": ["Fufu", "Pounded Yam", "Eba", "Starch", "Stockfish", "Periwinkle"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Efik-Ibibio-Traditional",
+    "needs_native_review": true,
+    "notes": "Afang leaf (Gnetum africanum) is distinct from waterleaf; tougher texture"
+  },
+  {
+    "dish_id": "dish-ofe-onugbu",
+    "name": "Ofe Onugbu (Bitter Leaf Soup)",
+    "local_names": {
+      "en": "Bitter Leaf Soup",
+      "pcm": "Bitter Leaf Soup",
+      "yo": "Ewuro Soup",
+      "ig": "Ọfé Onugbu",
+      "ha": "Bitter Leaf Soup"
+    },
+    "region": ["southeast"],
+    "tags": ["soup", "bitter_leaf", "cocoyam", "igbo", "traditional"],
+    "spice_level": 3,
+    "category": "soup",
+    "common_pairings": ["Fufu", "Pounded Yam", "Eba", "Stockfish", "Dry Fish"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Cocoyam thickener is traditional; bitterness level is personal preference"
+  },
+  {
+    "dish_id": "dish-ofe-akwu",
+    "name": "Ofe Akwu (Palm Nut Soup)",
+    "local_names": {
+      "en": "Palm Nut Soup",
+      "pcm": "Palm Nut Soup",
+      "yo": "Obe Banga",
+      "ig": "Ọfé Akwụ",
+      "ha": "Palm Nut Soup"
+    },
+    "region": ["southeast", "southsouth"],
+    "tags": ["soup", "palm_nut", "igbo", "traditional", "rice_accompaniment"],
+    "spice_level": 3,
+    "category": "soup",
+    "common_pairings": ["White Rice", "Fufu", "Pounded Yam", "Stockfish", "Dry Fish"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Distinct from Banga soup; Igbo style uses different spices, often with rice"
+  },
+  {
+    "dish_id": "dish-ofe-oha",
+    "name": "Ofe Oha (Oha Soup)",
+    "local_names": {
+      "en": "Oha Soup",
+      "pcm": "Oha Soup",
+      "yo": "Oha Soup",
+      "ig": "Ọfé Óhà",
+      "ha": "Oha Soup"
+    },
+    "region": ["southeast"],
+    "tags": ["soup", "oha_leaf", "cocoyam", "igbo", "traditional", "seasonal"],
+    "spice_level": 2,
+    "category": "soup",
+    "common_pairings": ["Fufu", "Pounded Yam", "Eba", "Stockfish", "Uziza"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Oha leaves are seasonal; cocoyam paste thickens; uziza seeds add aroma"
+  },
+  {
+    "dish_id": "dish-white-soup",
+    "name": "White Soup (Ofe Nsala / Afia Efere)",
+    "local_names": {
+      "en": "White Soup",
+      "pcm": "White Soup",
+      "yo": "Obe Funfun",
+      "ig": "Ọfé Nsala",
+      "ha": "White Soup"
+    },
+    "region": ["southeast", "southsouth"],
+    "tags": ["soup", "yam", "catfish", "no_palm_oil", "igbo", "efik", "medicinal"],
+    "spice_level": 3,
+    "category": "soup",
+    "common_pairings": ["Fufu", "Pounded Yam", "Starch", "Yam", "Plantain"],
+    "dietary_flags": ["gluten_free", "low_oil"],
+    "source_ref": "CURATED-Igbo-Efik-Traditional",
+    "needs_native_review": true,
+    "notes": "No palm oil — white/clear broth; yam thickens; postpartum recovery food"
+  },
+  {
+    "dish_id": "dish-egusi-soup",
+    "name": "Egusi Soup (Melon Seed Soup)",
+    "local_names": {
+      "en": "Egusi Soup",
+      "pcm": "Egusi Soup",
+      "yo": "Egusi",
+      "ig": "Egusi",
+      "ha": "Egusi"
+    },
+    "region": ["nationwide"],
+    "tags": ["soup", "melon_seed", "protein_rich", "versatile", "pan_nigerian"],
+    "spice_level": 3,
+    "category": "soup",
+    "common_pairings": ["Pounded Yam", "Eba", "Fufu", "Amala", "Semolina", "Ugu", "Bitter Leaf"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Regional variations: Yoruba (caking method), Igbo (akpuruakpu), Delta (with periwinkle)"
+  },
+  {
+    "dish_id": "dish-ogbono-soup",
+    "name": "Ogbono Soup (Draw Soup)",
+    "local_names": {
+      "en": "Ogbono Soup",
+      "pcm": "Ogbono Soup",
+      "yo": "Ogbono",
+      "ig": "Ogbono",
+      "ha": "Ogbono"
+    },
+    "region": ["southeast", "southsouth", "southwest"],
+    "tags": ["soup", "ogbono_seed", "draw", "slimy", "igbo", "delta"],
+    "spice_level": 2,
+    "category": "soup",
+    "common_pairings": ["Fufu", "Eba", "Pounded Yam", "Stockfish", "Ugu", "Okazi"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Delta-Traditional",
+    "needs_native_review": true,
+    "notes": "Draw (slimy) texture is the hallmark; ogbono seed is Irvingia gabonensis"
+  },
+  {
+    "dish_id": "dish-ewa-agoyin",
+    "name": "Ewa Agoyin (Mashed Beans with Pepper Sauce)",
+    "local_names": {
+      "en": "Ewa Agoyin",
+      "pcm": "Ewa Agoyin",
+      "yo": "Ẹwà Àgòyìn",
+      "ig": "Ewa Agoyin",
+      "ha": "Ewa Agoyin"
+    },
+    "region": ["southwest"],
+    "tags": ["breakfast", "beans", "pepper_sauce", "street_food", "yoruba", "lagos_iconic"],
+    "spice_level": 5,
+    "category": "breakfast",
+    "common_pairings": ["Agege Bread", "Plantain", "Yam", "Garri", "Ogi"],
+    "dietary_flags": ["vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Yoruba-Street-Food",
+    "needs_native_review": true,
+    "notes": "Agoyin refers to Beninese/Togolese origin; sauce is caramelized onions + peppers + palm oil"
+  },
+  {
+    "dish_id": "dish-moin-moin",
+    "name": "Moin Moin (Steamed Bean Pudding)",
+    "local_names": {
+      "en": "Moin Moin",
+      "pcm": "Moin Moin",
+      "yo": "Mọ́in Mọ́in",
+      "ig": "Moin Moin",
+      "ha": "Moin Moin"
+    },
+    "region": ["nationwide"],
+    "tags": ["breakfast", "beans", "steamed", "protein_rich", "party_food", "versatile"],
+    "spice_level": 2,
+    "category": "breakfast",
+    "common_pairings": ["Jollof Rice", "Fried Rice", "Custard", "Ogi", "Bread", "Plantain"],
+    "dietary_flags": ["vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Can be plain or with fish/egg/corned beef; leaf-wrapped (ewe eran) is traditional"
+  },
+  {
+    "dish_id": "dish-akara",
+    "name": "Akara (Bean Fritters)",
+    "local_names": {
+      "en": "Akara",
+      "pcm": "Akara",
+      "yo": "Àkàrà",
+      "ig": "Akara",
+      "ha": "Kosai"
+    },
+    "region": ["nationwide"],
+    "tags": ["breakfast", "snack", "beans", "fried", "street_food", "daily_staple"],
+    "spice_level": 2,
+    "category": "snack",
+    "common_pairings": ["Ogi (Pap)", "Bread", "Garri", "Yam", "Plantain"],
+    "dietary_flags": ["vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Called Kosai in Hausa; best eaten hot and crispy"
+  },
+  {
+    "dish_id": "dish-yam-egg",
+    "name": "Boiled Yam and Egg Sauce",
+    "local_names": {
+      "en": "Yam and Egg Sauce",
+      "pcm": "Yam and Egg",
+      "yo": "Iṣu àti Egg",
+      "ig": "Ji na Egg",
+      "ha": "Yam da Egg"
+    },
+    "region": ["nationwide"],
+    "tags": ["breakfast", "yam", "egg", "quick_meal", "daily_staple"],
+    "spice_level": 2,
+    "category": "breakfast",
+    "common_pairings": ["Plantain", "Bread", "Tea"],
+    "dietary_flags": ["vegetarian", "gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Ubiquitous Nigerian breakfast; egg sauce = scrambled eggs + tomatoes + peppers + onions"
+  },
+  {
+    "dish_id": "dish-plantain-egg",
+    "name": "Fried Plantain and Egg",
+    "local_names": {
+      "en": "Plantain and Egg",
+      "pcm": "Dodo and Egg",
+      "yo": "Dòdò àti Egg",
+      "ig": "Abọlọ na Egg",
+      "ha": "Dodo da Egg"
+    },
+    "region": ["nationwide"],
+    "tags": ["breakfast", "plantain", "egg", "quick_meal", "sweet_savoury"],
+    "spice_level": 2,
+    "category": "breakfast",
+    "common_pairings": ["Bread", "Beans", "Yam"],
+    "dietary_flags": ["vegetarian", "gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Dodo = fried ripe plantain; sweet-savoury balance is key"
+  },
+  {
+    "dish_id": "dish-nkwobi",
+    "name": "Nkwobi (Spiced Cow Foot)",
+    "local_names": {
+      "en": "Nkwobi",
+      "pcm": "Nkwobi",
+      "yo": "Nkwobi",
+      "ig": "Nkwọbị",
+      "ha": "Nkwobi"
+    },
+    "region": ["southeast", "southsouth"],
+    "tags": ["snack", "cow_foot", "spicy", "palm_oil", "igbo", "beer_companion", "evening_food"],
+    "spice_level": 4,
+    "category": "snack",
+    "common_pairings": ["Palm Wine", "Cold Beer", "Ugba", "Onions", "Utazi"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Served in wooden mortar; utazi leaves (Gongronema latifolium) are signature garnish"
+  },
+  {
+    "dish_id": "dish-asun",
+    "name": "Asun (Spicy Grilled Goat)",
+    "local_names": {
+      "en": "Asun",
+      "pcm": "Asun",
+      "yo": "Asun",
+      "ig": "Asun",
+      "ha": "Asun"
+    },
+    "region": ["southwest"],
+    "tags": ["grill", "goat", "spicy", "smoky", "yoruba", "party_food", "owambe"],
+    "spice_level": 5,
+    "category": "grill",
+    "common_pairings": ["Palm Wine", "Beer", "Jollof Rice", "Fried Plantain", "Onions"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Yoruba-Traditional",
+    "needs_native_review": true,
+    "notes": "Distinct from suya — goat, smoky, heavily spiced with ata rodo (scotch bonnet)"
+  },
+  {
+    "dish_id": "dish-gizdodo",
+    "name": "Gizdodo (Gizzard and Plantain)",
+    "local_names": {
+      "en": "Gizdodo",
+      "pcm": "Gizdodo",
+      "yo": "Gizdodo",
+      "ig": "Gizdodo",
+      "ha": "Gizdodo"
+    },
+    "region": ["nationwide"],
+    "tags": ["grill", "gizzard", "plantain", "spicy", "party_food", "side_dish"],
+    "spice_level": 4,
+    "category": "side",
+    "common_pairings": ["Jollof Rice", "Fried Rice", "Beer", "Palm Wine"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Modern-Nigerian",
+    "needs_native_review": false,
+    "notes": "Modern party staple; gizzard + ripe plantain in pepper sauce"
+  },
+  {
+    "dish_id": "dish-abacha",
+    "name": "Abacha (African Salad)",
+    "local_names": {
+      "en": "Abacha",
+      "pcm": "Abacha",
+      "yo": "Abacha",
+      "ig": "Abacha",
+      "ha": "Abacha"
+    },
+    "region": ["southeast"],
+    "tags": ["snack", "cassava", "palm_oil", "ugba", "igbo", "cold_dish", "street_food"],
+    "spice_level": 3,
+    "category": "snack",
+    "common_pairings": ["Ugba", "Stockfish", "Crayfish", "Onions", "Utazi", "Palm Wine"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Shredded fermented cassava + palm oil + ugba (oil bean) + spices; served cold"
+  },
+  {
+    "dish_id": "dish-ugba",
+    "name": "Ugba (Oil Bean Salad)",
+    "local_names": {
+      "en": "Ugba",
+      "pcm": "Ugba",
+      "yo": "Ugba",
+      "ig": "Úgbà",
+      "ha": "Ugba"
+    },
+    "region": ["southeast"],
+    "tags": ["snack", "oil_bean", "fermented", "igbo", "condiment", "abacha_companion"],
+    "spice_level": 2,
+    "category": "side",
+    "common_pairings": ["Abacha", "Stockfish", "Crayfish", "Onions", "Palm Wine"],
+    "dietary_flags": ["vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Fermented African oil bean seeds (Pentaclethra macrophylla); acquired taste"
+  },
+  {
+    "dish_id": "dish-masa",
+    "name": "Masa (Rice Cakes)",
+    "local_names": {
+      "en": "Masa",
+      "pcm": "Masa",
+      "yo": "Masa",
+      "ig": "Masa",
+      "ha": "Masa"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["breakfast", "snack", "rice", "fermented", "hausa_fulani", "northern"],
+    "spice_level": 1,
+    "category": "breakfast",
+    "common_pairings": ["Miyan Kuka", "Miyan Taushe", "Suya", "Kilishi", "Kunu", "Fura", "Yaji"],
+    "dietary_flags": ["halal", "vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Fermented rice batter cooked in special masa pan; fluffy, slightly sour"
+  },
+  {
+    "dish_id": "dish-tuwo-shinkafa",
+    "name": "Tuwo Shinkafa (Rice Swallow)",
+    "local_names": {
+      "en": "Tuwo Shinkafa",
+      "pcm": "Tuwo Shinkafa",
+      "yo": "Tuwo Shinkafa",
+      "ig": "Tuwo Shinkafa",
+      "ha": "Tuwo Shinkafa"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["swallow", "rice", "northern", "hausa_fulani", "daily_staple"],
+    "spice_level": 1,
+    "category": "swallow",
+    "common_pairings": ["Miyan Kuka", "Miyan Taushe", "Miyan Karkashi", "Suya", "Kilishi"],
+    "dietary_flags": ["halal", "gluten_free", "vegetarian"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Soft, sticky rice swallow; eaten with fingers; distinct from pounded yam texture"
+  },
+  {
+    "dish_id": "dish-dan-wake",
+    "name": "Dan Wake (Bean Dumplings)",
+    "local_names": {
+      "en": "Dan Wake",
+      "pcm": "Dan Wake",
+      "yo": "Dan Wake",
+      "ig": "Dan Wake",
+      "ha": "Dan Wake"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["breakfast", "snack", "beans", "dumpling", "hausa_fulani", "northern"],
+    "spice_level": 2,
+    "category": "snack",
+    "common_pairings": ["Suya", "Kilishi", "Yaji", "Kunu", "Fura", "Masa", "Salad"],
+    "dietary_flags": ["halal", "vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Bean flour dumplings boiled; served with yaji, salad, and spicy sauce"
+  },
+  {
+    "dish_id": "dish-koko-kosai",
+    "name": "Koko and Kosai (Millet Porridge and Bean Fritters)",
+    "local_names": {
+      "en": "Koko and Kosai",
+      "pcm": "Koko and Akara",
+      "yo": "Koko ati Akara",
+      "ig": "Koko na Akara",
+      "ha": "Koko da Kosai"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["breakfast", "millet", "beans", "porridge", "fritter", "hausa_fulani", "daily_staple"],
+    "spice_level": 1,
+    "category": "breakfast",
+    "common_pairings": ["Sugar", "Milk", "Groundnut", "Yaji"],
+    "dietary_flags": ["halal", "vegetarian", "vegan"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Classic Northern breakfast combo; Koko = fermented millet porridge, Kosai = bean fritters"
+  },
+  {
+    "dish_id": "dish-fura-da-nono",
+    "name": "Fura da Nono (Millet Balls and Fermented Milk)",
+    "local_names": {
+      "en": "Fura da Nono",
+      "pcm": "Fura da Nono",
+      "yo": "Fura da Nono",
+      "ig": "Fura da Nono",
+      "ha": "Fura da Nono"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["drink", "snack", "millet", "fermented_milk", "hausa_fulani", "probiotic", "refreshing"],
+    "spice_level": 1,
+    "category": "drink",
+    "common_pairings": ["Suya", "Kilishi", "Masa", "Dan Wake"],
+    "dietary_flags": ["halal", "vegetarian"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Fura = millet flour balls; Nono = fermented cow milk; traditional probiotic drink"
+  },
+  {
+    "dish_id": "dish-kunu",
+    "name": "Kunu (Millet/Sorghum Drink)",
+    "local_names": {
+      "en": "Kunu",
+      "pcm": "Kunu",
+      "yo": "Kunu",
+      "ig": "Kunu",
+      "ha": "Kunu"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["drink", "millet", "sorghum", "fermented", "hausa_fulani", "refreshing", "spiced"],
+    "spice_level": 2,
+    "category": "drink",
+    "common_pairings": ["Masa", "Dan Wake", "Kilishi", "Suya", "Groundnut"],
+    "dietary_flags": ["halal", "vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Northern-Traditional",
+    "needs_native_review": true,
+    "notes": "Kunu Zaki (millet) vs Kunu Gyada (groundnut); ginger, cloves, pepper spice blend"
+  },
+  {
+    "dish_id": "dish-ogi-akamu",
+    "name": "Ogi / Akamu (Fermented Maize Pap)",
+    "local_names": {
+      "en": "Ogi / Akamu",
+      "pcm": "Pap / Ogi",
+      "yo": "Ògì",
+      "ig": "Akamu",
+      "ha": "Koko"
+    },
+    "region": ["nationwide"],
+    "tags": ["breakfast", "maize", "fermented", "porridge", "weaning_food", "daily_staple"],
+    "spice_level": 1,
+    "category": "breakfast",
+    "common_pairings": ["Akara", "Moin Moin", "Beans", "Bread", "Plantain", "Sugar", "Milk"],
+    "dietary_flags": ["vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Called Ogi (Yoruba), Akamu (Igbo), Koko (Hausa); smooth, slightly sour porridge"
+  },
+  {
+    "dish_id": "dish-agege-bread-ewa",
+    "name": "Agege Bread with Ewa (Beans)",
+    "local_names": {
+      "en": "Agege Bread and Beans",
+      "pcm": "Agege Bread and Ewa",
+      "yo": "Agege Bread ati Ewa",
+      "ig": "Agege Bread na Ewa",
+      "ha": "Agege Bread da Wake"
+    },
+    "region": ["southwest"],
+    "tags": ["breakfast", "bread", "beans", "street_food", "lagos_iconic", "yoruba"],
+    "spice_level": 2,
+    "category": "breakfast",
+    "common_pairings": ["Butter", "Stew", "Egg", "Sardine"],
+    "dietary_flags": ["vegetarian"],
+    "source_ref": "CURATED-Yoruba-Street-Food",
+    "needs_native_review": true,
+    "notes": "Agege Bread is distinct — stretchy, slightly sweet, steamed not baked; Lagos icon"
+  },
+  {
+    "dish_id": "dish-boiled-yam-palm-oil",
+    "name": "Boiled Yam with Palm Oil Sauce",
+    "local_names": {
+      "en": "Boiled Yam and Palm Oil",
+      "pcm": "Boiled Yam and Palm Oil",
+      "yo": "Iṣu àti Epo Pupa",
+      "ig": "Ji na Mmanu Nri",
+      "ha": "Yam da Manja"
+    },
+    "region": ["southwest", "southeast", "southsouth"],
+    "tags": ["breakfast", "yam", "palm_oil", "simple", "traditional", "vegetarian"],
+    "spice_level": 2,
+    "category": "breakfast",
+    "common_pairings": ["Fish", "Egg", "Plantain", "Ugu Leaves"],
+    "dietary_flags": ["vegetarian", "vegan", "gluten_free"],
+    "source_ref": "CURATED-Pan-Nigerian",
+    "needs_native_review": false,
+    "notes": "Simple comfort food; palm oil + onions + peppers + crayfish = sauce"
+  },
+  {
+    "dish_id": "dish-peppered-snail",
+    "name": "Peppered Snail",
+    "local_names": {
+      "en": "Peppered Snail",
+      "pcm": "Peppered Snail",
+      "yo": "Igbin Ata",
+      "ig": "Ejile Ata",
+      "ha": "Snail Ata"
+    },
+    "region": ["southwest", "southsouth", "southeast"],
+    "tags": ["snack", "snail", "spicy", "party_food", "premium", "beer_companion"],
+    "spice_level": 5,
+    "category": "snack",
+    "common_pairings": ["Beer", "Palm Wine", "Onions", "Peppers", "Plantain"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Coastal-Yoruba",
+    "needs_native_review": true,
+    "notes": "Snail must be properly cleaned (deslimed); ata rodo (scotch bonnet) essential"
+  },
+  {
+    "dish_id": "dish-peppered-gizzard",
+    "name": "Peppered Gizzard",
+    "local_names": {
+      "en": "Peppered Gizzard",
+      "pcm": "Peppered Gizzard",
+      "yo": "Gizzard Ata",
+      "ig": "Gizzard Ata",
+      "ha": "Gizzard Ata"
+    },
+    "region": ["nationwide"],
+    "tags": ["snack", "gizzard", "spicy", "party_food", "beer_companion"],
+    "spice_level": 4,
+    "category": "snack",
+    "common_pairings": ["Beer", "Palm Wine", "Onions", "Plantain", "Jollof Rice"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Modern-Nigerian",
+    "needs_native_review": false,
+    "notes": "Gizzard pre-boiled till tender, then sautéed in pepper sauce"
+  },
+  {
+    "dish_id": "dish-isiewu",
+    "name": "Isi Ewu (Spiced Goat Head)",
+    "local_names": {
+      "en": "Isi Ewu",
+      "pcm": "Isi Ewu",
+      "yo": "Isi Ewu",
+      "ig": "Isi Ewu",
+      "ha": "Isi Ewu"
+    },
+    "region": ["southeast", "southsouth"],
+    "tags": ["snack", "goat_head", "spicy", "palm_oil", "igbo", "beer_companion", "evening_food", "premium"],
+    "spice_level": 4,
+    "category": "snack",
+    "common_pairings": ["Palm Wine", "Cold Beer", "Utazi", "Onions", "Ugba"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Goat head meat + brain + tongue in spicy palm oil sauce; served in wooden mortar"
+  },
+  {
+    "dish_id": "dish-ekpang-nkukwo",
+    "name": "Ekpang Nkukwo (Cocoyam Wraps)",
+    "local_names": {
+      "en": "Ekpang Nkukwo",
+      "pcm": "Ekpang Nkukwo",
+      "yo": "Ekpang Nkukwo",
+      "ig": "Ekpang Nkukwo",
+      "ha": "Ekpang Nkukwo"
+    },
+    "region": ["southsouth"],
+    "tags": ["soup", "cocoyam", "waterleaf", "periwinkle", "efik", "ibibio", "labor_intensive", "traditional"],
+    "spice_level": 3,
+    "category": "soup",
+    "common_pairings": ["Palm Wine", "Fresh Fish", "Stockfish"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Efik-Ibibio-Traditional",
+    "needs_native_review": true,
+    "notes": "Grated cocoyam wrapped in cocoyam leaves; cooked in periwinkle broth; Efik specialty"
+  },
+  {
+    "dish_id": "dish-efo-riro",
+    "name": "Efo Riro (Yoruba Spinach Stew)",
+    "local_names": {
+      "en": "Efo Riro",
+      "pcm": "Efo Riro",
+      "yo": "Ẹ̀fọ́ Rírò",
+      "ig": "Efo Riro",
+      "ha": "Efo Riro"
+    },
+    "region": ["southwest"],
+    "tags": ["stew", "spinach", "mixed_greens", "yoruba", "protein_rich", "versatile"],
+    "spice_level": 3,
+    "category": "stew",
+    "common_pairings": ["Amala", "Eba", "Pounded Yam", "Rice", "Beans", "Plantain"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Yoruba-Traditional",
+    "needs_native_review": true,
+    "notes": "Efo = mixed greens (spinach, waterleaf, efo tete); locust beans (iru) essential"
+  },
+  {
+    "dish_id": "dish-efo-egusi",
+    "name": "Efo Egusi (Vegetable Egusi)",
+    "local_names": {
+      "en": "Efo Egusi",
+      "pcm": "Efo Egusi",
+      "yo": "Ẹ̀fọ́ Egusi",
+      "ig": "Efo Egusi",
+      "ha": "Efo Egusi"
+    },
+    "region": ["southwest"],
+    "tags": ["stew", "melon_seed", "vegetables", "yoruba", "egusi_variation"],
+    "spice_level": 3,
+    "category": "stew",
+    "common_pairings": ["Amala", "Eba", "Pounded Yam", "Rice"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Yoruba-Traditional",
+    "needs_native_review": true,
+    "notes": "Egusi cooked with generous vegetables (spinach, waterleaf, efo tete)"
+  },
+  {
+    "dish_id": "dish-okra-stew",
+    "name": "Okra Stew (Ila Asepo)",
+    "local_names": {
+      "en": "Okra Stew",
+      "pcm": "Okro Stew",
+      "yo": "Ilá Asẹpọ",
+      "ig": "Okwuru Stew",
+      "ha": "Okro Stew"
+    },
+    "region": ["southwest", "southsouth", "southeast"],
+    "tags": ["stew", "okra", "draw", "mixed_protein", "yoruba", "delta"],
+    "spice_level": 3,
+    "category": "stew",
+    "common_pairings": ["Amala", "Eba", "Fufu", "Rice", "Beans"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Yoruba-Delta-Traditional",
+    "needs_native_review": true,
+    "notes": "Ila Asepo = okra cooked with palm oil and mixed proteins (fish, meat, ponmo)"
+  },
+  {
+    "dish_id": "dish-bitter-leaf-stew",
+    "name": "Bitter Leaf Stew (Ofe Onugbu Style)",
+    "local_names": {
+      "en": "Bitter Leaf Stew",
+      "pcm": "Bitter Leaf Stew",
+      "yo": "Ewuro Stew",
+      "ig": "Ọfé Onugbu",
+      "ha": "Bitter Leaf Stew"
+    },
+    "region": ["southeast", "southsouth"],
+    "tags": ["stew", "bitter_leaf", "igbo", "traditional"],
+    "spice_level": 3,
+    "category": "stew",
+    "common_pairings": ["Fufu", "Pounded Yam", "Eba", "Rice"],
+    "dietary_flags": ["gluten_free"],
+    "source_ref": "CURATED-Igbo-Traditional",
+    "needs_native_review": true,
+    "notes": "Thicker than soup version; cocoyam thickener; less liquid"
+  },
+  {
+    "dish_id": "dish-suya-wrap",
+    "name": "Suya Wrap (Suya in Flatbread)",
+    "local_names": {
+      "en": "Suya Wrap",
+      "pcm": "Suya Wrap",
+      "yo": "Suya Wrap",
+      "ig": "Suya Wrap",
+      "ha": "Suya Wrap"
+    },
+    "region": ["nationwide"],
+    "tags": ["street_food", "grill", "wrap", "modern", "fast_food", "fusion"],
+    "spice_level": 4,
+    "category": "snack",
+    "common_pairings": ["Cabbage", "Tomatoes", "Onions", "Yaji", "Sauce"],
+    "dietary_flags": ["halal"],
+    "source_ref": "CURATED-Modern-Street-Food",
+    "needs_native_review": false,
+    "notes": "Modern street food evolution; suya + vegetables in flatbread/naan"
+  },
+  {
+    "dish_id": "dish-shawarma",
+    "name": "Nigerian Shawarma",
+    "local_names": {
+      "en": "Shawarma",
+      "pcm": "Shawarma",
+      "yo": "Shawarma",
+      "ig": "Shawarma",
+      "ha": "Shawarma"
+    },
+    "region": ["nationwide"],
+    "tags": ["street_food", "wrap", "chicken", "beef", "middle_eastern", "urban", "popular"],
+    "spice_level": 2,
+    "category": "snack",
+    "common_pairings": ["Cabbage", "Tomatoes", "Cucumber", "Sauce", "Chips"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Modern-Urban-Food",
+    "needs_native_review": false,
+    "notes": "Nigerian version: spicier sauce, more cabbage, often with ketchup + mayo blend"
+  },
+  {
+    "dish_id": "dish-chapman",
+    "name": "Chapman (Nigerian Cocktail)",
+    "local_names": {
+      "en": "Chapman",
+      "pcm": "Chapman",
+      "yo": "Chapman",
+      "ig": "Chapman",
+      "ha": "Chapman"
+    },
+    "region": ["nationwide"],
+    "tags": ["drink", "cocktail", "non_alcoholic", "fruity", "party", "refreshing", "national"],
+    "spice_level": 1,
+    "category": "drink",
+    "common_pairings": ["Suya", "Grilled Fish", "Jollof Rice", "Small Chops"],
+    "dietary_flags": ["vegetarian", "vegan", "no_alcohol"],
+    "source_ref": "CURATED-National-Drink",
+    "needs_native_review": false,
+    "notes": "Fanta + Sprite + Grenadine + Angostura bitters + cucumber/lemon; invented in Lagos"
+  },
+  {
+    "dish_id": "dish-zobo",
+    "name": "Zobo (Hibiscus Drink)",
+    "local_names": {
+      "en": "Zobo",
+      "pcm": "Zobo",
+      "yo": "Zobo",
+      "ig": "Zobo",
+      "ha": "Zobo"
+    },
+    "region": ["nationwide"],
+    "tags": ["drink", "hibiscus", "refreshing", "traditional", "healthy", "cold"],
+    "spice_level": 1,
+    "category": "drink",
+    "common_pairings": ["Moin Moin", "Akara", "Beans", "Plantain", "Suya"],
+    "dietary_flags": ["halal", "vegetarian", "vegan", "gluten_free", "no_alcohol"],
+    "source_ref": "CURATED-National-Drink",
+    "needs_native_review": false,
+    "notes": "Hibiscus sabdariffa calyces + ginger + cloves + pineapple; served chilled"
+  },
+  {
+    "dish_id": "dish-palm-wine",
+    "name": "Palm Wine (Emu / Nkwu / Mmanya Nkwu)",
+    "local_names": {
+      "en": "Palm Wine",
+      "pcm": "Palm Wine",
+      "yo": "Ẹmu",
+      "ig": "Nkwu / Mmanya Nkwu",
+      "ha": "Palm Wine"
+    },
+    "region": ["southwest", "southeast", "southsouth", "northcentral"],
+    "tags": ["drink", "fermented", "palm_sap", "traditional", "alcoholic", "social"],
+    "spice_level": 1,
+    "category": "drink",
+    "common_pairings": ["Nkwobi", "Isi Ewu", "Pepper Soup", "Abacha", "Ugba", "Bushmeat"],
+    "dietary_flags": [],
+    "source_ref": "CURATED-Traditional-Beverage",
+    "needs_native_review": true,
+    "notes": "Fresh = sweet, low alcohol; fermented = sour, higher alcohol; regional tapping methods vary"
+  },
+  {
+    "dish_id": "dish-burkina",
+    "name": "Burkina (Millet and Yogurt Drink)",
+    "local_names": {
+      "en": "Burkina",
+      "pcm": "Burkina",
+      "yo": "Burkina",
+      "ig": "Burkina",
+      "ha": "Burkina"
+    },
+    "region": ["northwest", "northeast", "northcentral"],
+    "tags": ["drink", "millet", "yogurt", "hausa_fulani", "refreshing", "probiotic"],
+    "spice_level": 1,
+    "category": "drink",
+    "common_pairings": ["Masa", "Dan Wake", "Suya", "Kilishi"],
+    "dietary_flags": ["halal", "vegetarian"],
+    "source_ref": "CURATED-Northern-Beverage",
+    "needs_native_review": true,
+    "notes": "Similar to Fura da Nono but with yogurt instead of fermented milk; sweeter"
+  }
+]
