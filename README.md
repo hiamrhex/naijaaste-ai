@@ -8,7 +8,7 @@
 [![Tests](https://img.shields.io/badge/tests-156%20passed-brightgreen)](#testing-and-quality)
 [![Secrets scanned](https://img.shields.io/badge/secrets-scanned_clean-success)](#security-summary)
 
-> **Status:** landing page and app shell are live at [naijaaste-ai.vercel.app](https://naijaaste-ai.vercel.app). The API serverless function is **not yet serving** — five environment variables are pending in the Vercel project (see [Deployment](#deployment)). Everything below is verified against the code today; evidence lives in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
+> **Status:** landing page, app shell and the API are live at [naijaaste-ai.vercel.app](https://naijaaste-ai.vercel.app) — `/health` returns 200. Everything below is verified against the code today; evidence lives in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 ![NaijaTaste landing page](docs/media/shot-landing-desktop.png)
 ![NaijaTaste sign-in on mobile](docs/media/shot-login-mobile.png)
