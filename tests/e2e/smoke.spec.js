@@ -2,6 +2,11 @@ import { test, expect } from '@playwright/test';
 
 // Mobile-viewport smoke: signup → nearby → save favorite → saved wishlist → sign out.
 // No LLM calls (CI has no Gemini key): exercises auth, geo, favorites, saved_places, session.
+test.use({
+  geolocation: { latitude: 6.5095, longitude: 3.3711 },
+  permissions: ['geolocation'],
+});
+
 test('signup, nearby, save, saved wishlist, sign out', async ({ page }) => {
   const stamp = Date.now();
   const email = `e2e${stamp}@example.com`;
@@ -17,11 +22,11 @@ test('signup, nearby, save, saved wishlist, sign out', async ({ page }) => {
   // Lands in the app after signup (auth gate gone, tabs visible).
   await expect(page.getByRole('navigation', { name: /main sections/i })).toBeVisible({ timeout: 15000 });
 
-  // Nearby via the Map tab (geolocation stubbed to Yaba, Lagos).
-  await page.context().grantPermissions(['geolocation']);
-  await page.context().setGeolocation({ latitude: 6.5095, longitude: 3.3711 });
+  // Nearby via the Map tab (geolocation stubbed to Yaba, Lagos at context creation).
   await page.getByRole('link', { name: /^map$/i }).click();
-  await page.getByRole('button', { name: /near me/i }).click();
+  const nearMe = page.getByRole('button', { name: /near me/i });
+  await expect(nearMe).toBeEnabled({ timeout: 15000 });
+  await nearMe.click();
   // Either populated cards or the honest empty state (geolocation is stubbed,
   // but live data varies) — both prove the flow completed.
   await expect(page.locator('[role="listitem"], :text("No spots within")').first()).toBeVisible({ timeout: 20000 });
