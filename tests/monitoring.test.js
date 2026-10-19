@@ -1,6 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { env } from '../src/env.js';
-import { initMonitoring, monitoringEnabled, redactHeaders, redactEvent, captureException } from '../src/lib/monitoring.js';
+import {
+  initMonitoring,
+  monitoringEnabled,
+  redactHeaders,
+  redactEvent,
+  redactTags,
+  stripQuery,
+  captureException,
+  __setClientForTests,
+} from '../src/lib/monitoring.js';
+import { errorHandler } from '../src/middleware/errorHandler.js';
+
+afterEach(() => __setClientForTests(null));
 
 describe('monitoring (Sentry hook)', () => {
   it('is a quiet no-op without SENTRY_DSN (nothing enabled, no network send)', async () => {
@@ -53,5 +65,82 @@ describe('monitoring (Sentry hook)', () => {
     expect(JSON.stringify(out)).toContain('visible');
     expect(JSON.stringify(out)).not.toContain('"email":"a@b.c"'); // PII: the address never leaves
     expect(JSON.stringify(out)).toContain('[REDACTED_EMAIL]');
+  });
+
+  it('stripQuery keeps the path and drops the query string', () => {
+    expect(stripQuery('/api/v1/nearby?lat=6.52&lng=3.38&token=abc')).toBe('/api/v1/nearby');
+    expect(stripQuery('https://x.test/app?x=1')).toBe('https://x.test/app');
+    expect(stripQuery('/health')).toBe('/health');
+  });
+
+  it('redactTags strips url/path query strings and sensitive keys', () => {
+    const out = redactTags({
+      requestId: 'req-1',
+      code: 'INTERNAL',
+      url: '/api/v1/nearby?lat=6.52&lng=3.38&token=abc',
+      path: '/api/nearby?lat=6.52&lng=3.38&token=abc',
+      authorization: 'Bearer top_secret',
+      email: 'ada@example.com',
+    });
+    expect(out.url).toBe('/api/v1/nearby');
+    expect(out.path).toBe('/api/nearby');
+    expect(out.authorization).toBe('[REDACTED]');
+    expect(out.email).toBe('[REDACTED_EMAIL]');
+    expect(out.requestId).toBe('req-1');
+    expect(out.code).toBe('INTERNAL');
+    expect(JSON.stringify(out)).not.toContain('6.52');
+    expect(JSON.stringify(out)).not.toContain('top_secret');
+    expect(JSON.stringify(out)).not.toContain('ada@example.com');
+  });
+
+  it('redactEvent strips request URL query, query_string, breadcrumbs and exception text', () => {
+    const out = redactEvent({
+      request: {
+        url: 'https://x.test/api/v1/nearby?lat=6.52&lng=3.38&token=abc',
+        query_string: 'lat=6.52&lng=3.38&token=abc',
+      },
+      tags: { url: '/nearby?lat=6.52&lng=3.38', path: '/nearby?token=abc' },
+      breadcrumbs: [
+        { message: 'GET /nearby?lat=6.52&lng=3.38&token=abc' },
+        { data: { url: '/nearby?lat=6.52&lng=3.38', token: 'abc' } },
+      ],
+      exception: { values: [{ value: 'failed /nearby?lat=6.52&lng=3.38&token=abc' }] },
+    });
+
+    expect(out.request.url).toBe('https://x.test/api/v1/nearby');
+    expect(out.request.query_string).toBeUndefined();
+    expect(out.tags.url).toBe('/nearby');
+    expect(out.tags.path).toBe('/nearby');
+
+    const json = JSON.stringify(out);
+    expect(json).not.toContain('6.52');
+    expect(json).not.toContain('3.38');
+    expect(json).not.toContain('abc');
+    expect(json).not.toContain('token=abc');
+    expect(json).toContain('[REDACTED]');
+  });
+
+  it('error path: /nearby lat/lng/token never reach the Sentry payload', () => {
+    const sent = [];
+    __setClientForTests({ captureException: (_err, context) => sent.push(context) });
+
+    const req = {
+      id: 'req-1',
+      originalUrl: '/api/v1/nearby?lat=6.52&lng=3.38&token=abc',
+      log: { error() {}, bindings: { name: 'naijataste-ai' } },
+    };
+    const res = { status() { return this; }, json() { return this; }, set() { return this; } };
+
+    errorHandler(new Error('boom'), req, res, () => {});
+
+    expect(sent).toHaveLength(1);
+    const json = JSON.stringify(sent[0]);
+    expect(json).not.toContain('6.52');
+    expect(json).not.toContain('3.38');
+    expect(json).not.toContain('abc');
+    expect(json).not.toContain('token=');
+    expect(sent[0].tags.requestId).toBe('req-1');
+    expect(sent[0].tags.path).toBe('/api/v1/nearby');
+    expect(sent[0].tags.code).toBe('INTERNAL');
   });
 });
