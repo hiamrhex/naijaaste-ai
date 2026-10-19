@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useTransition } from 'react';
-import { Heart, Plus } from 'lucide-react';
-import { getSavedPlaces, addSavedPlace } from '../lib/auth.js';
+import { Heart, Plus, Trash2 } from 'lucide-react';
+import { getSavedPlaces, addSavedPlace, deleteSavedPlace } from '../lib/auth.js';
 import { rankSaved } from '../lib/rankSaved.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 
@@ -63,11 +63,58 @@ export default function SavedScreen() {
     [places, constraints]
   );
 
+  const [removing, setRemoving] = useState('');
+  const removeSpot = async (id, name) => {
+    if (removing) return;
+    // Confirmation keeps a stray tap from deleting a Friday plan.
+    if (!window.confirm(`Remove "${name}" from Saved?`)) return;
+    setRemoving(id);
+    try {
+      await deleteSavedPlace(id);
+      startTransition(() => {
+        setPlaces((prev) => prev.filter((p) => p.id !== id));
+      });
+    } catch (err) {
+      setError(err.message || 'Could not delete spot');
+      setState('error');
+    } finally {
+      setRemoving('');
+    }
+  };
+
   const card = {
     border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
     background: 'var(--bg-card)', display: 'flex', alignItems: 'center', gap: 10,
     contentVisibility: 'auto', containIntrinsicSize: 'auto 64px',
   };
+
+  const spotCard = (p, hot) => (
+    <div key={p.id} style={card}>
+      <Heart size={13} color={hot ? 'var(--orange)' : 'var(--text-hint)'} aria-hidden="true" />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
+        {hot ? (
+          <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{p.status}</div>
+        ) : (
+          <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>
+            Needs check: {(p.unknowns || []).join(', ')}
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => removeSpot(p.id, p.name)}
+        disabled={removing === p.id}
+        aria-label={`Remove ${p.name} from saved spots`}
+        style={{
+          border: 'none', background: 'transparent', cursor: removing === p.id ? 'wait' : 'pointer',
+          padding: 6, borderRadius: 8, color: 'var(--text-hint)', display: 'flex',
+        }}
+      >
+        <Trash2 size={14} aria-hidden="true" />
+      </button>
+    </div>
+  );
 
   return (
     <div>
@@ -159,32 +206,17 @@ export default function SavedScreen() {
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Nothing fits all filters yet.</p>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {fits.map((p) => (
-                <div key={p.id} style={card}>
-                  <Heart size={13} color="var(--orange)" aria-hidden="true" />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{p.status}</div>
-                  </div>
-                </div>
-              ))}
+              {fits.map((p) => spotCard(p, true))}
             </div>
 
             <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: '16px 0 8px' }}>
               Might fit — check ({might.length})
             </h2>
+            {might.length === 0 && (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Nothing on the “might” list yet.</p>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {might.map((p) => (
-                <div key={p.id} style={card}>
-                  <Heart size={13} color="var(--text-hint)" aria-hidden="true" />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>
-                      Needs check: {(p.unknowns || []).join(', ')}
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {might.map((p) => spotCard(p, false))}
             </div>
           </>
         )}

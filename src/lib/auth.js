@@ -163,6 +163,18 @@ export const addSavedPlace = async (name) => {
   return (await res.json()).place;
 };
 
+export const deleteSavedPlace = async (id) => {
+  const res = await authFetch(`/auth/saved-places/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 404) throw new Error('That spot is already gone');
+    throw new Error(body?.error?.message || 'Could not delete spot');
+  }
+  return true;
+};
+
 export const postRating = async ({ restaurant_id, stars, note, context }) => {
   const res = await authFetch('/ratings', {
     method: 'POST',

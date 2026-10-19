@@ -9,7 +9,7 @@ import { sendOtpEmail } from '../services/email.service.js';
 import { verifyGoogleCredential, googleAuthEnabled } from '../auth/google.js';
 import { env } from '../env.js';
 import { getRestaurantsByCodes, findRestaurantByCode } from '../db/catalogue.js';
-import { createSavedPlace, listSavedPlaces } from '../saved_places/store.js';
+import { createSavedPlace, listSavedPlaces, deleteSavedPlace } from '../saved_places/store.js';
 
 const router = Router();
 
@@ -333,6 +333,15 @@ router.post('/auth/saved-places', requireAuth, async (req, res) => {
     }
     throw err;
   }
+});
+
+// Owner-only delete: another user's id (or a bogus id) is a 404, never a leak.
+router.delete('/auth/saved-places/:id', requireAuth, async (req, res) => {
+  const removed = await deleteSavedPlace(req.user.id, req.params.id);
+  if (!removed) {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Saved place not found' } });
+  }
+  return res.status(200).json({ success: true, removed: true, id: req.params.id });
 });
 
 export { router as authRoutes };

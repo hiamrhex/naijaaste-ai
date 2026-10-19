@@ -90,6 +90,7 @@ const ENDPOINTS = [
   "POST /api/v1/auth/favorites",
   "DELETE /api/v1/auth/favorites/:restaurant_id",
   "POST /api/v1/auth/saved-places",
+  "DELETE /api/v1/auth/saved-places/:id",
   "GET  /api/v1/nearby",
   "GET  /api/v1/restaurants/geo",
   "POST /api/v1/agent",
