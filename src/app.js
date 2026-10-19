@@ -68,7 +68,7 @@ app.use(
     origin: allowedOrigins.length === 0 ? true : allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "DELETE"],
-    allowedHeaders: ["Content-Type", "X-Request-Id"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
     exposedHeaders: ["X-Request-Id", "RateLimit"],
   })
 );

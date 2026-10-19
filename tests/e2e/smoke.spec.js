@@ -36,8 +36,30 @@ test('signup, nearby, save, saved wishlist, sign out', async ({ page }) => {
   await page.getByRole('link', { name: /^saved$/i }).click();
   await expect(page.getByPlaceholder(/save a spot/i)).toBeVisible({ timeout: 15000 });
   await page.getByPlaceholder(/save a spot/i).fill(`E2E Buka ${stamp}`);
-  await page.getByRole('button', { name: /^save$/i }).click();
+  await page.getByRole('button', { name: /^save spot$/i }).click();
   await expect(page.getByText(`E2E Buka ${stamp}`).first()).toBeVisible({ timeout: 15000 });
+
+  // Delete-confirm dialog: dismiss keeps the spot, accept removes it.
+  const trash = page.getByLabel(`Remove E2E Buka ${stamp} from saved spots`);
+  await expect(trash).toBeVisible({ timeout: 15000 });
+
+  let dismissedMessage = '';
+  page.once('dialog', async (dialog) => {
+    dismissedMessage = dialog.message();
+    await dialog.dismiss();
+  });
+  await trash.click();
+  await expect(trash).toBeVisible();
+  expect(dismissedMessage).toContain(`E2E Buka ${stamp}`);
+
+  let acceptedType = '';
+  page.once('dialog', async (dialog) => {
+    acceptedType = dialog.type();
+    await dialog.accept();
+  });
+  await trash.click();
+  await expect(trash).toHaveCount(0, { timeout: 15000 });
+  expect(acceptedType).toBe('confirm');
 
   // Sign out from Settings (test id: the global header has its own sign-out).
   await page.getByRole('link', { name: /^settings$/i }).click();
