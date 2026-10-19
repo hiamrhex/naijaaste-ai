@@ -1,0 +1,11 @@
+import 'dotenv/config';
+import pg from 'pg';
+const p = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1, connectionTimeoutMillis: 10000 });
+const r = await p.query("SELECT email, id, created_at FROM users WHERE email LIKE 'audit-%@example.com' ORDER BY created_at");
+console.log(JSON.stringify(r.rows, null, 2));
+const sp = await p.query("SELECT u.email AS holder, s.name AS place, s.created_at FROM saved_places s JOIN users u ON u.id = s.user_id WHERE u.email LIKE 'audit-%@example.com' ORDER BY s.created_at");
+console.log('audit-account saved_places rows:', sp.rows.length);
+console.log(sp.rows.map((x) => `  [${x.holder}] ${x.place}`).join('\n'));
+const pending = await p.query("SELECT count(*)::int AS n FROM users WHERE email LIKE 'audit-%@example.com'");
+await p.end();
+console.log('rows the cleanup SQL would delete:', pending.rows[0].n);
