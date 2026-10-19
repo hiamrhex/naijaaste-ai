@@ -1,8 +1,12 @@
 import { env } from './env.js';
 import { app } from './app.js';
 import { logger } from './lib/logger.js';
+import { initMonitoring } from './lib/monitoring.js';
 
 const PORT = env.PORT;
+
+// Error tracking is env-gated (SENTRY_DSN): unset → quiet skip.
+initMonitoring().catch(() => {});
 
 const server = app.listen(PORT, () => {
   logger.info({ port: PORT }, 'NaijaTaste AI listening');

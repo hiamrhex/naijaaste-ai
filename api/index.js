@@ -7,10 +7,21 @@
 // Express actually serves (/auth/…, /api/v1/…). Local dev is unaffected
 // (requests there never carry the /api prefix).
 import { app } from '../src/app.js';
+import { initMonitoring, captureException } from '../src/lib/monitoring.js';
+
+// Cold start: opt-in error tracking (SENTRY_DSN unset → quiet no-op).
+await initMonitoring().catch(() => {});
 
 export default (req, res) => {
   if (req.url === '/api' || req.url.startsWith('/api/')) {
     req.url = req.url.slice(4) || '/';
   }
-  return app(req, res);
+  try {
+    return app(req, res);
+  } catch (syncError) {
+    // A sync crash before Express got the request would otherwise vanish
+    // with a Vercel 500 and no signal; capture what we can, then rethrow.
+    captureException(syncError, { tags: { requestId: req?.id, url: req?.url } });
+    throw syncError;
+  }
 };

@@ -1,6 +1,7 @@
 import { ApiError } from '../lib/errors.js';
 import { fail } from '../lib/respond.js';
 import { logger } from '../lib/logger.js';
+import { captureException } from '../lib/monitoring.js';
 
 export const errorHandler = (err, req, res, _next) => {
   let status = 500;
@@ -36,6 +37,12 @@ export const errorHandler = (err, req, res, _next) => {
   if (status >= 500) {
     const log = req.log || logger;
     log.error({ err }, 'unhandled error');
+    // Server errors (never 4xx client noise) reach error tracking with a
+    // request id, so a Sentry event joins the log line it came from.
+    captureException(err, {
+      tags: { requestId: req.id, code, path: req.originalUrl },
+      extra: { serviceName: req.log?.bindings?.name },
+    });
   }
 
   fail(res, { status, code, message, details, requestId: req.id, retryAfterSec });

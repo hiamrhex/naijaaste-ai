@@ -24,6 +24,8 @@ const EnvSchema = z.object({
   DATABASE_URL_DIRECT: z.string().optional(),
   ADMIN_EMAILS: z.string().optional(),
   DEV_OTP_ENABLED: z.enum(['true', 'false']).default('false'),
+  // Error tracking: set to enable; unset = monitoring is a quiet no-op.
+  SENTRY_DSN: z.string().optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
