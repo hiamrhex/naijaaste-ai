@@ -1,12 +1,130 @@
 # Baseline Audit — scored against `docs/STANDARDS.md`
 
-Scored 2026-10-15. Scale: **0** missing, **1** partial, **2** works, **3**
-works and proven with command output or a test. Every non-zero score cites an
-evidence ID (`EV-NNN` → entry in `docs/EVIDENCE.md`) or a file:line.
+> **RE-SCORE 2026-10-19 (agent-assisted — see bias disclosure).** The original
+> scoring below was produced by the same agent that built the fixes, so per the
+> operating contract it is not trusted as final. This section re-scores the same
+> 25 checks from fresh evidence created today in a separate probes session
+> (`EVIDENCE.md`, IDs `T19-01…T19-20`). Tests/lint/build/secret-scan re-run
+> green today (T19-16). Live site probed for the first time while booted
+> (T19-01…T19-07). **Result: 58/75 = 77%** — three rows drop from the prior 81%.
 
-**Verdict (updated 2026-10-16): 81% — see total below; three gaps remain open
-that a reviewer would call launch-blocking (SLO measurement, live API health,
-Neon-branch PITR).** No area scores 0.
+## Re-score table (2026-10-19, fresh evidence only)
+
+| # | Check | Prior | Fresh | Why it moved | Evidence |
+|---|---|---|---|---|---|
+| 1 | BOLA ownership | 3 | 3 | unchanged; + saved-places proven owner-scoped live (B sees 0 rows) | T19-08 |
+| 2 | Tokens/expire | 3 | 3 | live signin ✓ + cookie flags ✓; tamper/reuse probes NOT re-run today (last 2026-10-15) | T19-02 |
+| 3 | Mass assignment | 2 | 2 | `role`-stripping test still absent | — |
+| 4 | Bounded consumption | 3 | **2** | saved-places 50-cap exceeded 12/12 under parallel writes (no backstop); stacked limiter headers confusing (600 vs 20) | T19-11, T19-04 |
+| 5 | Function authz | 3 | 3 | unchanged (not re-probed today) | — |
+| 6 | Sensitive-flow gates | 2 | 2 | live reset-bomb drill still not run | — |
+| 7 | SSRF | 2 | 2 | unchanged | — |
+| 8 | Secure defaults | 3 | 3 | live headers verified today (HSTS/CSP/COOP/nosniff; CORS fail-closed) | T19-02, T19-05 |
+| 9 | Route inventory truth | 3 | **2** | `/health` advertises `/api/v1/*` as canonical; those paths **404 live**; SPA ships `/api/auth/*` | T19-03 |
+| 10 | Upstream validated | 3 | 3 | unchanged | — |
+| 11 | Prompt injection | 2 | 2 | 5-probe battery unchanged; not re-run vs live model | — |
+| 12 | Sensitive disclosure | 2 | 2 | unchanged; saved-places stores hostile text verbatim (latent redaction-relevant) | T19-09 |
+| 13 | Least-priv tools | 2 | 2 | unchanged | — |
+| 14 | Sysprompt leakage | 2 | 2 | unchanged | — |
+| 15 | LLM consumption cap | 2 | 2 | anon burn blocked live ✓ (T19-06); no monthly counter remains | T19-06 |
+| 16 | SLOs measured | 2 | 2 | doc exists; **nothing computes/alerts still** | — |
+| 17 | Graceful degradation | 3 | 3 | drills stand; fallback paths exercised in today's suite | T19-16 |
+| 18 | Disposability | 2 | 2 | unchanged | — |
+| 19 | Timeout/backoff/breaker | 3 | 3 | unit-proven; stands | T19-16 |
+| 20 | Backing services/PITR | 2 | 2 | DB live ✓ (T19-01); Neon-branch PITR still unverified | T19-01 |
+| 21 | Config in env | 3 | 3 | scan clean today (219 files) | T19-16 |
+| 22 | Logs/alerts | 1 | 1 | **no monitor today**; the last outage was caught by manual curl | MATURITY top-5 |
+| 23 | Runbooks/postmortems | 3 | 3 | docs stand | — |
+| 24 | CI gates | 2 | 2 | lint+build+vitest+sw+audit green locally; Lighthouse/branch-proof still absent | T19-16 |
+| 25 | Parity/migrations | 3 | **2** | dev/prod parity **broken for canonical paths** (`/api/v1/*` 404 live); migration 003 applied (schema live via working POST) | T19-03, T19-08 |
+
+**Re-score total: 58/75 = 77% (agent-assessed).**
+
+### Bias disclosure (required by operating contract §1.3)
+
+Three strongest reasons this score is probably too generous:
+
+1. **Auditor = builder.** The same agent family wrote the code and wrote most
+   fixes earlier in the program; every "3" borrowed without today's re-proof
+   (rows 2, 5, 7, 10–14, 17–24) stands on evidence the builder curated.
+2. **Coverage is narrow where it is fresh.** Today's live probing is one account,
+   one AI call, saved-places happy paths + one race — a single-surface snapshot,
+   not a battery; auth abuse, injection and reset flows were not re-run live.
+3. **Documentation-input scoring.** Rows 6, 7, 11, 13, 16 score design intent
+   (docs + absence of code), not measured behaviour; a harsh reviewer weights
+   running systems higher and docs lower, and three of the four top risks are
+   the same ones left open since 2026-10-16 (monitoring, SLO aggregation, PITR).
+
+**Recommendation: an independent reviewer (different model or human) re-scores
+before this figure is cited anywhere public.**
+
+## New findings this session (report-only, not yet in the gap table)
+
+- **F1 — Canonical-path 404 live (check 9/25).** `vercel.json` rewrites
+  `/api/:path*`→function; `api/index.js:12-14` strips the `/api` prefix;
+  router mounts `/api/v1` (needs the prefix intact) and `/` (gets the stripped
+  path). `/api/v1/auth/signup` → `ROUTE_NOT_FOUND /v1/auth/signup` live.
+  SPA works because it ships `/api/auth/*` (constants/index.js:7). Docs/health
+  contract says `/api/v1` is canonical — neither notation the *docs* promise
+  works for external clients except `/api/*`.
+- **F2 — saved-places capability gaps.** No DELETE/PATCH endpoints (T19-13):
+  a mistake or a full 50-cap is permanent for that user (SQLite-level cleanup
+  only). 150→100 truncation is silent (T19-10). Hostile names stored verbatim
+  (T19-09) — safe today because React escapes, latent for email/admin surfaces.
+- **F3 — 50-cap race.** Count-then-insert; 12 parallel = 12 accepted (T19-11).
+- **F4 — Rate-limit header confusion.** Two stacked limiters both emit draft-7
+  headers (`limit=600` vs `limit=20;w=900`) on the same response (T19-04).
+- **F5 — Doc drift.** README/API.md badge 156 tests vs actual 159; README line 11
+  claims "API function not yet serving" — contradicted by live 200s today (T19-01).
+- **F6 — check-ng-data undeclared deps** `ajv`/`ajv-formats` (T19-18), and the
+  data itself has 17 duplicate keys + 40 unresolved source_refs (T19-17) — exit 0
+  on warnings, so CI quality gates for this data would pass while corrupt/dirty.
+- **F7 — pg SSL-mode deprecation warning** surfaced in test logs
+  (`verify-full` aliasing change in pg v9) — currently cosmetic; adopt.
+- **F8 — Product gap.** `area`/`maxPrice` filters on SavedScreen are client-only
+  state; a user's saved list cannot be filtered server-side, incongruent with
+  "Planner" promise; minor.
+
+### Top 10 risks, re-ranked 2026-10-19 (by impact on real users)
+
+1. **No monitoring/alerting on a now-LIVE system** (check 22, T19-16 context).
+   The API boots and users can sign up; when it dies nothing says so — outages
+   were found by manual curl last time.
+2. **Canonical-path 404 live** (F1). Any external client, integration, script,
+   or monitor written against the *documented* `/api/v1/*` contract fails; only
+   undocumented `/api/*` works. Blocks SLO machines, uptime checks, partners.
+3. **No SLO p95 computation or burn alert** (check 16). Dead-letter doc for as
+   long as it stays closed.
+4. **saved-places dead-end UX** (F2 + T19-11). Full list or a mistake is
+   permanent; real users will hit this at 51 items or a typo.
+5. **Neon-branch PITR unverified** (check 20). The runbook's recovery path is
+   the untested one.
+6. **Injection probes/battery stale** (checks 6/11–14). Live model never
+   re-tested against prompt-injection chains after the fixes.
+7. **No monthly LLM quota ledger** (check 15). A distributed free-tier burn is
+   still survivable only per-IP; nothing counts total calls or warns at 70%.
+8. **Data-quality drift in the new `data/ng` set** (T19-17). Duplicates +
+   unresolved provenance ship downstream into recommendations (bad answers —
+   real users see hallucinated-adjacent quality).
+9. **Rate limit header confusion + live 429 shape unverified** (F4). Abuse
+   defences may fire; humans can't parse intent; clients can't back off right.
+10. **Docs drift (README badge 156→159 tests; dead "API down" status)** (F5).
+    Newcomers' first impression is wrong in two directions.
+
+### Quick wins (high impact, small effort)
+
+- Status page / uptime check on `/health` + error tracking: hours.
+- Rewrite `vercel.json`/`api/index.js` so `/api/v1/*` also live: small.
+- README status + badge lines: minutes.
+- Delete `data/` inconsistencies or wire `check:ng-data` as CI gate: small.
+- Fix limiter header duplication (mount styles): small.
+- saved-places DELETE endpoint + cap backstop (`INSERT … WHERE count < 50` or
+  `FOR UPDATE` transaction): a focused afternoon.
+
+Operational context for the original scoring below (was 2026-10-15/16, retained
+for history; totals 61/75 = 81% as of 2026-10-16 captures pre-fresh state):
+
+
 
 ## Score table
 
@@ -38,12 +156,8 @@ Neon-branch PITR).** No area scores 0.
 | 24 | CI gates block merges (DORA) | 2 | `ci.yml`: lint + build + `npm audit` + secret scan + Playwright E2E. **No Lighthouse job, no branch-protection proof** → G-13 |
 | 25 | Dev/prod parity + migrations as code | 3 | Same SQL on pg-mem + Neon; migrations ordered + idempotent; `ON CONFLICT DO NOTHING` re-run proven |
 
-**Total: 61 / 75 = 81%** (was 58/75 = 77% on 2026-10-15; G-1, G-2 partial,
-G-12 closed on 2026-10-16). This crosses the 80% line, but the label that
-goes with it is **earned only in the letter of the checklist** — the SLO
-measurement pipeline (G-3), the live API (Vercel env vars), and the
-Neon-branch PITR drill are all still open, and a distinguished reviewer would
-flag the 81% as fragile until they close.
+**Total as of 2026-10-16 (historical): 61 / 75 = 81%** — superseded by the
+2026-10-19 re-score (58/75 = 77%) above. Retained for movement tracking.
 
 ## Top 10 risks ranked by impact on real users
 

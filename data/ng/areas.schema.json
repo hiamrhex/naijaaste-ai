@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NaijaTaste Nigerian Areas",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "state",
+      "state_code",
+      "lga",
+      "neighbourhoods",
+      "nicknames",
+      "centroid"
+    ],
+    "properties": {
+      "state": { "type": "string" },
+      "state_code": { "type": "string", "pattern": "^[A-Z]{2,3}$" },
+      "lga": { "type": "string" },
+      "ward": { "type": "string" },
+      "neighbourhoods": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "nicknames": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "centroid": {
+        "type": "object",
+        "required": ["lat", "lng"],
+        "properties": {
+          "lat": { "type": "number" },
+          "lng": { "type": "number" }
+        }
+      },
+      "is_city": { "type": "boolean", "default": false },
+      "source_ref": { "type": "string" }
+    },
+    "additionalProperties": false
+  }
+}

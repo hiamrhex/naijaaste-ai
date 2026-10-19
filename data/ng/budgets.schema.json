@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NaijaTaste Naira Budget Index",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "state",
+      "state_code",
+      "index_value",
+      "band_budget",
+      "band_mid_range",
+      "band_premium",
+      "last_verified",
+      "source_ref"
+    ],
+    "properties": {
+      "state": { "type": "string" },
+      "state_code": { "type": "string", "pattern": "^[A-Z]{2,3}$" },
+      "index_value": {
+        "type": "number",
+        "minimum": 0.1,
+        "maximum": 10.0,
+        "description": "Inflation index relative to national average (1.0 = national average)"
+      },
+      "band_budget": {
+        "type": "object",
+        "required": ["min_naira", "max_naira"],
+        "properties": {
+          "min_naira": { "type": "integer", "minimum": 0 },
+          "max_naira": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "band_mid_range": {
+        "type": "object",
+        "required": ["min_naira", "max_naira"],
+        "properties": {
+          "min_naira": { "type": "integer", "minimum": 0 },
+          "max_naira": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "band_premium": {
+        "type": "object",
+        "required": ["min_naira", "max_naira"],
+        "properties": {
+          "min_naira": { "type": "integer", "minimum": 0 },
+          "max_naira": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "last_verified": {
+        "type": "string",
+        "format": "date"
+      },
+      "source_ref": { "type": "string" },
+      "notes": { "type": "string" }
+    },
+    "additionalProperties": false
+  }
+}

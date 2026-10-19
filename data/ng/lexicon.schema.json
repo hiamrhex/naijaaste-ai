@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NaijaTaste Nigerian Lexicon",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "term",
+      "language",
+      "meaning",
+      "register",
+      "category"
+    ],
+    "properties": {
+      "term": { "type": "string", "minLength": 1 },
+      "language": {
+        "type": "string",
+        "enum": ["en", "pcm", "yo", "ig", "ha"]
+      },
+      "meaning": { "type": "string" },
+      "register": {
+        "type": "string",
+        "enum": ["formal", "informal", "slang", "vulgar"]
+      },
+      "category": {
+        "type": "string",
+        "enum": ["food", "slang", "greeting", "quantity", "spice", "payment", "location", "social", "drink"]
+      },
+      "example_sentence": { "type": "string" },
+      "region": {
+        "type": "array",
+        "items": { "enum": ["northwest", "northeast", "northcentral", "southwest", "southeast", "southsouth", "nationwide"] }
+      },
+      "needs_native_review": { "type": "boolean", "default": false }
+    },
+    "additionalProperties": false
+  }
+}

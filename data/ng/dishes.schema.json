@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NaijaTaste Nigerian Dishes",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "dish_id",
+      "name",
+      "local_names",
+      "region",
+      "tags",
+      "spice_level",
+      "category",
+      "common_pairings",
+      "dietary_flags",
+      "source_ref"
+    ],
+    "properties": {
+      "dish_id": { "type": "string", "pattern": "^dish-[a-z0-9-]+$" },
+      "name": { "type": "string", "minLength": 1 },
+      "local_names": {
+        "type": "object",
+        "properties": {
+          "en": { "type": "string" },
+          "pcm": { "type": "string" },
+          "yo": { "type": "string" },
+          "ig": { "type": "string" },
+          "ha": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "region": {
+        "type": "array",
+        "items": { "enum": ["northwest", "northeast", "northcentral", "southwest", "southeast", "southsouth", "nationwide"] }
+      },
+      "tags": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "spice_level": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "category": {
+        "type": "string",
+        "enum": ["swallow", "soup", "stew", "rice", "grill", "snack", "breakfast", "side", "drink"]
+      },
+      "common_pairings": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "dietary_flags": {
+        "type": "array",
+        "items": { "enum": ["halal", "vegetarian", "vegan", "gluten_free", "no_pork", "no_alcohol", "low_oil"] }
+      },
+      "source_ref": { "type": "string" },
+      "needs_native_review": { "type": "boolean", "default": false },
+      "notes": { "type": "string" }
+    },
+    "additionalProperties": false
+  }
+}
