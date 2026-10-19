@@ -2,11 +2,9 @@
 
 **Chat once about your city, budget and cravings — get ranked Nigerian restaurant picks with reasons, directions and AI-written reviews.**
 
-[![CI](https://github.com/hiamrhex/naijaaste-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/hiamrhex/naijaaste-ai/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/hiamrhex/naijaaste-ai/ci.yml?branch=master&label=tests%20%26%20lint)](https://github.com/hiamrhex/naijaaste-ai/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Node ≥24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)
-[![Tests](https://img.shields.io/badge/tests-156%20passed-brightgreen)](#testing-and-quality)
-[![Secrets scanned](https://img.shields.io/badge/secrets-scanned_clean-success)](#security-summary)
 
 > **Status:** landing page, app shell and the API are live at [naijaaste-ai.vercel.app](https://naijaaste-ai.vercel.app) — `/health` returns 200. Everything below is verified against the code today; evidence lives in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
@@ -272,12 +270,12 @@ Threat model (STRIDE), controls inventory and disclosure policy: [`docs/THREAT_M
 ## Testing and quality
 
 ```bash
-npm test           # 156 tests, 26 files — same SQL on pg-mem as Neon runs
+npm test           # full suite — same SQL on pg-mem as Neon runs; count is picked up by CI, not typed here
 npm run lint       # ESLint — clean
 npm run evaluate   # NDCG@5 + RMSE over LLM reviews (needs GEMINI_API_KEY)
 ```
 
-CI on every push ([`ci.yml`](.github/workflows/ci.yml)): lint · test · build · `npm audit --omit=dev --audit-level=critical` · secret scan · Playwright e2e (signup → nearby → save → sign-out).
+CI on every push ([`ci.yml`](.github/workflows/ci.yml)): lint · test · build · service-worker checks · data-quality gate (`data/ng` schemas, duplicate keys, source provenance) · `npm audit --omit=dev --audit-level=critical` · secret scan · Playwright e2e (signup → nearby → save → sign-out).
 
 - Contract tests pin 400/401/403/404/409/413/429 shapes; ownership tests use two live users; limiter tests trip real 429s; redaction tests assert secret absence.
 - Failure-path tests: DB down (503 readiness), LLM down (deterministic fallback + clean 502), hung query (bounded timeout).
@@ -290,7 +288,7 @@ Only measured numbers, with method. Full ledger: [`docs/EVIDENCE.md`](docs/EVIDE
 |---|---|---|
 | `GET /health` local (no DB) | 1,687–1,939 rps across c=10→200; p97.5 13→154ms | autocannon, 15s/step, laptop |
 | `GET /nearby` local → Neon (remote) | 3 rps at c=10; p97.5 7.3s; collapse at c=50 | autocannon, same setup; bottleneck: pool `max: 3` + ~180ms RTT |
-| Full test suite | 156 tests / 26 files, ~38s | `npm test` wall time |
+| Full test suite | green in CI (badge above is the source of truth) | vitest wall time ~40s locally |
 | Landing weight | 28,875 bytes (3 files) | `stat` on `index.html` + `public/landing.*` |
 | Catalogue | 60 curated seed rows; 210 rows live in Neon | JSON count; SQL count during restore drill |
 | Neon restore | dump 36.5s → isolated DB → restore 30.8s → counts identical | `pg_dump`/`pg_restore` drill, 2026-10-16 |
@@ -323,7 +321,7 @@ Details: [`docs/DATA.md`](docs/DATA.md). 60-row curated seed (verified fields, N
 ## Roadmap and known limitations
 
 - [ ] Production load test on the live Vercel URL (k6 or autocannon, off-peak, free-tier respectful).
-- [ ] SLO measurement pipeline + uptime monitor + Sentry (gap G-3 in AUDIT).
+- [ ] SLO measurement pipeline + uptime monitor (gap G-3 in AUDIT). [x] Sentry error tracking is shipped — set `SENTRY_DSN` in the Vercel project to arm it.
 - [ ] Neon-branch PITR restore drill (needs Neon API key; logical restore drill done).
 - [ ] Admin inbox UI (API-only today) and ratings→recommendations loop (stored, not consumed).
 - [ ] Chained prompt-injection battery (current: 5 standalone probes, gap G-7).
@@ -333,7 +331,8 @@ Details: [`docs/DATA.md`](docs/DATA.md). 60-row curated seed (verified fields, N
 ## Project structure
 
 ```
-api/            Vercel serverless entry (strips /api mount prefix)
+api/            Vercel serverless entry (maps /api/* to routers; /api/v1/* kept
+                for the canonical mount)
 index.html      Landing page (front door /)
 app/index.html  SPA shell (/app in prod and dev)
 src/
