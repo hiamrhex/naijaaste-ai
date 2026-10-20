@@ -34,7 +34,13 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   {
-    files: ['public/landing.js'],
+    // Browser specs: the assertions run inside the page, so the DOM globals
+    // are legitimately referenced from the test file itself.
+    files: ['tests/e2e/**/*.spec.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
+    files: ['public/landing.js', 'public/offline.js'],
     languageOptions: { globals: globals.browser },
   },
   {

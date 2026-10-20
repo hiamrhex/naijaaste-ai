@@ -37,7 +37,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "http://localhost:3000", "https://accounts.google.com"],
+      connectSrc: ["'self'", "http://localhost:3000", "https://accounts.google.com", "https://commons.wikimedia.org"],
       frameSrc: ["https://accounts.google.com"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],

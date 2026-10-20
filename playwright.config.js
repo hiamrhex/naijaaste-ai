@@ -37,5 +37,13 @@ export default defineConfig({
       port: 5173,
       reuseExistingServer: true,
     },
+    {
+      // The production build, served with the same rewrites Vercel applies.
+      // Vite's dev server emits no service worker, so the service-worker
+      // assertions need the real dist/ (see tests/e2e/csp-sw-map.spec.js).
+      command: 'node scripts/serve-dist.mjs 4173 http://localhost:3000',
+      port: 4173,
+      reuseExistingServer: true,
+    },
   ],
 });

@@ -22,19 +22,6 @@
     <p>NaijaTaste needs a connection to find fresh spots. Check your network and try again — your saved places will be here when you're back.</p>
     <a href="/app" id="retry">Try again</a>
   </div>
-  <script>
-    // Bypass the service worker: a normal <a> click re-enters the SW and can
-    // loop straight back to this page. client.navigate() fetches from the
-    // network directly, so a real connection recovers immediately.
-    document.getElementById('retry').addEventListener('click', async function (e) {
-      e.preventDefault();
-      try {
-        const all = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-        const mine = all.find(function (c) { return c.url === window.location.href; });
-        if (mine) { await mine.navigate('/app'); return; }
-      } catch (_) { /* fall through to a plain navigation */ }
-      window.location.assign('/app');
-    });
-  </script>
+  <script src="/offline.js" defer></script>
 </body>
 </html>
