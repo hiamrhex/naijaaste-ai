@@ -3,6 +3,32 @@
 Every claim in docs/ must be reproducible from a command in this file.
 Windows/PowerShell 5.1 environment; dates in UTC.
 
+## 2026-10-20 — Live chat failure: root cause, model switch, fallbacks, deployment config
+
+| ID | Item | Claim | Method | Result today |
+|---|---|---|---|---|
+| L20-01 | Live repro | The live chat endpoint answers **JSON 500 `INTERNAL`** (not the plain-text platform body described in the report) | 1 request: `curl.exe -sS -i -X POST https://naijataste-ai.vercel.app/api/v1/chat -H "content-type: application/json" -d '{"message":"Hello, I want jollof rice in Lagos under 5000 naira"}'` | `HTTP/1.1 500`, `Content-Type: application/json`, body `{"error":{"code":"INTERNAL","message":"Internal server error"}}`, **no `X-Request-Id`** header → the live build predates `requestId`/typed-error work |
+| L20-02 | Root cause | The API key is **valid**; the configured model **hangs** | `node probes/gemini-probe.mjs` | key present, 53 chars, prefix `AQ.A`; `models.list` → 63 models; `gemini-3.8-flash` **no answer in 30s (AbortError)**, `gemini-3.7-flash` **no answer in 30s**, `gemini-3.5-flash-lite` **0.6s JSON ok**, `gemini-3.5-flash` 2.8s ok, `gemini-3.6-flash` 1.7s ok |
+| L20-03 | Real-prompt latency | The app's own prompts are slower than a toy prompt and models flap under load | `node probes/gemini-prompt-latency.mjs` (chat/recommend/review prompts, real catalogue) | chat: flash-lite 18.0s ok, 3.5-flash 11.9s ok, 3.6-flash 503; recommend: flash-lite 9.0s ok, 3.5-flash 503, 3.6-flash 15.5s (not JSON); review: flash-lite 7.1s ok, 3.5-flash 503, 3.6-flash 14.2s (not JSON) |
+| L20-04 | Model switch | Default is now `gemini-3.5-flash-lite`; a model chain walks the rest | `src/env.js` default, `.env`, `.env.example`, `vitest.config.js`; `src/services/llm.service.js` `MODEL_CHAIN` | chain = configured → `gemini-3.5-flash-lite` → `gemini-3.5-flash` → `gemini-3.6-flash`; failing models are marked degraded (timeout 10m, 404 6h) and skipped; known-hung models get a 5s probe instead of the full attempt budget |
+| L20-05 | Budget | One deadline covers attempts + retries + the corrective JSON retry + the whole agent turn | `src/services/llm.service.js` (`LLM_TOTAL_TIMEOUT_MS`, `LLM_TIMEOUT_MS`), `src/agent/agent.js` | total **35s**, per attempt **20s**, function `maxDuration` 60s → the API answers with JSON before the platform can kill it |
+| L20-06 | Typed errors | Model failures become JSON with a request id | `src/lib/errors.js` (`AiTimeoutError` 504, `AiUnavailableError` 503), `src/middleware/errorHandler.js` | `POST /api/v1/chat` timeout → **504 `AI_TIMEOUT` + requestId**; provider failure → **503 `AI_UNAVAILABLE` + requestId** (`tests/ai-timeout.test.js`) |
+| L20-07 | Cold start + Neon | The same request logs cold start **and** Neon wake-up | `node probes/db-timing-probe.mjs` | `cold_start_ms=2466`, `db_wake_ms=3134`, `db_init_ms=3909`, request `duration_ms=4106` — all on the `request completed` line |
+| L20-08 | Deterministic fallback | When the model fails, the agent answers from the real catalogue (no Gemini call) | `src/services/fallback.service.js`, `src/services/hints.service.js`; `tests/fallback.test.js` | `POST /agent` with a hung model → **200**, `meta.fallback=true`, real restaurant names, `trace[0].tool="deterministic_fallback"`; with nothing to offer → **504 `AI_TIMEOUT` + requestId** |
+| L20-09 | Frontend | No raw parser error ever reaches the UI; friendly message + request id + retry | `src/lib/api.js` (`readJson`), all client call sites, `src/screens/HomeScreen.jsx` | plain-text 500 → “The server had a problem completing that request. Please try again. (Request ID: …)” + **Try again** button; verified in a real browser: `tests/e2e/error-handling.spec.js` (1 passed) |
+| L20-10 | Deployment config | Static documents now carry CSP + anti-framing headers (D-2) | `vercel.json` `headers`; `tests/deployment-config.test.js` | CSP `script-src 'self'` (no `unsafe-inline`), `object-src 'none'`, `frame-ancestors 'self'`, `X-Frame-Options`, `nosniff`, `Referrer-Policy`; rule is `/:path((?!api/).*)` so the API keeps exactly one CSP (helmet's); `offline.html` inline script moved to `public/offline.js` so the strict policy holds |
+| L20-11 | Stale pointer | README/media script pointed at the dead `naijaaste` host | `curl.exe -s -o NUL -w "%{http_code}" https://<host>/health` | `naijaaste-ai.vercel.app` → **404**, `naijataste-ai.vercel.app` → **200**; README + `scripts/capture-media.mjs` corrected |
+| L20-12 | Gate | Full local gate after every change | `npm run lint` → `npm run build` → `npm run test:sw` → `npx vitest run --maxWorkers=2` → `npx playwright test` → `npm run scan:secrets` → `npm run check:docs` | lint clean; build 5.75s (40 precache entries); sw **6/6**; vitest **220/220 (36 files)**; playwright **2 passed, 1 skipped**; secrets clean (239 files); docs OK (23 files) |
+| L20-13 | End-to-end (real key) | The real endpoints work with the real key and the real database | `node probes/live-llm-e2e.mjs` | `POST /api/v1/chat` → **200**, 8.3s, real answer, request id present; `POST /agent` → **200**, 30.9s, real answer; probe account deleted afterwards |
+
+### Not verified / still open
+
+- **Deployment itself.** No Vercel CLI, token or `~/.vercel` credentials exist on this machine, so the fixed build was **not** deployed; the live host still runs the old build (see L20-01). Deploying needs the operator's Vercel access.
+- **Live verification after deploy**: the typed `AI_TIMEOUT`/`AI_UNAVAILABLE` bodies, the static-document CSP headers and the friendly-error UI can only be confirmed on the live host after a deploy.
+- **The originally reported plain-text body** (`Unexpected token 'A', 'An error o…'`) was not reproduced live; the one probe returned JSON 500. The hanging model, however, is the mechanism that would produce a platform kill, and it was reproduced directly (L20-02).
+- **Model stability**: Gemini 3.5/3.6 answer but intermittently 503 under load (L20-03). The chain plus the deterministic fallback covers it, but a long soak is still needed to size the real p95.
+- **Sentry / alerting / Neon backup-restore** remain un-armed (unchanged from previous sessions).
+
 ## 2026-10-19 — Fix phase (approved audit findings; one commit per item)
 
 | ID | Item | Fix | Proof | Commit |
