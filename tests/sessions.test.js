@@ -1,6 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { randomUUID } from 'crypto';
+
+// Several agent turns in this file; the LLM limiter (10/min) would answer
+// 429 and mask the ownership assertions. vi.hoisted runs before the imports
+// below, so the app is built with the raised budget.
+vi.hoisted(() => {
+  process.env.RATE_LIMIT_LLM_MAX = '500';
+  process.env.RATE_LIMIT_API_MAX = '5000';
+});
+
 import { app } from '../src/app.js';
 
 // Plan 012: agent never reaches the LLM here — ownership/validation happen
@@ -50,9 +59,13 @@ describe('session params + ownership (plan 012)', () => {
     expect(again.body.message).toBe('mocked reply');
   });
 
-  it('anonymous bearer read of a session still works', async () => {
+  it('an anonymous read of a user-owned session is 404 (ownership enforced)', async () => {
+    // Regression for the independent review's D-1: reading somebody else's
+    // session used to return 200. A signed-in session now requires the
+    // owning user's token.
     const created = await request(app).post('/agent')
       .set(auth(tokenA)).send({ message: 'seafood in Port Harcourt' }).expect(200);
-    await request(app).get(`/chat/${created.body.session_id}`).expect(200);
+    await request(app).get(`/chat/${created.body.session_id}`).expect(404);
+    await request(app).get(`/chat/${created.body.session_id}`).set(auth(tokenA)).expect(200);
   });
 });

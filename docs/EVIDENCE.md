@@ -3,6 +3,19 @@
 Every claim in docs/ must be reproducible from a command in this file.
 Windows/PowerShell 5.1 environment; dates in UTC.
 
+## 2026-10-20 — Independent-review fix phase (one commit per item)
+
+| ID | Item | Claim | Method | Result today |
+|---|---|---|---|---|
+| IR-01 | Chat session ownership (review D-1 / IQ-26) | `GET`/`DELETE /chat/:sessionId` enforce ownership on **every** mount; a signed-in session belongs to its user, an anonymous session to its bearer capability, and everyone else gets 404 | `migrations/005_chat_session_ownership.sql`, `src/services/chat.service.js`, `src/routes/chat.routes.js`; `tests/chat-ownership.test.js` (13 tests × mounts `/api/v1`, root, Vercel `/api` prefix) | foreign user GET → **404 `SESSION_NOT_FOUND`**, foreign DELETE → **404**, session survives; no token → **404**; wrong capability → **404**; owner token → **200**; capability holder → **200** and may delete; continuing a foreign session → **404**; unknown UUID → 404, malformed → 400 |
+| IR-02 | Route inventory gate | Every route is authenticated, or explicitly allow-listed with a reason — a new unclassified route fails the build | `tests/route-inventory.test.js` | 38 routes classified; allow-list has a reason per entry; stale allow-list entries fail; the gate also asserts the allow-list covers **exactly** the unauthenticated routes (so a guard cannot be hidden by an allow-list entry) |
+| IR-03 | Anonymous capability storage | The clear capability is never persisted — only its SHA-256 | `src/services/chat.service.js` (`hashCapability`, `capabilityMatches` with `timingSafeEqual`), `sessions.capability_hash` | capability returned once at creation; comparison is constant-time |
+
+### Not verified / still open (fix phase)
+
+- Live verification of the ownership rules requires a deploy; the live host still runs the pre-fix build (see L20-01).
+- `POST /chat` remains anonymous by design (it creates the session and hands out the capability); it is rate limited but not account-bound. This is now an explicit allow-list entry rather than an implicit gap.
+
 ## 2026-10-20 — Live chat failure: root cause, model switch, fallbacks, deployment config
 
 | ID | Item | Claim | Method | Result today |

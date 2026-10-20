@@ -63,8 +63,31 @@ carries `requestId`, and every `429` carries `Retry-After` + draft-7
 ## Taste + discovery
 
 - `POST /agent` (JWT) → `{ session_id, stage, message, extracted_persona, recommendations, trace, meta }`. Sessions owner-bound: foreign id → 403.
-- `POST /chat` → `{ session_id, message, … }` (400 on `{}`, 400 over 500 chars).
-- `GET /chat/:sessionId` (UUID, else 400) · `DELETE /chat/:sessionId` → 404 `SESSION_NOT_FOUND` when unknown.
+- `POST /chat` → `{ session_id, message, … }` (400 on `{}`, 400 over 500 chars). Continuing a session you do not own → 404 `SESSION_NOT_FOUND`.
+- `GET /chat/:sessionId` (UUID, else 400) · `DELETE /chat/:sessionId` → 404 `SESSION_NOT_FOUND` when unknown **or not yours**.
+
+### Chat session ownership
+
+Every chat session has exactly one owner, and both `GET` and `DELETE`
+`/chat/:sessionId` enforce it on every mount (`/api/v1/…`, the legacy root
+mount, and the Vercel `/api/…` rewrite):
+
+| Session owner | How to prove it | Wrong caller gets |
+|---|---|---|
+| Signed-in user | `Authorization: Bearer <access token>` | `404 SESSION_NOT_FOUND` |
+| Anonymous caller | `Authorization: Bearer <session capability>` | `404 SESSION_NOT_FOUND` |
+
+- A session created by a signed-in user is bound to that user
+  (`sessions.user_id`).
+- A session created anonymously gets a `session_capability` **once**, in the
+  creation response. Only a SHA-256 of it is stored
+  (`sessions.capability_hash`); the clear value is never persisted. The
+  capability is presented as a bearer token on later reads/deletes.
+- A caller without ownership always gets **404, never 403/401** — a
+  "forbidden" answer would confirm that a session id exists.
+- `tests/chat-ownership.test.js` proves this on every mount;
+  `tests/route-inventory.test.js` fails the build if a route is neither
+  authenticated nor explicitly allow-listed.
 - `GET /nearby?lat=6.52&lng=3.38&limit=8&radius_km=25` → `{ origin, radius_km, count, results[] }` with `distance_km` + `directions_url`. Bad/missing coords → 400.
 - `GET /restaurants/geo?ids=r001,r002` → `{ geo: { r001: { lat, lng, directions_url } } }`.
 - `POST /extract-persona` (`raw_text`, min 10 chars) · `POST /update-preference` (`signal.rating` integer 1–5) · `POST /recommend` (`persona` with city/budget/spice/ambience/cuisines/dietary) · `POST /generate-review` (`persona` + full `restaurant`).
