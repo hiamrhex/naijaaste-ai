@@ -7,11 +7,12 @@
 
 | Asset | Attackers | Entry points | Key mitigations |
 |---|---|---|---|
-| Accounts + sessions | Credential stuffing, phishing | signup/signin/reset/Google | bcrypt-12, generic 401s, OTP attempt caps + cooldown, jti revocation |
-| Refresh tokens | XSS theft, replay | cookie, `/auth/refresh` | httpOnly root-path cookie, rotation + reuse → 401, mirrored clear |
+| Accounts + sessions | Credential stuffing, phishing | signup/signin/reset/Google | bcrypt-12, generic 401s with equal cost, per-(email, ip) lockout after 10 failures, OTP attempt caps + cooldown, jti revocation |
+| Refresh tokens | XSS theft, replay | cookie, `/auth/refresh` | httpOnly root-path cookie, rotation + reuse → 401, mirrored clear, `Cache-Control: no-store` |
 | Conversations | Session-ID guessing, cross-user reads | `/chat/:id`, `/agent` | UUID validation, owner binding + 403, bearer-only anonymous reads (documented) |
 | Gemini quota/budget | Scraping, cost loops | 6 LLM routes × 2 mounts | 10/min per-client limiter both mounts, MAX_STEPS=6, token caps |
-| Mailbox abuse | Reset bombing | `/auth/forgot-password` | 10/min limiter, 60s resend cooldown, fail-closed without SMTP |
+| Mailbox abuse | Reset bombing | `/auth/forgot-password` | IP budget, 60s resend cooldown (absorbed silently), fail-closed without SMTP |
+| Account enumeration | Credential stuffing, phishing | `/auth/forgot-password`, `/auth/signin` | identical status/body/timing for known and unknown emails, denylist, no `429` cooldown signal |
 | Logs/repo | Secret leakage | pino, error bodies | Redact list (OTP/password/credential/token), `dev_otp` flag-gated, secret-scan CI |
 
 Out of scope (explicit): DDoS absorption (provider edge), device compromise, Gemini-side data handling.
@@ -20,11 +21,16 @@ Out of scope (explicit): DDoS absorption (provider edge), device compromise, Gem
 
 - [x] zod validation on bodies/params/env; `validate()` middleware on LLM routes
 - [x] Ownership checks (agent sessions, favorites, ratings); role gate on `/admin/*`
-- [x] Timing-safe OTP compare; HMAC-hashed codes; 10-min TTL
+- [x] Timing-safe OTP compare; HMAC-hashed codes; 10-min TTL; atomic attempt accounting
+- [x] No enumeration oracle: known and unknown emails get identical status, body and timing
+- [x] Brute-force lockout on `(email, ip)` — 10 failures → 15 min, cleared on success
+- [x] Length-first password policy + common-password denylist + email-derived rejection
 - [x] `Retry-After` + draft-7 `RateLimit` headers on every 429
+- [x] `Cache-Control: no-store` + `requestId` on every auth response
 - [x] CORS allowlist, fail-closed boot in production
 - [x] Helmet headers; CSP **enforced** in production (strict `script-src 'self'` + Google; `object-src 'none'`, `frame-ancestors 'self'`)
 - [x] Access token memory-only on client; localStorage holds `{ user }` only (`src/lib/auth.js:13-17`); refresh cookie httpOnly
+- [x] Pooled-DB resilience: one retry on a connection-level failure, TCP keepalive on
 
 ## Reporting vulnerabilities
 

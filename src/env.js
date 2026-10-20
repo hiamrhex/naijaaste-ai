@@ -4,6 +4,11 @@ import { z } from 'zod';
 const EnvSchema = z.object({
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
   GEMINI_MODEL: z.string().min(1).default('gemini-3.8-flash'),
+  // Hard ceiling for ALL Gemini attempts + backoff in one request. Kept well
+  // below vercel.json maxDuration (60s) so Express can still answer with JSON.
+  GEMINI_TOTAL_TIMEOUT_MS: z.coerce.number().int().positive().default(25000),
+  // Ceiling for a single attempt; the total budget always wins.
+  GEMINI_ATTEMPT_TIMEOUT_MS: z.coerce.number().int().positive().default(12000),
   PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
@@ -16,6 +21,15 @@ const EnvSchema = z.object({
   SMTP_FROM: z.string().optional(),
   RATE_LIMIT_API_MAX: z.coerce.number().int().positive().default(600),
   RATE_LIMIT_LLM_MAX: z.coerce.number().int().positive().default(10),
+  // Auth limits are per client IP. They are deliberately generous because
+  // Nigerian carriers put whole neighbourhoods behind one address; the
+  // precise control is the per-(email, ip) lockout in src/auth/lockout.js.
+  AUTH_RATE_LIMIT_SIGNUP_MAX: z.coerce.number().int().positive().default(25),
+  AUTH_RATE_LIMIT_SIGNIN_MAX: z.coerce.number().int().positive().default(50),
+  AUTH_RATE_LIMIT_REFRESH_MAX: z.coerce.number().int().positive().default(60),
+  AUTH_RATE_LIMIT_GOOGLE_MAX: z.coerce.number().int().positive().default(10),
+  AUTH_RATE_LIMIT_FORGOT_MAX: z.coerce.number().int().positive().default(10),
+  AUTH_RATE_LIMIT_RESET_MAX: z.coerce.number().int().positive().default(20),
   CORS_ORIGIN: z.string().optional(),
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(1),
   GOOGLE_CLIENT_ID: z.string().optional(),

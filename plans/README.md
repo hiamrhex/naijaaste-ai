@@ -32,6 +32,7 @@ and push to `origin/master`. Never push if any Done criterion fails; stop and re
 | 012 | Bind agent sessions to owners, validate session params (finding 5) | P1 | M | — | DONE |
 | 013 | Root-path refresh cookie, mirrored clear attrs (finding 8) | P1 | S | — | DONE |
 | 014 | Review-tool lookup by id before name fallback (finding 4) | P1 | S | — | DONE |
+| 015 | Close auth enumeration oracles, brute-force lockout, seamless OTP reset | P1 | M | — | DONE |
 | 007 | PRD Phase 0 foundation: TS agent server, Postgres, model seam, CI, staging | P0 | L | PRD v1.0 | IN PROGRESS |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale) | DEFERRED (with reason).

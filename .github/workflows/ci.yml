@@ -67,3 +67,7 @@ jobs:
           GEMINI_API_KEY: ci-not-needed
           JWT_ACCESS_SECRET: ci-access-secret-0123456789abcdef
           JWT_REFRESH_SECRET: ci-refresh-secret-fedcba9876543210
+          # CI has no SMTP, so the password-reset code is surfaced in the
+          # response and the UI shows it in the dev panel. Never enabled in a
+          # deployment (the server refuses to return it in production).
+          DEV_OTP_ENABLED: 'true'

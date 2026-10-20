@@ -3,6 +3,7 @@ import { ChefHat, ArrowRight, Loader2, Eye, EyeOff, Shield, KeyRound, ArrowLeft,
 import GithubIcon from './GithubIcon.jsx';
 import { signin, signup, forgotPassword, resetPassword, googleSignIn } from '../lib/auth.js';
 import { API, GITHUB_REPO_URL } from '../constants/index.js';
+import { readJson } from '../lib/api.js';
 
 const S = {
   wrap: {
@@ -118,7 +119,7 @@ export default function AuthGate({ onAuth, initialMode = 'signin' }) {
     const load = () => {
       if (cancelled) return;
       fetch(`${API}/health`)
-        .then((r) => r.json())
+        .then((r) => readJson(r))
         .then((h) => {
           if (cancelled) return;
           if (!h?.features?.google_auth) return;
@@ -315,7 +316,7 @@ export default function AuthGate({ onAuth, initialMode = 'signin' }) {
         )}
 
         {devOtp && (
-          <div className="fade-slide" style={{
+          <div className="fade-slide" data-testid="dev-otp" style={{
             background: 'rgba(249,115,22,0.07)', border: '1px dashed rgba(249,115,22,0.45)',
             borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: '#F97316',
             marginBottom: 12, textAlign: 'center',

@@ -5,7 +5,9 @@ import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken,
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
 import { issueOtp, verifyOtp } from '../auth/otp.js';
-import { sendOtpEmail } from '../services/email.service.js';
+import { lockStatus, recordFailure, clearFailures } from '../auth/lockout.js';
+import { passwordProblem } from '../auth/password.js';
+import { sendOtpEmail, otpShownInResponse } from '../services/email.service.js';
 import { verifyGoogleCredential, googleAuthEnabled } from '../auth/google.js';
 import { env } from '../env.js';
 import { getRestaurantsByCodes, findRestaurantByCode } from '../db/catalogue.js';
@@ -13,30 +15,72 @@ import { createSavedPlace, listSavedPlaces, deleteSavedPlace } from '../saved_pl
 
 const router = Router();
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
+// Auth keeps its historical `{ success, error }` envelope (the SPA reads it),
+// but every failure now carries the requestId so a user-reported failure is
+// traceable in the logs — and every 429 carries Retry-After.
+const failAuth = (res, { status, code, message, requestId, retryAfterSec }) => {
+  if (retryAfterSec) res.set('Retry-After', String(retryAfterSec));
+  return res.status(status).json({
+    success: false,
+    error: { code, message, ...(requestId ? { requestId } : {}) },
+  });
+};
+
+// Token-bearing responses must never be cached by a proxy or the bfcache.
+// Scoped to the auth routes: the router is mounted at "/" as well, so a
+// router-wide header would have made every API response uncacheable.
+const noStore = (_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+};
+
+// One bucket per flow. A shared bucket meant a signup loop could lock a user
+// out of sign-in and refresh (and vice versa) - the limit protected the
+// server, but the user paid for it.
+const limiter = (windowMs, max, message) => rateLimit({
+  windowMs,
+  max,
+  standardHeaders: 'draft-7',
   legacyHeaders: false,
-  message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many attempts. Try again in 15 minutes.' } },
+  handler: (req, res) => failAuth(res, {
+    status: 429,
+    code: 'RATE_LIMITED',
+    message,
+    requestId: req.id,
+    retryAfterSec: Math.ceil(windowMs / 1000),
+  }),
 });
 
-const resetLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many reset requests. Try again in 15 minutes.' } },
-});
+// Limits are per client IP. They are generous on purpose: Nigerian mobile
+// carriers put whole neighbourhoods behind one address (carrier-grade NAT), so
+// a tight IP budget locks out innocent neighbours. The precise control is the
+// per-(email, ip) lockout below, which cannot be used to lock a victim out.
+const signupLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_SIGNUP_MAX, 'Too many accounts created from this network. Try again in 15 minutes.');
+const signinLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_SIGNIN_MAX, 'Too many sign-in attempts. Try again in 15 minutes.');
+// A live tab rehydrates its access token from the cookie on load and on every
+// 401, so this bucket has to be generous or long-lived sessions break.
+const refreshLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_REFRESH_MAX, 'Too many session refreshes. Try again in 15 minutes.');
+const googleLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_GOOGLE_MAX, 'Too many Google sign-in attempts. Try again in 15 minutes.');
+// Requesting a code and guessing a code are different budgets: a user who
+// mistypes their code must not spend the same quota as one who spams requests.
+const forgotLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_FORGOT_MAX, 'Too many reset codes requested. Try again in 15 minutes.');
+const resetLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_RESET_MAX, 'Too many reset attempts. Try again in 15 minutes.');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// A valid bcrypt-12 hash of a value nobody knows. Comparing against it when
+// the account does not exist makes an unknown email cost the same wall-clock
+// time as a known one - without it the 401 for an unknown email returned in
+// ~5ms against ~300ms for a known one, which enumerated accounts by timing.
+const DUMMY_HASH = '$2b$12$ZTYY5K5HLW9ioreuYOavCexQvP5mkWhSqT5ogWo2iB9V/N.YPBjHC';
 
 const validateSignup = (body) => {
   const errors = [];
   const { name, email, password } = body || {};
   if (!name || typeof name !== 'string' || name.trim().length < 2) errors.push('name must be at least 2 characters');
   if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) errors.push('valid email is required');
-  if (!password || typeof password !== 'string' || password.length < 8) errors.push('password must be at least 8 characters');
+  const weak = passwordProblem(password, email);
+  if (weak) errors.push(weak);
   return errors;
 };
 
@@ -64,15 +108,15 @@ const issueTokens = async (user, res, status = 200) => {
   return res.status(status).json({ success: true, user, accessToken });
 };
 
-router.post('/auth/signup', authLimiter, async (req, res) => {
+router.post('/auth/signup', noStore, signupLimiter, async (req, res) => {
   try {
     const errors = validateSignup(req.body);
     if (errors.length) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; ') } });
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; '), requestId: req.id } });
     }
     const { name, email, password } = req.body;
     if (await findUserByEmail(email)) {
-      return res.status(409).json({ success: false, error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists' } });
+      return res.status(409).json({ success: false, error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists', requestId: req.id } });
     }
     const passwordHash = await bcrypt.hash(password, 12);
     try {
@@ -80,65 +124,82 @@ router.post('/auth/signup', authLimiter, async (req, res) => {
       return await issueTokens(user, res, 201);
     } catch (err) {
       if (err.code === 'EMAIL_TAKEN') {
-        return res.status(409).json({ success: false, error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists' } });
+        return res.status(409).json({ success: false, error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists', requestId: req.id } });
       }
       throw err;
     }
   } catch (err) {
     req.log?.error({ err }, 'auth signup failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signup failed' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signup failed', requestId: req.id } });
   }
 });
 
-router.post('/auth/signin', authLimiter, async (req, res) => {
+router.post('/auth/signin', noStore, signinLimiter, async (req, res) => {
   try {
     const errors = validateSignin(req.body);
     if (errors.length) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; ') } });
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; '), requestId: req.id } });
     }
     const { email, password } = req.body;
+    const ip = req.ip || 'unknown';
+
+    // Brute-force lockout, keyed on (email, ip) so it cannot be used to lock a
+    // victim out - and so it fires identically for unknown emails.
+    const lock = await lockStatus(email, ip);
+    if (lock.locked) {
+      return failAuth(res, {
+        status: 429,
+        code: 'ACCOUNT_LOCKED',
+        message: 'Too many failed sign-in attempts. Try again later.',
+        requestId: req.id,
+        retryAfterSec: Math.ceil(lock.retryAfterMs / 1000),
+      });
+    }
+
     const user = await findUserByEmail(email);
-    if (!user || !user.password_hash) {
-      return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } });
+    // Always pay the bcrypt cost - for a missing account compare against a
+    // throwaway hash so the response time cannot be used to tell whether the
+    // email is registered.
+    const ok = await bcrypt.compare(password, user?.password_hash || DUMMY_HASH);
+    if (!user || !user.password_hash || !ok) {
+      await recordFailure(email, ip);
+      return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password', requestId: req.id } });
     }
-    const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) {
-      return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } });
-    }
+    await clearFailures(email, ip);
     await updateUser(user.id, { last_login: new Date().toISOString() });
     return await issueTokens(sanitize(user), res);
   } catch (err) {
     req.log?.error({ err }, 'auth signin failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signin failed' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signin failed', requestId: req.id } });
   }
 });
 
-router.post('/auth/refresh', authLimiter, async (req, res) => {
+router.post('/auth/refresh', noStore, refreshLimiter, async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
     if (!token) {
-      return res.status(401).json({ success: false, error: { code: 'NO_REFRESH_TOKEN', message: 'Refresh token required' } });
+      return res.status(401).json({ success: false, error: { code: 'NO_REFRESH_TOKEN', message: 'Refresh token required', requestId: req.id } });
     }
     const payload = verifyRefreshToken(token);
     if (payload.type !== 'refresh' || !(await hasRefreshToken(payload.sub, payload.jti))) {
-      return res.status(401).json({ success: false, error: { code: 'INVALID_REFRESH', message: 'Invalid refresh token' } });
+      return res.status(401).json({ success: false, error: { code: 'INVALID_REFRESH', message: 'Invalid refresh token', requestId: req.id } });
     }
     const user = await findUserById(payload.sub);
     if (!user) {
-      return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'User no longer exists' } });
+      return res.status(401).json({ success: false, error: { code: 'UNAUTHENTICATED', message: 'User no longer exists', requestId: req.id } });
     }
     await revokeRefreshToken(user.id, payload.jti);
     return await issueTokens(sanitize(user), res);
   } catch (err) {
     if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
-      return res.status(401).json({ success: false, error: { code: 'INVALID_REFRESH', message: 'Invalid or expired refresh token' } });
+      return res.status(401).json({ success: false, error: { code: 'INVALID_REFRESH', message: 'Invalid or expired refresh token', requestId: req.id } });
     }
     req.log?.error({ err }, 'auth refresh failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Token refresh failed' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Token refresh failed', requestId: req.id } });
   }
 });
 
-router.post('/auth/signout', async (req, res) => {
+router.post('/auth/signout', noStore, async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
     if (token) {
@@ -156,19 +217,19 @@ router.post('/auth/signout', async (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     req.log?.error({ err }, 'auth signout failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signout failed' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Signout failed', requestId: req.id } });
   }
 });
 
-router.get('/auth/me', requireAuth, (req, res) => {
+router.get('/auth/me', noStore, requireAuth, (req, res) => {
   return res.json({ success: true, user: req.user });
 });
 
-router.delete('/auth/me', requireAuth, async (req, res) => {
+router.delete('/auth/me', noStore, requireAuth, async (req, res) => {
   try {
     const result = await deleteUserAccount(req.user.id);
     if (!result.ok) {
-      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
+      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found', requestId: req.id } });
     }
     res.clearCookie('refreshToken', {
       path: '/',
@@ -179,26 +240,26 @@ router.delete('/auth/me', requireAuth, async (req, res) => {
     return res.json({ success: true, deleted: true });
   } catch (err) {
     req.log?.error({ err }, 'auth delete-account failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not delete account' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not delete account', requestId: req.id } });
   }
 });
 
 // ─── Google sign-in (identity services credential) ──────────────────────────
-router.post('/auth/google', authLimiter, async (req, res) => {
+router.post('/auth/google', noStore, googleLimiter, async (req, res) => {
   try {
     const { credential } = req.body || {};
     if (!credential || typeof credential !== 'string' || credential.length > 8192) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'credential is required' } });
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'credential is required', requestId: req.id } });
     }
     if (!googleAuthEnabled()) {
-      return res.status(503).json({ success: false, error: { code: 'GOOGLE_NOT_CONFIGURED', message: 'Google sign-in is not configured on this server' } });
+      return res.status(503).json({ success: false, error: { code: 'GOOGLE_NOT_CONFIGURED', message: 'Google sign-in is not configured on this server', requestId: req.id } });
     }
     let profile;
     try {
       profile = await verifyGoogleCredential(credential);
     } catch (err) {
       if (err.code === 'GOOGLE_INVALID_TOKEN') {
-        return res.status(401).json({ success: false, error: { code: 'GOOGLE_INVALID_TOKEN', message: 'Invalid Google credential' } });
+        return res.status(401).json({ success: false, error: { code: 'GOOGLE_INVALID_TOKEN', message: 'Invalid Google credential', requestId: req.id } });
       }
       throw err;
     }
@@ -206,52 +267,63 @@ router.post('/auth/google', authLimiter, async (req, res) => {
     return await issueTokens(user, res, 200);
   } catch (err) {
     req.log?.error({ err }, 'auth google failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Google sign-in failed' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Google sign-in failed', requestId: req.id } });
   }
 });
 
 // ─── Forgot / reset password (OTP via email) ─────────────────────────────────
-// Always returns 200 for unknown emails (no account enumeration).
-router.post('/auth/forgot-password', resetLimiter, async (req, res) => {
+// The response is IDENTICAL for known and unknown emails - always 200, always
+// the same message. The old implementation answered a second request inside
+// the resend cooldown with 429 RESEND_COOLDOWN, so "429 within 60s" against
+// "200" told an attacker whether the account existed. The cooldown still
+// protects the mailbox; it is simply no longer observable.
+const RESET_MESSAGE = 'If that account exists, a reset code has been sent.';
+
+router.post('/auth/forgot-password', noStore, forgotLimiter, async (req, res) => {
   try {
     const { email } = req.body || {};
     if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'valid email is required' } });
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'valid email is required', requestId: req.id } });
     }
     const user = await findUserByEmail(email);
     if (!user) {
-      return res.json({ success: true, message: 'If that account exists, a reset code has been sent.' });
+      return res.json({ success: true, message: RESET_MESSAGE });
     }
     let code;
     try {
-      code = await issueOtp(user.email);
+      // With no SMTP the code is returned in the response instead of being
+      // mailed, so there is no inbox to protect and the caller must always
+      // get a usable code - re-issue freely.
+      code = await issueOtp(user.email, { force: otpShownInResponse() });
     } catch (err) {
       if (err.code === 'RESEND_COOLDOWN') {
-        return res.status(429).json({ success: false, error: { code: 'RESEND_COOLDOWN', message: err.message, retry_after_ms: err.retryAfterMs } });
+        // Keep the still-valid earlier code, send nothing, answer identically.
+        return res.json({ success: true, message: RESET_MESSAGE });
       }
       throw err;
     }
     const delivery = await sendOtpEmail({ to: user.email, name: user.name, code });
     return res.json({
       success: true,
-      message: 'If that account exists, a reset code has been sent.',
+      message: RESET_MESSAGE,
       ...(delivery.dev_otp ? { dev_otp: delivery.dev_otp } : {}),
     });
   } catch (err) {
     req.log?.error({ err }, 'auth forgot-password failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request', requestId: req.id } });
   }
 });
 
-router.post('/auth/reset-password', resetLimiter, async (req, res) => {
+router.post('/auth/reset-password', noStore, resetLimiter, async (req, res) => {
   try {
     const { email, otp, new_password } = req.body || {};
     const errors = [];
     if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) errors.push('valid email is required');
     if (!otp || typeof otp !== 'string' || !/^\d{6}$/.test(otp)) errors.push('6-digit code is required');
-    if (!new_password || typeof new_password !== 'string' || new_password.length < 8) errors.push('new password must be at least 8 characters');
+    const weak = passwordProblem(new_password, email);
+    if (weak) errors.push(weak);
     if (errors.length) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; ') } });
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; '), requestId: req.id } });
     }
     const result = await verifyOtp(email, otp);
     if (!result.ok) {
@@ -261,12 +333,12 @@ router.post('/auth/reset-password', resetLimiter, async (req, res) => {
         max_attempts: 'Too many attempts — request a new code',
         mismatch: `Incorrect code — ${result.attemptsLeft} attempts left`,
       };
-      return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: messages[result.reason] } });
+      return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: messages[result.reason], requestId: req.id } });
     }
     const user = await findUserByEmail(email);
     if (!user) {
       // OTP verified but user gone — treat as generic failure, do not leak state
-      return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: 'Invalid or expired reset code' } });
+      return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: 'Invalid or expired reset code', requestId: req.id } });
     }
     const passwordHash = await bcrypt.hash(new_password, 12);
     await setPasswordHash(user.id, passwordHash);
@@ -274,7 +346,7 @@ router.post('/auth/reset-password', resetLimiter, async (req, res) => {
     return res.json({ success: true, message: 'Password updated — sign in with your new password.' });
   } catch (err) {
     req.log?.error({ err }, 'auth reset-password failed');
-    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request' } });
+    return res.status(500).json({ success: false, error: { code: 'INTERNAL', message: 'Could not process request', requestId: req.id } });
   }
 });
 
@@ -290,14 +362,14 @@ router.get('/auth/favorites', requireAuth, async (req, res) => {
 router.post('/auth/favorites', requireAuth, async (req, res) => {
   const { restaurant_id } = req.body || {};
   if (!restaurant_id || typeof restaurant_id !== 'string') {
-    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'restaurant_id is required' } });
+    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'restaurant_id is required', requestId: req.id } });
   }
   if (!(await findRestaurantByCode(restaurant_id))) {
-    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Unknown restaurant' } });
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Unknown restaurant', requestId: req.id } });
   }
   const result = await addFavorite(req.user.id, restaurant_id);
   if (!result.ok) {
-    return res.status(result.error === 'FAVORITES_FULL' ? 409 : 404).json({ success: false, error: { code: result.error, message: result.error === 'FAVORITES_FULL' ? 'Favorites list is full (max 50)' : 'User not found' } });
+    return res.status(result.error === 'FAVORITES_FULL' ? 409 : 404).json({ success: false, error: { code: result.error, message: result.error === 'FAVORITES_FULL' ? 'Favorites list is full (max 50)' : 'User not found', requestId: req.id } });
   }
   return res.status(result.added ? 201 : 200).json({ success: true, favorites: result.favorites, added: result.added });
 });
@@ -305,7 +377,7 @@ router.post('/auth/favorites', requireAuth, async (req, res) => {
 router.delete('/auth/favorites/:restaurant_id', requireAuth, async (req, res) => {
   const result = await removeFavorite(req.user.id, req.params.restaurant_id);
   if (!result.ok) {
-    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found', requestId: req.id } });
   }
   return res.json({ success: true, favorites: result.favorites, removed: result.removed });
 });
@@ -319,17 +391,17 @@ router.get('/auth/saved-places', requireAuth, async (req, res) => {
 router.post('/auth/saved-places', requireAuth, async (req, res) => {
   const { name } = req.body || {};
   if (!name || typeof name !== 'string' || !name.trim()) {
-    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'name is required' } });
+    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'name is required', requestId: req.id } });
   }
   try {
     const place = await createSavedPlace(req.user.id, { name });
     return res.status(201).json({ success: true, place });
   } catch (err) {
     if (err.code === 'SAVED_FULL') {
-      return res.status(409).json({ success: false, error: { code: 'SAVED_FULL', message: err.message } });
+      return res.status(409).json({ success: false, error: { code: 'SAVED_FULL', message: err.message, requestId: req.id } });
     }
     if (err.code === 'USER_NOT_FOUND') {
-      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
+      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found', requestId: req.id } });
     }
     throw err;
   }
@@ -339,7 +411,7 @@ router.post('/auth/saved-places', requireAuth, async (req, res) => {
 router.delete('/auth/saved-places/:id', requireAuth, async (req, res) => {
   const removed = await deleteSavedPlace(req.user.id, req.params.id);
   if (!removed) {
-    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Saved place not found' } });
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Saved place not found', requestId: req.id } });
   }
   return res.status(200).json({ success: true, removed: true, id: req.params.id });
 });

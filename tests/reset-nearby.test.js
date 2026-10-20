@@ -51,12 +51,21 @@ describe('Password reset flow (OTP)', () => {
     globalThis.__resetOtp = res.body.dev_otp;
   });
 
-  it('POST /auth/forgot-password rate-limits rapid resend with 429 cooldown', async () => {
+  it('POST /auth/forgot-password answers a rapid resend identically (no enumeration oracle)', async () => {
+    // A second request inside the resend cooldown used to answer 429
+    // RESEND_COOLDOWN for known accounts and 200 for unknown ones — which
+    // told an attacker exactly which emails are registered. Both now answer
+    // 200 with the same body.
     const res = await request(app)
       .post('/auth/forgot-password')
       .send({ email: resetEmail })
-      .expect(429);
-    expect(res.body.error.code).toBe('RESEND_COOLDOWN');
+      .expect(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toMatch(/reset code has been sent/);
+    // No SMTP in tests → the code comes back in the response, and a resend
+    // re-issues it (there is no inbox to protect).
+    expect(res.body.dev_otp).toMatch(/^\d{6}$/);
+    globalThis.__resetOtp = res.body.dev_otp;
   });
 
   it('POST /auth/reset-password rejects bad format with 400', async () => {

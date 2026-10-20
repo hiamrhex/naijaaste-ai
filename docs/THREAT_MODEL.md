@@ -69,9 +69,12 @@ Trust levels: **T0** unauthenticated visitor, **T1** authenticated user,
 
 | Threat | STRIDE | Mitigation | Evidence |
 |---|---|---|---|
-| Reset bombing / mailbox abuse | Denial of service | 10/min limiter, 60 s resend cooldown, fail-closed without SMTP | auth route tests |
-| OTP brute force | Elevation of privilege | 5-attempt lockout, 10-min TTL, timing-safe compare, HMAC at rest | auth tests |
-| Account enumeration | Information disclosure | Generic responses for signup/reset regardless of account existence | auth tests |
+| Reset bombing / mailbox abuse | Denial of service | Per-IP budget, 60 s resend cooldown absorbed silently, fail-closed without SMTP | auth route tests |
+| OTP brute force | Elevation of privilege | 5-attempt lockout with atomic accounting, 10-min TTL, timing-safe compare, HMAC at rest | `tests/auth-otp.test.js` |
+| Credential brute force / password spraying | Elevation of privilege | Per-(email, ip) lockout after 10 failures (15 min), generic 401s, per-flow IP budgets | `tests/auth-otp.test.js`, `tests/auth-limits.test.js` |
+| Account enumeration | Information disclosure | Identical status, body and cost for known and unknown emails on signup/reset/signin; no cooldown signal | `tests/auth-otp.test.js` (enumeration + timing parity) |
+| Weak / predictable password | Elevation of privilege | 8+ chars, common-password denylist, email-derived passwords rejected | `tests/auth-otp.test.js` |
+| Token replay from cache | Information disclosure | `Cache-Control: no-store` on every auth response, httpOnly refresh cookie | `tests/auth-otp.test.js` |
 | HTML injection into email body | Tampering | `escapeHtml` on all interpolated values in OTP templates | `tests/xss.test.js` |
 
 ### E5 — Supply chain and platform

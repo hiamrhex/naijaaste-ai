@@ -34,21 +34,29 @@ const prune = async (pool, now) => {
 /**
  * Issue a new OTP for an email. Throws { code: 'RESEND_COOLDOWN', retryAfterMs }
  * if one was issued within the cooldown window.
+ *
+ * `force` re-issues regardless of the cooldown. It exists for the one case
+ * where the cooldown protects nothing: dev mode without SMTP, where the code
+ * is shown in the response instead of being mailed, so there is no inbox to
+ * bomb and the caller must always get a usable code.
+ *
  * Returns the plaintext code — caller must deliver it (email/console) and never log it in prod.
  */
-export const issueOtp = async (email) => {
+export const issueOtp = async (email, { force = false } = {}) => {
   const pool = await getPool();
   const now = Date.now();
   await prune(pool, now);
   const key = email.toLowerCase().trim();
-  const { rows } = await pool.query('SELECT created_at FROM otps WHERE email = $1', [key]);
-  if (rows[0]) {
-    const createdAt = new Date(rows[0].created_at).getTime();
-    if (now - createdAt < RESEND_COOLDOWN_MS) {
-      const err = new Error('A new code was just sent — wait before requesting another');
-      err.code = 'RESEND_COOLDOWN';
-      err.retryAfterMs = RESEND_COOLDOWN_MS - (now - createdAt);
-      throw err;
+  if (!force) {
+    const { rows } = await pool.query('SELECT created_at FROM otps WHERE email = $1', [key]);
+    if (rows[0]) {
+      const createdAt = new Date(rows[0].created_at).getTime();
+      if (now - createdAt < RESEND_COOLDOWN_MS) {
+        const err = new Error('A new code was just sent — wait before requesting another');
+        err.code = 'RESEND_COOLDOWN';
+        err.retryAfterMs = RESEND_COOLDOWN_MS - (now - createdAt);
+        throw err;
+      }
     }
   }
   const code = String(randomInt(0, 1000000)).padStart(6, '0');
@@ -80,13 +88,23 @@ export const verifyOtp = async (email, code) => {
     await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: false, reason: 'expired', attemptsLeft: 0 };
   }
-  if (rec.attempts >= MAX_ATTEMPTS) {
+
+  // Claim the attempt atomically: the WHERE clause is the lock. A read-then-write
+  // counter let two concurrent guesses both spend the same attempt, so a valid
+  // code could be rejected while a wrong one had already used it up.
+  const { rows: claimed } = await pool.query(
+    `UPDATE otps SET attempts = attempts + 1
+     WHERE email = $1 AND attempts < $2
+     RETURNING attempts, code_hash`,
+    [key, MAX_ATTEMPTS]
+  );
+  if (!claimed.length) {
     await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: false, reason: 'max_attempts', attemptsLeft: 0 };
   }
-
-  const attempts = rec.attempts + 1;
-  const match = typeof code === 'string' && /^\d{6}$/.test(code) && safeEqual(rec.code_hash, hashCode(key, code));
+  const attempts = claimed[0].attempts;
+  const match = typeof code === 'string' && /^\d{6}$/.test(code)
+    && safeEqual(claimed[0].code_hash, hashCode(key, code));
 
   if (match) {
     await pool.query('DELETE FROM otps WHERE email = $1', [key]);
@@ -96,7 +114,6 @@ export const verifyOtp = async (email, code) => {
     await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: false, reason: 'max_attempts', attemptsLeft: 0 };
   }
-  await pool.query('UPDATE otps SET attempts = $2 WHERE email = $1', [key, attempts]);
   return { ok: false, reason: 'mismatch', attemptsLeft: MAX_ATTEMPTS - attempts };
 };
 

@@ -43,6 +43,18 @@ export const otpHtml = ({ name, code }) => `
 const smtpConfigured = () =>
   Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
 
+/** True only on explicit opt-in outside production — never on prod. */
+export const devOtpAllowed = () =>
+  env.DEV_OTP_ENABLED === 'true' && env.NODE_ENV !== 'production';
+
+/**
+ * True when the reset code can be shown in the API response instead of being
+ * mailed — i.e. no SMTP transport is configured and the operator opted in.
+ * Used by the route to decide whether the resend cooldown still protects
+ * anything (it does not: there is no inbox to bomb).
+ */
+export const otpShownInResponse = () => devOtpAllowed() && !smtpConfigured();
+
 let transporter = null;
 const getTransporter = () => {
   if (!transporter) {
@@ -66,7 +78,7 @@ export const sendOtpEmail = async ({ to, name, code }) => {
   const isProd = env.NODE_ENV === 'production';
   // dev_otp exists ONLY on explicit opt-in outside production — never on
   // SMTP failure alone (plan 008: misconfigured deploys must not leak codes).
-  const devOtpAllowed = env.DEV_OTP_ENABLED === 'true' && !isProd;
+  const devOtpAllowedNow = devOtpAllowed();
 
   if (!smtpConfigured()) {
     if (isProd) {
@@ -74,7 +86,7 @@ export const sendOtpEmail = async ({ to, name, code }) => {
       return { delivered: false };
     }
     logger.warn('smtp not configured — dev otp fallback (code withheld from logs)');
-    return devOtpAllowed ? { delivered: false, dev_otp: code } : { delivered: false };
+    return devOtpAllowedNow ? { delivered: false, dev_otp: code } : { delivered: false };
   }
 
   try {
@@ -88,6 +100,6 @@ export const sendOtpEmail = async ({ to, name, code }) => {
   } catch (err) {
     logger.error({ err }, 'smtp delivery failed');
     if (isProd) return { delivered: false };
-    return devOtpAllowed ? { delivered: false, dev_otp: code } : { delivered: false };
+    return devOtpAllowedNow ? { delivered: false, dev_otp: code } : { delivered: false };
   }
 };
