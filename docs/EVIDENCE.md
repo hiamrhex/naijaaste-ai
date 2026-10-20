@@ -297,3 +297,76 @@ supersedes Unverified #1 (live API) and #2 (prod DB present in `.env`).
 | F21-14 | Pre-push gates | `npm run lint` · `check:docs` · `check:ng-data` · `scan:secrets` · `test:all` | clean · OK · 4 files clean · 231 files clean · 29 files / 175 tests passed |
 | F21-15 | Data gate has every required file | `git cat-file -e HEAD:data/ng/dishes.json` | present from `da850bd` (was missing on `HEAD` before this push — CI would have failed) |
 | F21-16 | Sentry armed? | `SENTRY_DSN` unset in local `.env`; Vercel env not inspected | **NOT ARMED** — code is live but no events are sent until `SENTRY_DSN` is set in the Vercel project |
+
+---
+
+# Independent review evidence — 2026-10-19/20 (read-only audit)
+
+> **This section is independent.** It was produced by a separate auditor with no
+> authorship of this repo. Everything above is builder evidence and is left
+> untouched. Scores and narrative live in
+> [`docs/INDEPENDENT_REVIEW.md`](INDEPENDENT_REVIEW.md); this is the raw backing.
+> All probes: 2026-10-19 23:08 → 2026-10-20 00:04 UTC. Scripts ran from
+> `%TEMP%\opencode\audit\` (outside the repo). 8 LLM calls used (cap 10).
+
+| ID | Probe | Method | Result |
+|---|---|---|---|
+| IQ-00 | Which host is live | `GET /health` on both spellings | `naijaaste-ai.vercel.app` → **404 `DEPLOYMENT_NOT_FOUND`**; `naijataste-ai.vercel.app` → **200** `{"status":"ok",...,"features":{"google_auth":false}}` |
+| IQ-01 | Readiness | `GET /health/ready` | 200 `{"ready":true,"db":"up"}` |
+| IQ-02 | Anonymous endpoint sweep (34 cells) | signed-out matrix over advertised endpoints | 200: `/health`, `/health/ready`, `/api/v1/nearby`, `/api/v1/restaurants/geo` (with `ids`); 401: auth-scoped routes; 400: bad params |
+| IQ-03 | `GET /api/v1/restaurants/geo` validation | `?bbox=…` vs `?ids=r001,r002,r003` | `bbox` → 400 “ids query param required”; `ids` → 200 with lat/lng + `directions_url` |
+| IQ-04 | Signup | `POST /api/v1/auth/signup` | 201; sets `refreshToken` (HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=604800); returns `accessToken` |
+| IQ-05 | Auth matrix as normal user | `GET /auth/me`, `/auth/favorites`, `/auth/saved-places`, `GET/POST /ratings`, `POST /reports` | 200/200/200/200/201/201 with `success:true` |
+| IQ-06 | BFLA | user token → `/api/v1/admin/stats`, `/admin/reports`, `PATCH /admin/reports/:t` | **403 `FORBIDDEN`** on all three |
+| IQ-07 | BOLA — saved places | B `DELETE /api/v1/auth/saved-places/<A's id>` | **404 `NOT_FOUND`** (row survives) |
+| IQ-08 | BOLA — favorites | B `DELETE /api/v1/auth/favorites/r009` (A owns it) | 200 `{"removed":false}`; A still has `r009` — idempotent-200, no leak |
+| IQ-09 | Mass assignment | signup with `role:"admin", id:"root", favorites:["r001"]` | 201; returned `role:"user"`, no injected favourites |
+| IQ-10 | JWT tamper — signature | flip last 4 chars of access token | **401 `INVALID_TOKEN`** |
+| IQ-11 | JWT tamper — `alg:none` | hand-built `{"alg":"none"}` token | **403** (rejected at the edge) |
+| IQ-12 | JWT tamper — garbage | `garbage.token.here` | **401 `INVALID_TOKEN`** |
+| IQ-13 | Malformed JSON (23:08) | `POST /api/v1/chat` body `{bad json` | **500 `INTERNAL`** — no `requestId`, no stack |
+| IQ-14 | Rate-limit headers | `GET /health`, `/api/v1/nearby`, 5× bad signin, 3× `POST /chat` | `/health` → none (exempt ✓); API → `limit=600, remaining=598` (15 min); LLM path → `limit=10` (60 s); auth limiter 20/15 min present in code; **no 429 observed** (gentle) |
+| IQ-15 | CORS | `Origin: https://evil.example` / own origin / `null` + preflight | evil → **no** `Access-Control-Allow-Origin`; own → reflected; preflight 204 with no ACAO for evil |
+| IQ-16 | SQL injection | `sort=1;DROP TABLE…`, `city=' OR '1'='1`, `limit=3' UNION SELECT … users--`, path traversal on `/chat` | Query strings inert (parameterised); traversal → 400 `session_id must be a valid UUID`; `saved_places` still intact after `Robert'); DROP TABLE saved_places;--` |
+| IQ-17 | Stored XSS (API layer) | 5 payloads into `saved-places.name` and `reports.message` | stored/returned **verbatim** as JSON; no HTML execution surface; `tests/xss.test.js` asserts no `dangerouslySetInnerHTML` in `src/` |
+| IQ-18 | Agent safety (2 budgeted probes) | `POST /api/v1/agent` | system-prompt exfil → **502 `UPSTREAM_FAILURE`** (no leak); secret exfil → **200**, refused: “I cannot provide API keys, database credentials, or secret tokens.”; `leak_keys:false` on both |
+| IQ-19 | Error shape / observability | validation, 404, malformed JSON, SPA-prefix | malformed JSON → **400 `VALIDATION_ERROR` “Malformed JSON body”**, no stack; `/chat` 404 → `requestId` ✓; **signin 400 omits `requestId` in body** (header present); `/api/auth/me` (SPA prefix) → 200 ✓ |
+| IQ-20 | Refresh rotation + reuse + signout | signin → refresh → replay old cookie → signout → refresh | rotate ✓; replay → **401 `INVALID_REFRESH`**; signout → refresh **401** (server-side revoke) ✓ |
+| IQ-21 | User enumeration timing | 3× signin wrong-password (2 real, 1 unknown); 2× forgot-password | signin real **599/604 ms** vs unknown **237 ms** (Δ367 ms); forgot real **2,038 ms** vs unknown **407 ms** (Δ1,631 ms); bodies identical |
+| IQ-22 | Cookie flags | signup `Set-Cookie` | `HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=604800` |
+| IQ-23 | Token storage (static) | `src/lib/auth.js:7-29` | access token **memory-only**; `localStorage` holds `{user}` only |
+| IQ-24 | Data completeness (60 curated) | `src/data/restaurants.json` | 60 rows, 8 cities (Lagos 14, Abuja 10, Kano 9, PH 6, Benin 6, Ibadan 5, Enugu 5, Calabar 5); **0** dup IDs, **0** bad coords, **0** missing name/city; **60/60 missing `opening_hours`** |
+| IQ-24b | OSM defaults surfaced as data | `GET /api/v1/nearby?lat=6.5&lng=3.3&limit=30` | 30/30 valid coords; OSM row `node/3011772580` returned `price_tier:"mid"`, `spice_profile:"medium"`, `average_rating:null` — defaults, not measurements |
+| IQ-25 | Gentle load ramp (5/10/20, 20 s each) | `/health` + `/api/v1/nearby` mix | c=5: 277 req, 13.8 rps, p50 235 ms, p95 403, p99 664; c=10: 579 req, 28.9 rps, p50 231, p95 301, p99 604; c=20: 1,050 req, 52.5 rps, p50 234, p95 564, **p99 922**; **0 non-2xx, 0 errors** |
+| IQ-26 | **Chat session authz (defect)** | A creates session → B `GET` → B `DELETE` → A `GET` | A create 200 `sid=2add7622-3a4c-4338-8a73-5bc6f6f964de`; **B read 200** (returned `user_id:null`, persona/history); **B delete 200**; A read after → **404 `SESSION_NOT_FOUND`**. Code: `chat.routes.js:39-62` has no `requireAuth`/owner check; `chat.service.js:39` always writes `user_id:null`. `/agent` **does** guard: B→A session = **403 “Session belongs to another user”** |
+| IQ-27 | **Document security headers (defect)** | `GET` `/`, `/app/`, `/app/login`, `/app/map`, `/sw.js`, `/manifest.webmanifest`, `/offline.html` | Every document: `Content-Security-Policy` **absent**, `X-Frame-Options` **absent**, `X-Content-Type-Options` **absent**, `Referrer-Policy` **absent**, `Permissions-Policy` **absent**, CSP `<meta>` **absent**; all send `Access-Control-Allow-Origin: *`. Only HSTS present. API JSON responses *do* carry CSP from helmet |
+| IQ-28 | Legacy path matrix | bare vs `/api/` prefixed | `/nearby` **404**, `/auth/me` **404**, `/chat` **404**, `/agent` **404**, `/ratings` **404**, `/admin/stats` **404**, `/recommend` **404** — all Vercel `NOT_FOUND`; `/api/nearby` **200**, `/api/auth/me` **401 `UNAUTHENTICATED`**, `/api/admin/stats` **401** |
+| IQ-29 | Oversized body | 6 MB signup body; 600-char agent message | 6 MB → **413** at Vercel (`FUNCTION_PAYLOAD_TOO_LARGE`, not the app’s 10 kb limiter); 600-char agent msg → **400** `String must contain at most 500 character(s)` (rejected pre-LLM) |
+| IQ-30 | Downstream LLM reliability | 8 LLM-touching calls | **2/8 → 502 `UPSTREAM_FAILURE`** (“The AI service is busy right now”); no retry observed |
+
+### Independent scoreboard (for cross-check with `INDEPENDENT_REVIEW.md`)
+
+| Area | Score | Anchors |
+|---|---|---|
+| Security | 2 | IQ-10..12, 15, 16, 20, 22, 23 (+) · IQ-26, 27, 21 (−) |
+| Data | 2 | IQ-24 (+) · IQ-24 missing-hours, IQ-24b defaults (−) |
+| Reliability | 2 | IQ-01, 25 (+) · IQ-30, IQ-29 (−) |
+| Operations | 1 | IQ-19 requestId mostly (+) · IQ-19 gaps, F21-16 unarmed (−) |
+| Quality | 1 | build green (+) · suite not run, claim drift (−) |
+| Governance | 1 | docs breadth (+) · IQ-27/26/28/14 contradictions (−) |
+
+**Overall: L2** (no critical proven; if IQ-26 is judged critical, the cap applies → L1).
+
+### Corrections to earlier claims in this file
+
+- **F21-09 is correct** (`/api/*` works) but does **not** imply the bare `/` mount
+  works — IQ-28 shows `/nearby` 404. `README.md:103` and `docs/API.md:7`
+  (“legacy `/` … identical handlers”) are accurate only for local `src/server.js`.
+- **T19-02 / AUDIT row 8** claim CSP live on documents. IQ-27 shows CSP on
+  **API JSON only**; the HTML the browser executes has none.
+- **T19-07-type ownership claims** cover favorites and agent; they do **not**
+  cover `GET`/`DELETE /chat/:id` (IQ-26).
+- The earlier load test in this file (c=50/200 → 39/194 timeouts, pool `max:3`) is
+  consistent with IQ-25: my ramp stopped at 20 users (p99 922 ms) and did not
+  cross the documented pool ceiling.
+
