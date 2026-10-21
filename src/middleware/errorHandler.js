@@ -75,8 +75,11 @@ export const errorHandler = (err, req, res, _next) => {
       error_debug: {
         name: err.name,
         message: String(err.message || '').slice(0, 200),
-        ...(err.stack ? { stack: String(err.stack).split('\n').slice(1, 5).join(' | ').slice(0, 600) } : {}),
+        ...(err.stack ? { stack: String(err.stack).split('\n').slice(1, 14).join(' | ').slice(0, 1400) } : {}),
         ...(err.runtime_diagnostic ? { runtime: err.runtime_diagnostic } : {}),
+        socket: req?.socket === null ? 'null' : typeof req?.socket,
+        connection: req?.connection === null ? 'null' : typeof req?.connection,
+        client_ip: req?.clientIp ?? null,
       },
     }
     : {};
