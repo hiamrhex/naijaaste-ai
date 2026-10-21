@@ -1,21 +1,27 @@
-// A JSON body parser that does not assume `req` is a readable stream.
+// A JSON body parser for a runtime whose request object cannot be trusted.
 //
-// Why this exists: express.json() (body-parser) reads the body with
-// `req.on('data')` / `for await`. On the Vercel serverless runtime the
-// handler can receive a request whose body has already been consumed by the
-// platform, and `req` is then not a stream at all. body-parser throws
-// "stream.on is not a function" — a TypeError with no `status` — and because
-// it happens before src/middleware/requestId.js, Express jumps straight to
-// the error handler: every POST with a JSON body answered
-//   500 {"error":{"code":"INTERNAL"}}   with no X-Request-Id,
-// while GETs and non-JSON bodies worked. Measured live on 2026-10-21.
+// The Vercel serverless runtime exposes `body` on the request as an own
+// property with a getter AND a setter, and that accessor parses the body
+// itself: reading it throws `Error: Invalid JSON`, and assigning to it
+// throws the same. body-parser (express.json()) assumes a readable stream
+// and a plain writable `req.body`, so on that runtime it either threw
+// "stream.on is not a function" or, once it did read the body, our own
+// assignment hit the platform's throwing setter.
 //
-// This parser handles every shape the body can arrive in:
-//   - already-parsed object      (req.body is an object)
-//   - Buffer or string           (req.body is a Buffer/string)
-//   - a readable stream          (the normal case)
-// and never throws a status-less error: malformed JSON is a 400, an
-// oversized body is a 413, and everything else is a normal JSON object.
+// Measured on the live deployment (2026-10-21):
+//   own_body: { writable: false, has_get: true, has_set: true, configurable: true }
+//   is_stream: true, readable: true, readable_ended: false
+//   content-type: application/json, content-length: 5
+// Every POST with a JSON body answered 500 INTERNAL without a request id.
+//
+// The parser therefore:
+//   1. reads the raw bytes from the STREAM (which the runtime leaves intact),
+//   2. parses them itself,
+//   3. attaches the result with Object.defineProperty, which shadows the
+//      platform's accessor without ever calling its getter or setter.
+//
+// It never throws a status-less error: malformed JSON is a 400, an oversized
+// body is a 413, and everything else is a normal JSON object.
 
 const DEFAULT_LIMIT_BYTES = 10 * 1024; // matches the previous express.json limit
 
@@ -41,41 +47,6 @@ const parseError = (type) => {
   return err;
 };
 
-// Set req.body without assuming it is a writable property.
-//
-// The Vercel runtime exposes `body` on its request object as a READ-ONLY
-// accessor (the raw body as a Buffer/string). A plain assignment to it throws
-// "Cannot set property body of #<IncomingMessage> which has only a getter" -
-// a TypeError with no status, which Express reports as a bare 500. So:
-//   1. a writable data property / accessor with a setter -> assign
-//   2. otherwise -> shadow it with an own data property (this also covers an
-//      accessor inherited from the request's prototype, which is why the
-//      shadowing is tried before the assignment)
-const setBody = (req, value) => {
-  const desc = Object.getOwnPropertyDescriptor(req, 'body');
-  if (desc && (desc.writable || desc.set)) {
-    try {
-      req.body = value;
-      return true;
-    } catch { /* fall through to shadowing */ }
-  }
-  try {
-    Object.defineProperty(req, 'body', {
-      value,
-      writable: true,
-      configurable: true,
-      enumerable: true,
-    });
-    return true;
-  } catch { /* the own property is not configurable */ }
-  try {
-    req.body = value;
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 const readStream = async (req, limit) => {
   const chunks = [];
   let size = 0;
@@ -85,47 +56,42 @@ const readStream = async (req, limit) => {
     if (size > limit) throw parseError('entity.too.large');
     chunks.push(buf);
   }
-  return Buffer.concat(chunks).toString('utf8');
+  return Buffer.concat(chunks);
 };
 
-// TEMPORARY diagnostic (2026-10-21): describes the runtime's request shape
-// so the body can be parsed correctly. No user data - only types, lengths
-// and header names. Removed once the fix is in place.
-const describeRequest = (req) => {
-  const own = Object.getOwnPropertyDescriptor(req, 'body');
-  const proto = Object.getPrototypeOf(req);
-  const protoDesc = proto ? Object.getOwnPropertyDescriptor(proto, 'body') : null;
-  const info = {
-    own_body: own
-      ? { writable: !!own.writable, has_get: !!own.get, has_set: !!own.set, configurable: !!own.configurable }
-      : null,
-    proto_body: protoDesc
-      ? { writable: !!protoDesc.writable, has_get: !!protoDesc.get, has_set: !!protoDesc.set, configurable: !!protoDesc.configurable }
-      : null,
-    is_stream: typeof req.on === 'function',
-    is_async_iterable: typeof req[Symbol.asyncIterator] === 'function',
-    readable_ended: req.readableEnded ?? null,
-    readable: req.readable ?? null,
-    complete: req.complete ?? null,
-    headers: {
-      'content-type': req.headers?.['content-type'] ?? null,
-      'content-length': req.headers?.['content-length'] ?? null,
-      'transfer-encoding': req.headers?.['transfer-encoding'] ?? null,
-    },
-  };
-  // Reading req.body may itself throw (the runtime parses lazily) - record
-  // that instead of letting it mask the real error.
+// The platform's own copy of the body, if it has one. Reading it can throw
+// on this runtime, so it is best-effort and never fatal.
+const platformBody = (req) => {
   try {
-    const value = req.body;
-    info.body_type = value === null ? 'null'
-      : Buffer.isBuffer(value) ? `buffer:${value.length}`
-        : typeof value === 'string' ? `string:${value.length}`
-          : typeof value === 'object' ? `object:${Object.keys(value).length}`
-            : typeof value;
-  } catch (err) {
-    info.body_read_error = `${err?.name}: ${String(err?.message || '').slice(0, 120)}`;
+    const provided = req.body;
+    if (Buffer.isBuffer(provided)) return provided;
+    if (typeof provided === 'string') return Buffer.from(provided, 'utf8');
+    if (provided && typeof provided === 'object') return Buffer.from(JSON.stringify(provided), 'utf8');
+  } catch { /* the accessor throws on this runtime */ }
+  return Buffer.alloc(0);
+};
+
+/**
+ * Attach the parsed body to the request.
+ * defineProperty first: it shadows the platform's accessor without calling
+ * its getter or setter, and the property is configurable.
+ */
+const setBody = (req, value) => {
+  try {
+    Object.defineProperty(req, 'body', {
+      value,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+    return true;
+  } catch { /* not configurable - fall through */ }
+  try {
+    req.body = value;
+    return true;
+  } catch {
+    return false;
   }
-  return info;
 };
 
 export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, res, next) => {
@@ -135,50 +101,46 @@ export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, re
   if (!isJsonType(req)) return next();
 
   if (!hasBody(req)) {
-    req.body = {};
+    if (!setBody(req, {})) req.parsedBody = {};
+    req._body = true;
     return next();
   }
 
   try {
-    const provided = req.body;
-
-    // 1. The platform already parsed it.
-    if (provided && typeof provided === 'object' && !Buffer.isBuffer(provided)) {
-      req._body = true;
-      return next();
-    }
-
-    // 2. The platform buffered it (a Buffer or a string).
-    if (Buffer.isBuffer(provided) || typeof provided === 'string') {
-      if (provided.length > limit) throw parseError('entity.too.large');
-      const parsed = provided.length ? JSON.parse(provided.toString('utf8')) : {};
-      if (!setBody(req, parsed)) {
-        // The accessor is not replaceable: keep the parsed body where the
-        // routes can reach it.
-        req.parsedBody = parsed;
+    let raw = Buffer.alloc(0);
+    // 1. The stream: the runtime leaves it intact even though its `body`
+    //    accessor is broken.
+    if (typeof req[Symbol.asyncIterator] === 'function' || typeof req.on === 'function') {
+      try {
+        raw = await readStream(req, limit);
+      } catch (err) {
+        if (err?.type === 'entity.too.large') throw err;
+        raw = Buffer.alloc(0);
       }
-      req._body = true;
-      return next();
+    }
+    // 2. Fall back to the platform's copy when the stream yielded nothing.
+    if (!raw.length) raw = platformBody(req);
+    if (raw.length > limit) throw parseError('entity.too.large');
+
+    let parsed = {};
+    if (raw.length) {
+      try {
+        parsed = JSON.parse(raw.toString('utf8'));
+      } catch (err) {
+        if (err instanceof SyntaxError) throw parseError('entity.parse.failed');
+        throw err;
+      }
     }
 
-    // 3. The normal case: a readable stream.
-    if (typeof req.on === 'function' || typeof req[Symbol.asyncIterator] === 'function') {
-      const raw = await readStream(req, limit);
-      const parsed = raw.length ? JSON.parse(raw) : {};
-      if (!setBody(req, parsed)) req.parsedBody = parsed;
-      req._body = true;
-      return next();
+    if (!setBody(req, parsed)) {
+      // The request refuses a plain `body` property: keep the parsed body
+      // where the routes can still reach it.
+      req.parsedBody = parsed;
     }
-
-    // 4. Nothing to read.
-    if (!setBody(req, {})) req.parsedBody = {};
     req._body = true;
     return next();
   } catch (err) {
-    if (err instanceof SyntaxError) return next(parseError('entity.parse.failed'));
-    if (err?.type === 'entity.too.large') return next(err);
-    // TEMPORARY: attach the runtime shape so a live probe can name it.
-    try { err.runtime_diagnostic = describeRequest(req); } catch { /* ignore */ }
+    if (err?.type === 'entity.parse.failed' || err?.type === 'entity.too.large') return next(err);
     return next(err);
   }
 };

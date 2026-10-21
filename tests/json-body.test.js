@@ -99,6 +99,28 @@ describe('jsonBody parser', () => {
     expect(req.body).toEqual({ a: 2 });
   });
 
+  it('parses the live runtime shape: an accessor that throws on read AND write', async () => {
+    // Exactly what the deployed Vercel runtime does (measured 2026-10-21):
+    //   own_body: { writable: false, has_get: true, has_set: true,
+    //                configurable: true }
+    //   is_stream: true, readable: true, readable_ended: false
+    //   reading req.body -> "Error: Invalid JSON"
+    //   assigning req.body -> "Error: Invalid JSON"
+    // The body itself is intact in the stream.
+    const boom = () => { throw new Error('Invalid JSON'); };
+    const req = Readable.from([Buffer.from('{"a":1}')]);
+    req.headers = { 'content-type': 'application/json', 'content-length': '7' };
+    Object.defineProperty(req, 'body', {
+      get: boom,
+      set: boom,
+      configurable: true,
+    });
+
+    const err = await runParser(req);
+    expect(err).toBeUndefined();
+    expect(req.body).toEqual({ a: 1 });
+  });
+
   it('rejects malformed JSON with a 400-shaped error', async () => {
     const req = makeReq(
       { 'content-type': 'application/json', 'content-length': '8' },
