@@ -15,6 +15,7 @@ import { authRoutes } from "./routes/auth.routes.js";
 import { agentRoutes } from "./routes/agent.routes.js";
 import { nearbyRoutes } from "./routes/nearby.routes.js";
 import { requestId } from "./middleware/requestId.js";
+import { jsonBody, JSON_BODY_LIMIT_BYTES } from "./middleware/jsonBody.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { fail } from "./lib/respond.js";
 import { env } from "./env.js";
@@ -49,8 +50,15 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(cookieParser());
-app.use(express.json({ limit: "10kb" })); // prevent oversized payloads
+// requestId first, then the body parser: a malformed or oversized body must
+// still answer with the request id, and the parser must not run before the
+// id exists.
 app.use(requestId);
+// Our own JSON parser instead of express.json(): body-parser assumes the
+// request is a readable stream, which is not true on the Vercel runtime, and
+// the resulting TypeError turned every POST-with-a-body into a 500 with no
+// request id. See src/middleware/jsonBody.js.
+app.use(jsonBody({ limit: JSON_BODY_LIMIT_BYTES }));
 
 // CORS allowlist — unset = open (reflect any origin), loudly logged (parity
 // until the operator sets CORS_ORIGIN in production)
