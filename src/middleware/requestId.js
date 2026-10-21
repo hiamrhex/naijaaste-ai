@@ -15,6 +15,24 @@ export const requestId = (req, res, next) => {
   // been read, and every later req.ip read would throw (see lib/clientIp.js).
   req.clientIp = readClientIp(req);
 
+  // Express's req.ip / req.ips getters dereference req.socket, which the
+  // serverless runtime nulls. Replace them with safe versions that return
+  // the captured address: a third-party middleware (express-rate-limit reads
+  // request.ip for a debug log on every request) would otherwise throw a
+  // TypeError and turn the request into a bare 500.
+  try {
+    Object.defineProperty(req, 'ip', {
+      configurable: true,
+      enumerable: true,
+      get: () => req.clientIp ?? 'unknown',
+    });
+    Object.defineProperty(req, 'ips', {
+      configurable: true,
+      enumerable: true,
+      get: () => [req.clientIp ?? 'unknown'],
+    });
+  } catch { /* the request object refuses new accessors - the captured value still works */ }
+
   const start = Date.now();
   // Uptime at the START of this request is the honest cold-start marker: if
   // the function just booted it is small even when the Neon wake-up dominates.
