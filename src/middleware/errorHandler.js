@@ -68,7 +68,13 @@ export const errorHandler = (err, req, res, _next) => {
   // TEMPORARY (see DEBUG_5XX above): expose the error class of a 5xx so the
   // runtime-specific failure can be identified from a live probe.
   const debug = DEBUG_5XX && status >= 500 && err?.name
-    ? { error_debug: { name: err.name, message: String(err.message || '').slice(0, 200) } }
+    ? {
+      error_debug: {
+        name: err.name,
+        message: String(err.message || '').slice(0, 200),
+        ...(err.runtime_diagnostic ? { runtime: err.runtime_diagnostic } : {}),
+      },
+    }
     : {};
 
   fail(res, { status, code, message, details, requestId: req.id, retryAfterSec, ...debug });

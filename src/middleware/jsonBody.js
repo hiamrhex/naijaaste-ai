@@ -88,6 +88,46 @@ const readStream = async (req, limit) => {
   return Buffer.concat(chunks).toString('utf8');
 };
 
+// TEMPORARY diagnostic (2026-10-21): describes the runtime's request shape
+// so the body can be parsed correctly. No user data - only types, lengths
+// and header names. Removed once the fix is in place.
+const describeRequest = (req) => {
+  const own = Object.getOwnPropertyDescriptor(req, 'body');
+  const proto = Object.getPrototypeOf(req);
+  const protoDesc = proto ? Object.getOwnPropertyDescriptor(proto, 'body') : null;
+  const info = {
+    own_body: own
+      ? { writable: !!own.writable, has_get: !!own.get, has_set: !!own.set, configurable: !!own.configurable }
+      : null,
+    proto_body: protoDesc
+      ? { writable: !!protoDesc.writable, has_get: !!protoDesc.get, has_set: !!protoDesc.set, configurable: !!protoDesc.configurable }
+      : null,
+    is_stream: typeof req.on === 'function',
+    is_async_iterable: typeof req[Symbol.asyncIterator] === 'function',
+    readable_ended: req.readableEnded ?? null,
+    readable: req.readable ?? null,
+    complete: req.complete ?? null,
+    headers: {
+      'content-type': req.headers?.['content-type'] ?? null,
+      'content-length': req.headers?.['content-length'] ?? null,
+      'transfer-encoding': req.headers?.['transfer-encoding'] ?? null,
+    },
+  };
+  // Reading req.body may itself throw (the runtime parses lazily) - record
+  // that instead of letting it mask the real error.
+  try {
+    const value = req.body;
+    info.body_type = value === null ? 'null'
+      : Buffer.isBuffer(value) ? `buffer:${value.length}`
+        : typeof value === 'string' ? `string:${value.length}`
+          : typeof value === 'object' ? `object:${Object.keys(value).length}`
+            : typeof value;
+  } catch (err) {
+    info.body_read_error = `${err?.name}: ${String(err?.message || '').slice(0, 120)}`;
+  }
+  return info;
+};
+
 export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, res, next) => {
   if (req._body) return next();
 
@@ -137,6 +177,8 @@ export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, re
   } catch (err) {
     if (err instanceof SyntaxError) return next(parseError('entity.parse.failed'));
     if (err?.type === 'entity.too.large') return next(err);
+    // TEMPORARY: attach the runtime shape so a live probe can name it.
+    try { err.runtime_diagnostic = describeRequest(req); } catch { /* ignore */ }
     return next(err);
   }
 };
