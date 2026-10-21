@@ -127,7 +127,13 @@ export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, re
       try {
         parsed = JSON.parse(raw.toString('utf8'));
       } catch (err) {
-        if (err instanceof SyntaxError) throw parseError('entity.parse.failed');
+        if (err instanceof SyntaxError) {
+          // TEMPORARY: show what actually arrived (first bytes only).
+          const preview = raw.subarray(0, 48).toString('utf8').replace(/[^\x20-\x7e]/g, '.');
+          const e = parseError('entity.parse.failed');
+          e.body_preview = { length: raw.length, preview };
+          throw e;
+        }
         throw err;
       }
     }

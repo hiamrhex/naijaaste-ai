@@ -46,6 +46,9 @@ export const errorHandler = (err, req, res, _next) => {
     status = 400;
     code = 'VALIDATION_ERROR';
     message = 'Malformed JSON body';
+    // TEMPORARY: the first bytes that arrived, to identify the runtime's
+    // body framing.
+    if (DEBUG_5XX && err.body_preview) details = err.body_preview;
   } else if (typeof err?.status === 'number') {
     // LLM SDK errors (GoogleGenAI ApiError) carry .status — anything unexpected
     // from the LLM upstream is a 502, never a leak of the SDK message.
