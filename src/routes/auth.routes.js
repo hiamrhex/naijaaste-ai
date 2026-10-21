@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
+import { clientIp } from '../lib/clientIp.js';
 import { issueOtp, verifyOtp } from '../auth/otp.js';
 import { lockStatus, recordFailure, clearFailures } from '../auth/lockout.js';
 import { sendOtpEmail, sinkAddress, otpShownInResponse } from '../services/email.service.js';
@@ -37,11 +38,24 @@ const noStore = (_req, res, next) => {
 // One bucket per flow. A shared bucket meant a signup loop could lock a user
 // out of sign-in and refresh (and vice versa) - the limit protected the
 // server, but the user paid for it.
+//
+// The bucket is keyed on the IP captured before the body was read: the
+// default keyGenerator reads req.ip, which throws on the serverless runtime
+// once the body has been consumed (see src/lib/clientIp.js).
 const limiter = (windowMs, max, message) => rateLimit({
   windowMs,
   max,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
+  keyGenerator: (req) => {
+    const ip = clientIp(req);
+    if (!ip || ip === 'unknown') return 'unknown';
+    try {
+      return ipKeyGenerator(ip);
+    } catch {
+      return ip;
+    }
+  },
   handler: (req, res) => failAuth(res, {
     status: 429,
     code: 'RATE_LIMITED',
@@ -141,7 +155,7 @@ router.post('/auth/signin', noStore, signinLimiter, async (req, res) => {
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: errors.join('; '), requestId: req.id } });
     }
     const { email, password } = req.body;
-    const ip = req.ip || 'unknown';
+    const ip = clientIp(req);
 
     // Brute-force lockout, keyed on (email, ip) so it cannot be used to lock a
     // victim out - and so it fires identically for unknown emails.

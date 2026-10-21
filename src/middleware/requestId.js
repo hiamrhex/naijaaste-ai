@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { logger } from '../lib/logger.js';
 import { getDbTiming } from '../lib/dbTiming.js';
+import { readClientIp } from '../lib/clientIp.js';
 
 const SAFE_ID = /^[A-Za-z0-9-]{8,64}$/;
 
@@ -9,6 +10,10 @@ export const requestId = (req, res, next) => {
   req.id = inbound && SAFE_ID.test(inbound) ? inbound : randomUUID();
   res.setHeader('X-Request-Id', req.id);
   req.log = logger.child({ requestId: req.id });
+
+  // Capture the client IP NOW: the runtime nulls req.socket once the body has
+  // been read, and every later req.ip read would throw (see lib/clientIp.js).
+  req.clientIp = readClientIp(req);
 
   const start = Date.now();
   // Uptime at the START of this request is the honest cold-start marker: if

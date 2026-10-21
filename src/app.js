@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { personaRoutes } from "./routes/persona.routes.js";
 import { recommendRoutes } from "./routes/recommend.routes.js";
 import { reviewRoutes } from "./routes/review.routes.js";
@@ -22,6 +22,7 @@ import { env } from "./env.js";
 import { logger } from "./lib/logger.js";
 import { googleAuthEnabled } from "./auth/google.js";
 import { readinessProbe } from "./lib/readiness.js";
+import { clientIp } from "./lib/clientIp.js";
 
 export const app = express();
 
@@ -127,11 +128,26 @@ const limiterHandler = (windowSec) => (req, res) => {
   });
 };
 
+// Key the limiters on the IP captured BEFORE the body was read. The default
+// keyGenerator reads req.ip, which throws on the serverless runtime once the
+// body has been consumed (the socket is null by then) - that turned every
+// POST with a body into a 500. See src/lib/clientIp.js.
+const keyByClientIp = (req) => {
+  const ip = clientIp(req);
+  if (!ip || ip === "unknown") return "unknown";
+  try {
+    return ipKeyGenerator(ip);
+  } catch {
+    return ip;
+  }
+};
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: env.RATE_LIMIT_API_MAX,
   standardHeaders: "draft-7",
   legacyHeaders: false,
+  keyGenerator: keyByClientIp,
   skip: (req) => req.path === "/health" || req.path === "/health/ready", // probes never throttled
   handler: limiterHandler(900),
 });
@@ -141,6 +157,7 @@ const llmLimiter = rateLimit({
   limit: env.RATE_LIMIT_LLM_MAX,
   standardHeaders: "draft-7",
   legacyHeaders: false,
+  keyGenerator: keyByClientIp,
   handler: limiterHandler(60),
 });
 
