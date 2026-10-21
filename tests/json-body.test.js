@@ -68,6 +68,37 @@ describe('jsonBody parser', () => {
     expect(req.body).toEqual({});
   });
 
+  it('parses a body behind a read-only accessor (the Vercel runtime shape)', async () => {
+    // The runtime exposes `body` as a getter-only property holding the raw
+    // body. Assigning to it throws "which has only a getter"; the parser
+    // must shadow it instead.
+    const raw = Buffer.from('{"a":1}');
+    const req = {
+      headers: { 'content-type': 'application/json', 'content-length': '7' },
+    };
+    Object.defineProperty(req, 'body', {
+      get: () => raw,
+      configurable: true,
+    });
+
+    const err = await runParser(req);
+    expect(err).toBeUndefined();
+    expect(req.body).toEqual({ a: 1 });
+  });
+
+  it('parses a body behind an inherited read-only accessor', async () => {
+    const raw = Buffer.from('{"a":2}');
+    class PlatformRequest {
+      get body() { return raw; }
+    }
+    const req = new PlatformRequest();
+    req.headers = { 'content-type': 'application/json', 'content-length': '7' };
+
+    const err = await runParser(req);
+    expect(err).toBeUndefined();
+    expect(req.body).toEqual({ a: 2 });
+  });
+
   it('rejects malformed JSON with a 400-shaped error', async () => {
     const req = makeReq(
       { 'content-type': 'application/json', 'content-length': '8' },

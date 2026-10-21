@@ -41,6 +41,41 @@ const parseError = (type) => {
   return err;
 };
 
+// Set req.body without assuming it is a writable property.
+//
+// The Vercel runtime exposes `body` on its request object as a READ-ONLY
+// accessor (the raw body as a Buffer/string). A plain assignment to it throws
+// "Cannot set property body of #<IncomingMessage> which has only a getter" -
+// a TypeError with no status, which Express reports as a bare 500. So:
+//   1. a writable data property / accessor with a setter -> assign
+//   2. otherwise -> shadow it with an own data property (this also covers an
+//      accessor inherited from the request's prototype, which is why the
+//      shadowing is tried before the assignment)
+const setBody = (req, value) => {
+  const desc = Object.getOwnPropertyDescriptor(req, 'body');
+  if (desc && (desc.writable || desc.set)) {
+    try {
+      req.body = value;
+      return true;
+    } catch { /* fall through to shadowing */ }
+  }
+  try {
+    Object.defineProperty(req, 'body', {
+      value,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+    return true;
+  } catch { /* the own property is not configurable */ }
+  try {
+    req.body = value;
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const readStream = async (req, limit) => {
   const chunks = [];
   let size = 0;
@@ -73,10 +108,15 @@ export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, re
       return next();
     }
 
-    // 2. The platform buffered it.
+    // 2. The platform buffered it (a Buffer or a string).
     if (Buffer.isBuffer(provided) || typeof provided === 'string') {
       if (provided.length > limit) throw parseError('entity.too.large');
-      req.body = provided.length ? JSON.parse(provided.toString('utf8')) : {};
+      const parsed = provided.length ? JSON.parse(provided.toString('utf8')) : {};
+      if (!setBody(req, parsed)) {
+        // The accessor is not replaceable: keep the parsed body where the
+        // routes can reach it.
+        req.parsedBody = parsed;
+      }
       req._body = true;
       return next();
     }
@@ -84,13 +124,14 @@ export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, re
     // 3. The normal case: a readable stream.
     if (typeof req.on === 'function' || typeof req[Symbol.asyncIterator] === 'function') {
       const raw = await readStream(req, limit);
-      req.body = raw.length ? JSON.parse(raw) : {};
+      const parsed = raw.length ? JSON.parse(raw) : {};
+      if (!setBody(req, parsed)) req.parsedBody = parsed;
       req._body = true;
       return next();
     }
 
     // 4. Nothing to read.
-    req.body = {};
+    if (!setBody(req, {})) req.parsedBody = {};
     req._body = true;
     return next();
   } catch (err) {

@@ -3,6 +3,12 @@ import { fail } from '../lib/respond.js';
 import { logger } from '../lib/logger.js';
 import { captureException } from '../lib/monitoring.js';
 
+// TEMPORARY diagnostic (2026-10-21): the Vercel runtime failed every POST
+// with a JSON body, and the error class was invisible from outside. It is
+// reported for 5xx only, and only the error class/message of a programming
+// error (no user data). Remove once the runtime behaviour is confirmed.
+const DEBUG_5XX = true;
+
 export const errorHandler = (err, req, res, _next) => {
   let status = 500;
   let code = 'INTERNAL';
@@ -59,5 +65,11 @@ export const errorHandler = (err, req, res, _next) => {
     });
   }
 
-  fail(res, { status, code, message, details, requestId: req.id, retryAfterSec });
+  // TEMPORARY (see DEBUG_5XX above): expose the error class of a 5xx so the
+  // runtime-specific failure can be identified from a live probe.
+  const debug = DEBUG_5XX && status >= 500 && err?.name
+    ? { error_debug: { name: err.name, message: String(err.message || '').slice(0, 200) } }
+    : {};
+
+  fail(res, { status, code, message, details, requestId: req.id, retryAfterSec, ...debug });
 };
