@@ -75,6 +75,7 @@ export const errorHandler = (err, req, res, _next) => {
       error_debug: {
         name: err.name,
         message: String(err.message || '').slice(0, 200),
+        ...(err.stack ? { stack: String(err.stack).split('\n').slice(1, 5).join(' | ').slice(0, 600) } : {}),
         ...(err.runtime_diagnostic ? { runtime: err.runtime_diagnostic } : {}),
       },
     }
