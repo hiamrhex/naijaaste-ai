@@ -3,12 +3,19 @@ import { z } from 'zod';
 
 const EnvSchema = z.object({
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
-  GEMINI_MODEL: z.string().min(1).default('gemini-3.8-flash'),
+  // Default model: gemini-3.5-flash-lite answered in ~0.6s on 2026-10-20,
+  // while gemini-3.8-flash hung past 30s (probes/gemini-probe.mjs). The
+  // llm.service model chain degrades to the next model automatically.
+  GEMINI_MODEL: z.string().min(1).default('gemini-3.5-flash-lite'),
   // Hard ceiling for ALL Gemini attempts + backoff in one request. Kept well
-  // below vercel.json maxDuration (60s) so Express can still answer with JSON.
-  GEMINI_TOTAL_TIMEOUT_MS: z.coerce.number().int().positive().default(25000),
+  // below vercel.json maxDuration (60s) so Express can still answer with JSON
+  // and so the cold start (~5s) fits inside the platform budget.
+  // Measured against the real prompts (probes/gemini-prompt-latency.mjs):
+  // the slowest healthy call is ~18s, so the ceiling must allow one full
+  // success plus one fallback attempt.
+  GEMINI_TOTAL_TIMEOUT_MS: z.coerce.number().int().positive().default(35000),
   // Ceiling for a single attempt; the total budget always wins.
-  GEMINI_ATTEMPT_TIMEOUT_MS: z.coerce.number().int().positive().default(12000),
+  GEMINI_ATTEMPT_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
   PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),

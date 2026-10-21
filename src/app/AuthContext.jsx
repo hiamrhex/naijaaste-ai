@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AuthContext } from './auth-context.js';
 import { getAuth, signout, authFetch, setAuth } from '../lib/auth.js';
+import { readJson } from '../lib/api.js';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getAuth()?.user || null);
@@ -12,7 +13,7 @@ export function AuthProvider({ children }) {
     if (!getAuth()?.user) return;
     let live = true;
     authFetch('/auth/me')
-      .then((res) => res.json())
+      .then((res) => readJson(res))
       .then((data) => {
         if (!live) return;
         if (data?.user) setAuth({ user: data.user, accessToken: getAuth()?.accessToken });

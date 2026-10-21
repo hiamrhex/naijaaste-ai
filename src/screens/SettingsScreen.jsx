@@ -6,6 +6,7 @@ import { useAuth } from '../app/useAuth.js';
 import { useTheme } from '../app/useTheme.js';
 import { useLanguage } from '../app/useLanguage.js';
 import { authFetch, deleteAccount, getFavorites } from '../lib/auth.js';
+import { readJson } from '../lib/api.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 import { FeedbackForm } from '../components/FeedbackForm.jsx';
 import { readHistory } from '../hooks/useConcierge.js';
@@ -67,7 +68,7 @@ export default function SettingsScreen() {
         let ratings = 0;
         try {
           const res = await authFetch('/ratings');
-          if (res.ok) ratings = ((await res.json()).data || []).length;
+          if (res.ok) ratings = ((await readJson(res)).data || []).length;
         } catch { /* offline */ }
         if (!cancelled) {
           setCounts({
@@ -86,7 +87,7 @@ export default function SettingsScreen() {
     let ratings = [];
     try {
       const res = await authFetch('/ratings');
-      if (res.ok) ratings = (await res.json()).data || [];
+      if (res.ok) ratings = (await readJson(res)).data || [];
     } catch { /* offline */ }
     const bundle = {
       exported_at: new Date().toISOString(),

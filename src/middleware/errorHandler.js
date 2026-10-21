@@ -16,6 +16,20 @@ export const errorHandler = (err, req, res, _next) => {
     message = err.message;
     details = err.details;
     retryAfterSec = err.retryAfterSec;
+  } else if (err?.code === 'LLM_TIMEOUT') {
+    // Raised by llm.service before any platform kill: always a typed 504 so
+    // the client can show a friendly retry (never INTERNAL / plain text).
+    status = 504;
+    code = 'AI_TIMEOUT';
+    message = 'The AI service took too long to respond. Please try again.';
+  } else if (err?.code === 'LLM_UNAVAILABLE') {
+    status = 503;
+    code = 'AI_UNAVAILABLE';
+    message = 'The AI service is unavailable right now. Please try again in a moment.';
+  } else if (err?.code === 'CIRCUIT_OPEN') {
+    status = 503;
+    code = 'AI_UNAVAILABLE';
+    message = 'The AI service is unavailable right now. Please try again in a moment.';
   } else if (err?.type === 'entity.too.large') {
     // Body-parser limit (10kb global, 350kb on /reports): a client payload
     // problem, never an upstream failure. Surfaced honestly as 413.

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { API, HERO_PHRASES, STAGES } from '../constants/index.js';
 import { recordCheckInEvent } from './useCheckIn.js';
 import { authFetch, getFavorites, addFavorite, removeFavorite } from '../lib/auth.js';
+import { apiFetchJson, errorMessage, readJson } from '../lib/api.js';
 
 const HISTORY_KEY = 'nt.history.v1';
 const HISTORY_CAP = 30;
@@ -57,8 +58,7 @@ export function useConcierge({ chatEndRef }) {
     const uncached = ids.filter((id) => !geoCache[id]);
     if (uncached.length === 0) return;
     let cancelled = false;
-    fetch(`${API}/restaurants/geo?ids=${encodeURIComponent(uncached.join(','))}`)
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetchJson(`${API}/restaurants/geo?ids=${encodeURIComponent(uncached.join(','))}`)
       .then((data) => {
         if (!cancelled && data?.geo) setGeoCache((prev) => ({ ...prev, ...data.geo }));
       })
@@ -97,11 +97,11 @@ export function useConcierge({ chatEndRef }) {
         const { latitude, longitude } = pos.coords;
         try {
           const res = await fetch(`${API}/nearby?lat=${latitude}&lng=${longitude}&limit=8&radius_km=25`);
-          const data = await res.json();
-          if (!res.ok || !data.success) throw new Error(data?.error?.message || 'Nearby lookup failed');
+          const data = await readJson(res, { fallbackMessage: 'Could not find spots near you.' });
+          if (!data.success) throw new Error('Could not find spots near you.');
           setNearby(data);
         } catch (err) {
-          setNearbyError(err.message || 'Could not find spots near you.');
+          setNearbyError(errorMessage(err, 'Could not find spots near you.'));
         } finally {
           setNearbyLoading(false);
         }
@@ -151,9 +151,9 @@ export function useConcierge({ chatEndRef }) {
         body: JSON.stringify({ message: txt, session_id: sessionId || undefined }),
         signal: controller.signal,
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data?.error?.message || 'Agent request failed');
+      const data = await readJson(res, { fallbackMessage: 'The AI chef could not answer. Please try again.' });
+      if (!data.success) {
+        throw new Error('The AI chef could not answer. Please try again.');
       }
       if (data.session_id) setSessionId(data.session_id);
       if (data.stage) setStage(data.stage);
@@ -185,8 +185,10 @@ export function useConcierge({ chatEndRef }) {
       } else {
         setMessages((prev) => [...prev, {
           role: 'assistant',
-          content: err.message || 'Connection issue — please try again.',
+          content: errorMessage(err, 'Connection issue — please try again.'),
           error: true,
+          requestId: err?.requestId || null,
+          retryText: txt,
         }]);
       }
     } finally {
@@ -205,7 +207,7 @@ export function useConcierge({ chatEndRef }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ persona, restaurant }),
       });
-      const data = await res.json();
+      const data = await readJson(res, { fallbackMessage: 'Could not generate a review.' });
       setReview(data);
       setShowReview(true);
     } catch {

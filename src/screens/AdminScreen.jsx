@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Heart, Star, Inbox, Check, Loader2 } from 'lucide-react';
 import { authFetch } from '../lib/auth.js';
+import { errorMessage, readJson } from '../lib/api.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 
 const STATUSES = ['open', 'in_review', 'resolved'];
@@ -20,14 +21,14 @@ export default function AdminScreen() {
       authFetch(`/admin/reports?status=${filter}`),
     ]).then(async ([s, r]) => {
       if (cancelled) return;
-      if (!s.ok) throw new Error('Could not load stats');
-      if (!r.ok) throw new Error('Could not load inbox');
-      setStats(await s.json().then((d) => d.data));
-      setReports(await r.json().then((d) => d.data || []));
+      const statsBody = await readJson(s, { fallbackMessage: 'Could not load stats.' });
+      const inboxBody = await readJson(r, { fallbackMessage: 'Could not load inbox.' });
+      setStats(statsBody.data);
+      setReports(inboxBody.data || []);
       setLoading(false);
     }).catch((err) => {
       if (cancelled) return;
-      setError(err.message || 'Could not load admin data.');
+      setError(errorMessage(err, 'Could not load admin data.'));
       setLoading(false);
     });
     return () => { cancelled = true; };
@@ -41,12 +42,12 @@ export default function AdminScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error('Triage failed');
+      await readJson(res, { fallbackMessage: 'Triage failed — try again.' });
       setReports((prev) => prev.map((x) => (x.ticket === ticket ? { ...x, status } : x)));
-      const s = await (await authFetch('/admin/stats')).json();
+      const s = await readJson(await authFetch('/admin/stats'), { fallbackMessage: 'Could not refresh stats.' });
       if (s?.data) setStats(s.data);
-    } catch {
-      setError('Triage failed — try again.');
+    } catch (err) {
+      setError(errorMessage(err, 'Triage failed — try again.'));
     } finally {
       setActing(null);
     }

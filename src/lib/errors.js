@@ -58,6 +58,21 @@ export class UnavailableError extends ApiError {
   }
 }
 
+// The model did not answer inside our own budget. 504 so clients can tell a
+// slow upstream apart from a hard outage (503) and retry with backoff.
+export class AiTimeoutError extends ApiError {
+  constructor(message = 'The AI service took too long to respond. Please try again.') {
+    super(504, 'AI_TIMEOUT', message);
+  }
+}
+
+// Circuit open / provider 5xx / throttled: the AI path is unavailable.
+export class AiUnavailableError extends ApiError {
+  constructor(message = 'The AI service is unavailable right now. Please try again in a moment.') {
+    super(503, 'AI_UNAVAILABLE', message);
+  }
+}
+
 export const badRequest = (message, details) =>
   new ValidationError(message, details);
 

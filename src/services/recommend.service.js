@@ -7,7 +7,9 @@ import { getCatalogueByCity } from '../db/catalogue.js';
 import { logger } from '../lib/logger.js';
 
 // ─── Hard Filters ─────────────────────────────────────────────────────────────
-const applyHardFilters = (allRestaurants, persona) => {
+// Exported so the deterministic fallback can honour the same dietary rules —
+// a halal diner must never be shown a pork option, AI or not.
+export const hardFilterRestaurants = (allRestaurants, persona) => {
   return allRestaurants.filter((r) => {
     // City match — non-negotiable
     if (r.city.toLowerCase() !== persona.city.toLowerCase()) return false;
@@ -25,6 +27,8 @@ const applyHardFilters = (allRestaurants, persona) => {
     return true;
   });
 };
+
+const applyHardFilters = hardFilterRestaurants;
 
 // ─── Pre-Scoring ──────────────────────────────────────────────────────────────
 // Narrow candidate pool before sending to LLM
@@ -115,6 +119,31 @@ const fallbackResult = (persona, scored, totalInCity, startTime, reason) => ({
     fallback_reason: reason?.code || String(reason?.message || reason),
   },
 });
+
+// ─── Standalone deterministic path (no LLM at all) ─────────────────────────────
+// Used by the chat/agent fallback: when the model is slow or dead we still
+// answer with real catalogue rows ranked by the same pre-score, so the user
+// gets useful picks instead of an error page. Never touches Gemini.
+export const getDeterministicRecommendations = async (persona, reason = 'LLM_UNAVAILABLE') => {
+  const startTime = Date.now();
+  const city = persona?.city || 'Lagos';
+  const cityRestaurants = await getCatalogueByCity(city);
+  const hardFiltered = applyHardFilters(cityRestaurants, { ...persona, city });
+  if (hardFiltered.length === 0) {
+    return {
+      success: false,
+      fallback: true,
+      error: 'No restaurants match persona constraints',
+      recommendations: [],
+      message: `No ${city} spots match those constraints right now.`,
+      meta: { fallback_reason: reason, latency_ms: Date.now() - startTime },
+    };
+  }
+  const scored = hardFiltered
+    .map(r => ({ ...r, _pre_score: preScore(r, { ...persona, city }) }))
+    .sort((a, b) => b._pre_score - a._pre_score);
+  return fallbackResult({ ...persona, city }, scored, cityRestaurants.length, startTime, { code: reason });
+};
 
 // ─── Main Service ─────────────────────────────────────────────────────────────
 export const getRecommendations = async (persona) => {

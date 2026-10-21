@@ -69,11 +69,11 @@ describe('circuit breaker (item 6)', () => {
   });
 });
 
-// Regression: a known upstream failure must surface as a clean 502, not a 500.
-// Proven by breaking the live server earlier — CIRCUIT_OPEN reached Express as
-// a generic 500 (logs 2026-10-15).
-describe('chat maps upstream LLM failure to a clean 502', () => {
-  it('processChat throws UpstreamError (502 UPSTREAM_FAILURE) when the circuit is open', async () => {
+// Regression: a known upstream failure must surface as a clean typed error,
+// not a 500. Proven by breaking the live server earlier — CIRCUIT_OPEN reached
+// Express as a generic 500 (logs 2026-10-15).
+describe('chat maps upstream LLM failure to a clean JSON error', () => {
+  it('processChat throws AiUnavailableError (503 AI_UNAVAILABLE) when the circuit is open', async () => {
     vi.resetModules();
     vi.doMock('../src/services/llm.service.js', () => ({
       callLLMJson: async () => {
@@ -86,10 +86,30 @@ describe('chat maps upstream LLM failure to a clean 502', () => {
     const { ApiError } = await import('../src/lib/errors.js');
 
     await expect(processChat('00000000-0000-4000-8000-000000000000', 'hi')).rejects.toMatchObject({
-      status: 502,
-      code: 'UPSTREAM_FAILURE',
+      status: 503,
+      code: 'AI_UNAVAILABLE',
     });
     await expect(processChat('00000000-0000-4000-8000-000000000000', 'hi')).rejects.toBeInstanceOf(ApiError);
+    vi.doUnmock('../src/services/llm.service.js');
+    vi.resetModules();
+  });
+
+  it('processChat maps our budget expiry to AiTimeoutError (504 AI_TIMEOUT)', async () => {
+    vi.resetModules();
+    vi.doMock('../src/services/llm.service.js', () => ({
+      callLLMJson: async () => {
+        const err = new Error('LLM budget exhausted');
+        err.code = 'LLM_TIMEOUT';
+        err.timeoutMs = 25000;
+        throw err;
+      },
+    }));
+    const { processChat } = await import('../src/services/chat.service.js');
+
+    await expect(processChat('00000000-0000-4000-8000-000000000001', 'hi')).rejects.toMatchObject({
+      status: 504,
+      code: 'AI_TIMEOUT',
+    });
     vi.doUnmock('../src/services/llm.service.js');
     vi.resetModules();
   });

@@ -28,14 +28,15 @@ describe('security headers + token storage (item 4)', () => {
       if (String(url).endsWith('/auth/refresh')) {
         return {
           ok: true,
-          headers: { get: () => null },
+          status: 200,
+          headers: { get: (h) => (h.toLowerCase() === 'content-type' ? 'application/json' : null) },
           json: async () => ({ user: { id: 'u1', email: 'a@b.co' }, accessToken: 'fresh-tok' }),
         };
       }
       return {
         ok: true,
         status: 200,
-        headers: { get: () => null },
+        headers: { get: (h) => (h.toLowerCase() === 'content-type' ? 'application/json' : null) },
         json: async () => ({ data: { ok: true } }),
       };
     });

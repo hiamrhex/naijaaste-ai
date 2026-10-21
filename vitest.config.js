@@ -11,7 +11,7 @@ export default defineConfig({
       // Test defaults so the fail-fast env schema (src/env.js) passes in CI
       // where no .env exists. dotenv never overrides these.
       GEMINI_API_KEY: 'test-key-not-real',
-      GEMINI_MODEL: 'gemini-3.8-flash',
+      GEMINI_MODEL: 'gemini-3.5-flash-lite',
       NODE_ENV: 'test',
       LOG_LEVEL: 'warn',
       JWT_ACCESS_SECRET: 'test-access-secret-0123456789abcdef',

@@ -3,6 +3,7 @@ import { env } from '../env.js';
 import { runMigrations } from './migrate.js';
 import { seedCatalogue } from './seed.js';
 import { logger } from '../lib/logger.js';
+import { getDbTiming, resetDbTiming, setDbTiming } from '../lib/dbTiming.js';
 
 let pool = null;
 let initDone = false;
@@ -10,8 +11,7 @@ let initDone = false;
 // Cold-start evidence: how long Neon took to wake and how long the whole
 // first-request init took. Surfaced on the next request log line alongside
 // cold_start_ms (see middleware/requestId.js).
-const timing = { createMs: null, wakeMs: null, initMs: null, readyAt: null };
-export const getDbTiming = () => ({ ...timing });
+export { getDbTiming };
 
 // Dual driver, one SQL surface:
 //   - DATABASE_URL set  → real Postgres (Neon pooled URL at runtime).
@@ -68,7 +68,7 @@ export const getPool = async () => {
       const { Pool } = newDb().adapters.createPg();
       pool = new Pool();
     }
-    timing.createMs = Date.now() - createStart;
+    setDbTiming({ createMs: Date.now() - createStart });
   }
   if (!initDone) {
     initDone = true;
@@ -78,25 +78,26 @@ export const getPool = async () => {
       // migrations/seed so the log says which part was cold.
       const wakeStart = Date.now();
       await pool.query('SELECT 1');
-      timing.wakeMs = Date.now() - wakeStart;
+      setDbTiming({ wakeMs: Date.now() - wakeStart });
 
       await runMigrations(pool);
       await seedCatalogue(pool);
-      timing.initMs = Date.now() - initStart;
-      timing.readyAt = new Date().toISOString();
+      const dbTiming = { initMs: Date.now() - initStart, readyAt: new Date().toISOString() };
+      setDbTiming(dbTiming);
       logger.info(
         {
-          db_create_ms: timing.createMs,
-          db_wake_ms: timing.wakeMs,
-          db_init_ms: timing.initMs,
+          db_create_ms: getDbTiming().createMs,
+          db_wake_ms: getDbTiming().wakeMs,
+          db_init_ms: dbTiming.initMs,
           cold_start_ms: Math.round(process.uptime() * 1000),
         },
         'database ready'
       );
     } catch (err) {
-      timing.initMs = Date.now() - initStart;
+      const initMs = Date.now() - initStart;
+      setDbTiming({ initMs });
       logger.error(
-        { err: err?.message, db_wake_ms: timing.wakeMs, db_init_ms: timing.initMs },
+        { err: err?.message, db_wake_ms: getDbTiming().wakeMs, db_init_ms: initMs },
         'database initialisation failed'
       );
       throw err;
@@ -112,6 +113,6 @@ export const closePool = async () => {
     await pool.end().catch(() => {});
     pool = null;
     initDone = false;
-    Object.assign(timing, { createMs: null, wakeMs: null, initMs: null, readyAt: null });
+    resetDbTiming();
   }
 };

@@ -175,6 +175,21 @@ export default function HomeScreen() {
                     }}>
                       {m.content}
                     </div>
+                    {m.error && m.retryText && (
+                      <button
+                        onClick={() => c.sendMsg(m.retryText)}
+                        disabled={c.loading}
+                        style={{
+                          marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 6,
+                          background: 'var(--bg-card)', border: '1px solid var(--border)',
+                          borderRadius: 9, padding: '6px 11px', fontSize: 12, fontWeight: 600,
+                          color: 'var(--text-secondary)', cursor: c.loading ? 'default' : 'pointer',
+                          fontFamily: 'inherit', minHeight: 36, opacity: c.loading ? 0.6 : 1,
+                        }}
+                      >
+                        <RefreshCw size={11} /> Try again
+                      </button>
+                    )}
                     {m.trace && m.trace.some((s) => s.tool) && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                         {m.trace.filter((s) => s.tool).map((s, ti) => (

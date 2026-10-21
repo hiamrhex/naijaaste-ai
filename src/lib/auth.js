@@ -1,4 +1,5 @@
 import { API } from '../constants/index.js';
+import { ApiClientError, readJson } from './api.js';
 
 const KEY = 'naijataste.auth';
 
@@ -29,13 +30,6 @@ export const dropAuth = () => {
   try { localStorage.removeItem(KEY); } catch { /* noop */ }
 };
 
-const parseError = async (res) => {
-  try {
-    const data = await res.json();
-    return data?.error?.message || data?.error || 'Request failed';
-  } catch { return 'Request failed'; }
-};
-
 // Last X-Request-Id seen from the API — auto-attached to feedback reports (D).
 let lastRequestId = null;
 export const getLastRequestId = () => lastRequestId;
@@ -53,8 +47,7 @@ export const signup = async ({ name, email, password }) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password }),
   }));
-  if (!res.ok) throw new Error(await parseError(res));
-  const data = await res.json();
+  const data = await readJson(res, { fallbackMessage: 'Could not create your account. Please try again.' });
   setAuth({ user: data.user, accessToken: data.accessToken });
   return data.user;
 };
@@ -65,8 +58,7 @@ export const signin = async ({ email, password }) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   }));
-  if (!res.ok) throw new Error(await parseError(res));
-  const data = await res.json();
+  const data = await readJson(res, { fallbackMessage: 'Could not sign you in. Please try again.' });
   setAuth({ user: data.user, accessToken: data.accessToken });
   return data.user;
 };
@@ -77,8 +69,7 @@ export const googleSignIn = async (credential) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ credential }),
   }));
-  if (!res.ok) throw new Error(await parseError(res));
-  const data = await res.json();
+  const data = await readJson(res, { fallbackMessage: 'Google sign-in failed. Please try again.' });
   setAuth({ user: data.user, accessToken: data.accessToken });
   return data.user;
 };
@@ -93,7 +84,7 @@ export const signout = async () => {
 
 export const deleteAccount = async () => {
   const res = await authFetch('/auth/me', { method: 'DELETE' });
-  if (!res.ok) throw new Error(await parseError(res));
+  await readJson(res, { fallbackMessage: 'Could not delete your account. Please try again.' });
   dropAuth();
   try {
     for (const k of ['nt.history.v1', 'nt.plans.v1', 'nt.theme.v1', 'nt.lang.v1']) localStorage.removeItem(k);
@@ -107,9 +98,7 @@ export const forgotPassword = async ({ email }) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   }));
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error?.message || 'Request failed');
-  return data;
+  return readJson(res, { fallbackMessage: 'Could not send the reset code. Please try again.' });
 };
 
 export const resetPassword = async ({ email, otp, newPassword }) => {
@@ -118,15 +107,13 @@ export const resetPassword = async ({ email, otp, newPassword }) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, otp, new_password: newPassword }),
   }));
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error?.message || 'Request failed');
-  return data;
+  return readJson(res, { fallbackMessage: 'Could not reset your password. Please try again.' });
 };
 
 export const getFavorites = async () => {
   const res = await authFetch('/auth/favorites');
-  if (!res.ok) throw new Error('Could not load favorites');
-  return (await res.json()).favorites || [];
+  const data = await readJson(res, { fallbackMessage: 'Could not load favorites.' });
+  return data.favorites || [];
 };
 
 export const addFavorite = async (restaurantId) => {
@@ -135,22 +122,22 @@ export const addFavorite = async (restaurantId) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ restaurant_id: restaurantId }),
   });
-  if (!res.ok) throw new Error('Could not save favorite');
-  return (await res.json()).favorites || [];
+  const data = await readJson(res, { fallbackMessage: 'Could not save favorite.' });
+  return data.favorites || [];
 };
 
 export const removeFavorite = async (restaurantId) => {
   const res = await authFetch(`/auth/favorites/${encodeURIComponent(restaurantId)}`, {
     method: 'DELETE',
   });
-  if (!res.ok) throw new Error('Could not remove favorite');
-  return (await res.json()).favorites || [];
+  const data = await readJson(res, { fallbackMessage: 'Could not remove favorite.' });
+  return data.favorites || [];
 };
 
 export const getSavedPlaces = async () => {
   const res = await authFetch('/auth/saved-places');
-  if (!res.ok) throw new Error('Could not load saved spots');
-  return (await res.json()).places || [];
+  const data = await readJson(res, { fallbackMessage: 'Could not load saved spots.' });
+  return data.places || [];
 };
 
 export const addSavedPlace = async (name) => {
@@ -159,19 +146,20 @@ export const addSavedPlace = async (name) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error?.message || 'Could not save spot');
-  return (await res.json()).place;
+  const data = await readJson(res, { fallbackMessage: 'Could not save spot.' });
+  return data.place;
 };
 
 export const deleteSavedPlace = async (id) => {
   const res = await authFetch(`/auth/saved-places/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    if (res.status === 404) throw new Error('That spot is already gone');
-    throw new Error(body?.error?.message || 'Could not delete spot');
+  if (res.status === 404) {
+    // Consume the body through the safe reader, then keep the honest copy.
+    await readJson(res, { fallbackMessage: 'That spot is already gone' }).catch(() => {});
+    throw new Error('That spot is already gone');
   }
+  await readJson(res, { fallbackMessage: 'Could not delete spot.' });
   return true;
 };
 
@@ -181,8 +169,8 @@ export const postRating = async ({ restaurant_id, stars, note, context }) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ restaurant_id, stars, note, context }),
   });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error?.message || 'Could not save rating');
-  return (await res.json()).data;
+  const data = await readJson(res, { fallbackMessage: 'Could not save rating.' });
+  return data.data;
 };
 
 export const postReport = async ({ type, message, screen, device, app_version, restaurant_id, screenshot }) => {
@@ -191,8 +179,7 @@ export const postReport = async ({ type, message, screen, device, app_version, r
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ type, message, screen, device, app_version, restaurant_id, screenshot }),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error?.message || 'Could not send report');
+  const data = await readJson(res, { fallbackMessage: 'Could not send report.' });
   return data.data;
 };
 
@@ -204,7 +191,7 @@ export const tryRefresh = async () => {
       credentials: 'include',
     }));
     if (!res.ok) return false;
-    const data = await res.json();
+    const data = await readJson(res, { fallbackMessage: 'Could not restore your session.' });
     setAuth({ user: data.user, accessToken: data.accessToken });
     return true;
   } catch { return false; }
@@ -223,14 +210,24 @@ export const authFetch = async (path, options = {}) => {
       throw new Error('Session expired — please sign in again');
     }
   }
-  const doFetch = () => fetch(`${API}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      ...(options.headers || {}),
-      Authorization: `Bearer ${current.accessToken}`,
-    },
-  }).then(track);
+  const doFetch = async () => {
+    try {
+      return track(await fetch(`${API}${path}`, {
+        ...options,
+        credentials: 'include',
+        headers: {
+          ...(options.headers || {}),
+          Authorization: `Bearer ${current.accessToken}`,
+        },
+      }));
+    } catch (cause) {
+      if (cause?.name === 'AbortError') throw cause;
+      throw new ApiClientError({
+        message: 'We could not reach the server. Check your connection and try again.',
+        cause,
+      });
+    }
+  };
 
   let res = await doFetch();
   if (res.status === 401) {

@@ -49,11 +49,11 @@ describe('XSS guards (item 3)', () => {
   it('markup in chat text stays JSON-typed, never an HTML document', async () => {
     // Markup is legitimate message text (React escapes it on render); the
     // contract that matters is the response stays JSON with nosniff,
-    // whether the LLM answers (200) or is down (502).
+    // whether the LLM answers (200) or is down (502/503).
     const res = await request(app)
       .post('/chat')
       .send({ message: '<img src=x onerror=alert(1)>' });
-    expect([200, 502]).toContain(res.status);
+    expect([200, 502, 503]).toContain(res.status);
     expect(res.headers['content-type']).toMatch(/application\/json/);
     expect(res.headers['x-content-type-options']).toBe('nosniff');
   });

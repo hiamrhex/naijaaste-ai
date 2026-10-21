@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { runAgent } from '../agent/agent.js';
 import { requireAuth } from '../auth/middleware.js';
 import { getSession, saveSession } from '../services/chat.service.js';
+import { deterministicAgentReply } from '../services/fallback.service.js';
 import { ApiError } from '../lib/errors.js';
 import { fail } from '../lib/respond.js';
 import { validate } from '../middleware/validate.js';
@@ -9,6 +10,16 @@ import { chatBodySchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
+
+// A model failure must not end the conversation: when Gemini times out, is
+// unavailable or the circuit is open, we answer with deterministic catalogue
+// picks instead of a dead end. Only when even that fails do we return an
+// error — and then it is always JSON with the request id.
+const isModelFailure = (err) =>
+  err?.code === 'LLM_TIMEOUT' ||
+  err?.code === 'LLM_UNAVAILABLE' ||
+  err?.code === 'CIRCUIT_OPEN' ||
+  (typeof err?.status === 'number' && err.status >= 400);
 
 router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) => {
   try {
@@ -38,7 +49,33 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
     if (!session.user_id) session.user_id = req.user.id;
 
     const startTime = Date.now();
-    const { text, trace } = await runAgent(session, message);
+    let text;
+    let trace;
+    let fallback = null;
+
+    try {
+      ({ text, trace } = await runAgent(session, message));
+    } catch (err) {
+      if (!isModelFailure(err)) throw err;
+      // Deterministic fallback: real catalogue rows, no model involved.
+      fallback = await deterministicAgentReply(session, message, err?.code || 'LLM_UNAVAILABLE');
+      if (!fallback) {
+        // No fallback available → typed JSON error with the request id.
+        const timedOut = err?.code === 'LLM_TIMEOUT';
+        return res.status(timedOut ? 504 : 503).json({
+          success: false,
+          error: {
+            code: timedOut ? 'AI_TIMEOUT' : 'AI_UNAVAILABLE',
+            message: timedOut
+              ? 'The AI service took too long to respond. Please try again.'
+              : 'The AI service is unavailable right now. Please try again in a moment.',
+          },
+          requestId: req.id,
+        });
+      }
+      text = fallback.text;
+      trace = [{ step: 0, tool: 'deterministic_fallback', ok: true, final: true, ms: Date.now() - startTime }];
+    }
 
     session.conversation_history.push(
       { role: 'user', content: message.trim(), timestamp: new Date().toISOString() },
@@ -46,6 +83,14 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
     );
     session.conversation_history = session.conversation_history.slice(-20);
     session.last_active = new Date().toISOString();
+    if (fallback) {
+      session.stage = 'recommend';
+      session.recommendations = {
+        success: true,
+        fallback: true,
+        recommendations: fallback.picks,
+      };
+    }
     await saveSession(session);
 
     return res.status(200).json({
@@ -56,7 +101,13 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
       extracted_persona: session.extracted_persona,
       recommendations: session.recommendations || null,
       trace: trace.map(({ step, tool, ok, error, ms, final }) => ({ step, tool, ok, error, ms, final })),
-      meta: { latency_ms: Date.now() - startTime, steps: trace.length, agent: true },
+      meta: {
+        latency_ms: Date.now() - startTime,
+        steps: trace.length,
+        agent: true,
+        fallback: !!fallback,
+        fallback_reason: fallback?.reason || null,
+      },
     });
   } catch (err) {
     if (err instanceof ApiError) return res.status(err.status).json({

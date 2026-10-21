@@ -6,6 +6,7 @@ import { ReviewModal } from '../components/ReviewModal.jsx';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 import { useLanguage } from '../app/useLanguage.js';
 import { readPlans, writePlans } from '../lib/plans.js';
+import { errorMessage, readJson } from '../lib/api.js';
 import { recordCheckInEvent } from '../hooks/useCheckIn.js';
 const BUDGETS = [
   { value: 'tight', label: 'Tight', budget_level: 'low' },
@@ -58,9 +59,9 @@ export default function PlanScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ persona }),
       });
-      const data = await res.json();
-      if (!res.ok || data.success === false) {
-        throw new Error(data?.error?.message || t('genericError'));
+      const data = await readJson(res, { fallbackMessage: t('genericError') });
+      if (data.success === false) {
+        throw new Error(t('genericError'));
       }
       const list = data.recommendations?.recommendations || data.recommendations || [];
       setRecs(list);
@@ -70,7 +71,7 @@ export default function PlanScreen() {
       if (list[0]?.restaurant_id) recordCheckInEvent(list[0].restaurant_id, 'planned');
       writePlans([{ id: `plan-${Date.now()}`, at: new Date().toISOString(), inputs: { groupSize: size, budget, area, occasion, dietary }, recs: list }, ...readPlans()]);
     } catch (err) {
-      setError(err.message || t('genericError'));
+      setError(errorMessage(err, t('genericError')));
       setStatus('error');
     }
   };
@@ -88,10 +89,11 @@ export default function PlanScreen() {
           restaurant,
         }),
       });
-      const data = await res.json();
+      const data = await readJson(res, { fallbackMessage: 'Could not generate a review.' });
       setReview(data);
       setShowReview(true);
-    } catch { /* silent fail */
+    } catch (err) {
+      setError(errorMessage(err, 'Could not generate a review.'));
     } finally {
       setReviewLoading(false);
     }

@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { Crosshair, Loader2, Navigation, Heart, MapPin } from 'lucide-react';
 import { API } from '../constants/index.js';
 import { getFavorites, addFavorite, removeFavorite } from '../lib/auth.js';
+import { errorMessage, readJson } from '../lib/api.js';
 import { recordCheckInEvent } from '../hooks/useCheckIn.js';
 import { useLanguage } from '../app/useLanguage.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
@@ -91,12 +92,11 @@ export default function MapScreen() {
         setStatus('loading');
         try {
           const res = await fetch(`${API}/nearby?lat=${latitude}&lng=${longitude}&limit=12&radius_km=25`);
-          const data = await res.json();
-          if (!res.ok) throw new Error(data?.error?.message || 'Nearby lookup failed');
+          const data = await readJson(res, { fallbackMessage: t('genericError') });
           setResults(data.results || []);
           setStatus('ready');
         } catch (err) {
-          setError(err.message || t('genericError'));
+          setError(errorMessage(err, t('genericError')));
           setStatus('error');
         }
       },
