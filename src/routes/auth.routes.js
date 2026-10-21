@@ -6,8 +6,8 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/t
 import { requireAuth } from '../auth/middleware.js';
 import { issueOtp, verifyOtp } from '../auth/otp.js';
 import { lockStatus, recordFailure, clearFailures } from '../auth/lockout.js';
+import { sendOtpEmail, sinkAddress, otpShownInResponse } from '../services/email.service.js';
 import { passwordProblem } from '../auth/password.js';
-import { sendOtpEmail, otpShownInResponse } from '../services/email.service.js';
 import { verifyGoogleCredential, googleAuthEnabled } from '../auth/google.js';
 import { env } from '../env.js';
 import { getRestaurantsByCodes, findRestaurantByCode } from '../db/catalogue.js';
@@ -286,15 +286,22 @@ router.post('/auth/forgot-password', noStore, forgotLimiter, async (req, res) =>
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'valid email is required', requestId: req.id } });
     }
     const user = await findUserByEmail(email);
-    if (!user) {
-      return res.json({ success: true, message: RESET_MESSAGE });
-    }
+
+    // The account may or may not exist. Both cases do exactly the same work
+    // - issue a code, hand it to the mailer, answer the same body - so the
+    // response time cannot be used to enumerate accounts. Only the recipient
+    // differs: an address with no account is delivered to our own sink, so
+    // the SMTP round trip is paid identically and no third party is mailed.
+    //
+    // Issuing the code for an unknown address also keeps the reset flow
+    // consistent: a later reset attempt for that address finds a code row
+    // and takes the same "wrong code" path as a real account.
     let code;
     try {
       // With no SMTP the code is returned in the response instead of being
       // mailed, so there is no inbox to protect and the caller must always
       // get a usable code - re-issue freely.
-      code = await issueOtp(user.email, { force: otpShownInResponse() });
+      code = await issueOtp(user ? user.email : email, { force: otpShownInResponse() });
     } catch (err) {
       if (err.code === 'RESEND_COOLDOWN') {
         // Keep the still-valid earlier code, send nothing, answer identically.
@@ -302,11 +309,19 @@ router.post('/auth/forgot-password', noStore, forgotLimiter, async (req, res) =>
       }
       throw err;
     }
-    const delivery = await sendOtpEmail({ to: user.email, name: user.name, code });
+    const delivery = await sendOtpEmail({
+      to: user ? user.email : sinkAddress(),
+      name: user ? user.name : 'there',
+      code,
+    });
     return res.json({
       success: true,
       message: RESET_MESSAGE,
-      ...(delivery.dev_otp ? { dev_otp: delivery.dev_otp } : {}),
+      // dev_otp is a development-only convenience and only ever appears for a
+      // real account (production never returns it). The work behind the
+      // response is identical either way - that is what closes the timing
+      // oracle - so the dev-only field stays a dev-only difference.
+      ...(user && delivery.dev_otp ? { dev_otp: delivery.dev_otp } : {}),
     });
   } catch (err) {
     req.log?.error({ err }, 'auth forgot-password failed');
@@ -337,7 +352,11 @@ router.post('/auth/reset-password', noStore, resetLimiter, async (req, res) => {
     }
     const user = await findUserByEmail(email);
     if (!user) {
-      // OTP verified but user gone — treat as generic failure, do not leak state
+      // The code verified but no account exists behind it (an address that
+      // requested a code but never signed up). Answer with the same generic
+      // failure AND pay the same cost as the success path, so a valid code
+      // for a non-account does not stand out by being fast.
+      await bcrypt.hash(new_password, 12);
       return res.status(400).json({ success: false, error: { code: 'INVALID_OTP', message: 'Invalid or expired reset code', requestId: req.id } });
     }
     const passwordHash = await bcrypt.hash(new_password, 12);

@@ -43,6 +43,20 @@ export const otpHtml = ({ name, code }) => `
 const smtpConfigured = () =>
   Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
 
+/**
+ * A sink address for reset codes issued for addresses that have no account.
+ *
+ * The work of sending an email has to be identical whether or not the
+ * account exists, otherwise the response time enumerates accounts. An
+ * unknown address therefore still pays the SMTP round trip — but the message
+ * must never reach a third party, so it is delivered to our own address.
+ */
+export const sinkAddress = () => {
+  const from = env.SMTP_FROM || '';
+  const angled = from.match(/<([^>]+)>/);
+  return (angled ? angled[1] : from).trim() || 'noreply@localhost';
+};
+
 /** True only on explicit opt-in outside production — never on prod. */
 export const devOtpAllowed = () =>
   env.DEV_OTP_ENABLED === 'true' && env.NODE_ENV !== 'production';

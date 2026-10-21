@@ -75,33 +75,48 @@ export const issueOtp = async (email, { force = false } = {}) => {
  * Verify an OTP. Always consumes an attempt; invalidates the code after
  * MAX_ATTEMPTS failures or on success.
  * Returns { ok: true } | { ok: false, reason: 'missing'|'expired'|'max_attempts'|'mismatch', attemptsLeft }
+ *
+ * Timing contract: "no code was ever issued for this address" and "the code
+ * is wrong" must cost the same, otherwise the response time enumerates
+ * accounts. The attempt-claim UPDATE and the HMAC comparison therefore run
+ * on BOTH paths (the UPDATE matches no row when there is nothing to claim).
  */
 export const verifyOtp = async (email, code) => {
   const pool = await getPool();
   const key = email.toLowerCase().trim();
   const { rows } = await pool.query('SELECT * FROM otps WHERE email = $1', [key]);
   const rec = rows[0];
-  if (!rec) return { ok: false, reason: 'missing', attemptsLeft: 0 };
 
   const now = Date.now();
-  if (now > new Date(rec.expires_at).getTime()) {
-    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
-    return { ok: false, reason: 'expired', attemptsLeft: 0 };
-  }
 
   // Claim the attempt atomically: the WHERE clause is the lock. A read-then-write
   // counter let two concurrent guesses both spend the same attempt, so a valid
   // code could be rejected while a wrong one had already used it up.
+  // This runs even when no row exists — it is half of the equal-cost work.
   const { rows: claimed } = await pool.query(
     `UPDATE otps SET attempts = attempts + 1
      WHERE email = $1 AND attempts < $2
      RETURNING attempts, code_hash`,
     [key, MAX_ATTEMPTS]
   );
+
+  if (!rec) {
+    // Nothing was ever issued for this address. Do the same comparison the
+    // mismatch path does, so both answers cost the same wall-clock time.
+    safeEqual(hashCode(key, '000000'), hashCode(key, '000000'));
+    return { ok: false, reason: 'missing', attemptsLeft: 0 };
+  }
+
+  if (now > new Date(rec.expires_at).getTime()) {
+    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
+    return { ok: false, reason: 'expired', attemptsLeft: 0 };
+  }
+
   if (!claimed.length) {
     await pool.query('DELETE FROM otps WHERE email = $1', [key]);
     return { ok: false, reason: 'max_attempts', attemptsLeft: 0 };
   }
+
   const attempts = claimed[0].attempts;
   const match = typeof code === 'string' && /^\d{6}$/.test(code)
     && safeEqual(claimed[0].code_hash, hashCode(key, code));
