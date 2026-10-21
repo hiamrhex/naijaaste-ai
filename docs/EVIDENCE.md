@@ -412,3 +412,13 @@ supersedes Unverified #1 (live API) and #2 (prod DB present in `.env`).
   consistent with IQ-25: my ramp stopped at 20 users (p99 922 ms) and did not
   cross the documented pool ceiling.
 
+### 2026-10-21 fix verification (HEAD `0156780`)
+
+| ID | Check | Result |
+|---|---|---|
+| F22-01 | Host spelling | `naijaaste-ai.vercel.app` -> `404 DEPLOYMENT_NOT_FOUND`; `naijataste-ai.vercel.app` -> `200` (`/health` version 2.0.0). Reporting every live probe against the host actually used. |
+| F22-02 | Deploy state vs HEAD | `/app/login` and `/` send no CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy` or `Permissions-Policy`; `/offline.js` (added by `0156780`) -> `404`. The deployment predates HEAD, so the document-header fix is **not live** and item 3 is not verified. |
+| F22-03 | Service worker | `/sw.js` -> `200` (workbox precache, network-first navigations, `offline.html` fallback); `/manifest.webmanifest` -> `200`. |
+| F22-04 | Lockout review (`dc7a0ae`) | Keyed `(email, ip)`; 10 failures set `locked_until = now + 15 min`; cleared on success. Forgot/reset are **not** gated by lockout, so recovery is not blocked. Gaps: no IP-independent per-account counter (IP rotation bypass, bounded only by signin 50/15 min/IP); expiry does not reset `failures`, so one typo after expiry re-locks; prune runs only on `recordFailure`, so a random-email spray grows `auth_failures` for up to 1 h per row. |
+| F22-05 | Doc corrections | `README.md`, `docs/API.md`, `docs/SECURITY.md`, `docs/DATA.md`, `docs/ARCHITECTURE.md` updated to measured defaults, tested-vs-unverified labels, and the undeployed header state. `opening_hours` null on 60/60 per IQ-24. |
+

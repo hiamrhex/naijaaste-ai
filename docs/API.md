@@ -1,10 +1,10 @@
 # API reference
 
-> Last verified: 2026-10-16 against `src/routes/` + live `/health` (29 endpoints).
+> Last verified: 2026-10-21 against `src/routes/` + live `/health` (29 endpoints).
 > Full endpoint table in [README](../README.md#api-summary).
 > All errors: `{ error: { code, message, details?, requestId } }`. All 429s add `Retry-After`.
 
-Conventions: legacy `/` + canonical `/api/v1` serve identical handlers (use `/api/v1`).
+Conventions: canonical `/api/v1`. The legacy `/api/*` prefix reaches the same handlers through the Vercel rewrite. The bare unprefixed mount (`GET /nearby`) exists only when running `src/server.js` directly; on the deployment it returns `404` (verified 2026-10-21, evidence IQ-28).
 `POST /agent` and LLM routes cost model calls — guarded at 10/min per client.
 
 ## Auth

@@ -20,7 +20,7 @@ Out of scope (explicit): DDoS absorption (provider edge), device compromise, Gem
 ## Controls checklist
 
 - [x] zod validation on bodies/params/env; `validate()` middleware on LLM routes
-- [x] Ownership checks (agent sessions, favorites, ratings); role gate on `/admin/*`
+- [x] Ownership checks (chat sessions, agent sessions, favorites, ratings); role gate on `/admin/*`. Chat sessions return `404` to non-owners (`tests/chat-ownership.test.js`); favorites/saved-places filter in SQL and return `200 {"removed":false}` / `404` without leaking rows.
 - [x] Timing-safe OTP compare; HMAC-hashed codes; 10-min TTL; atomic attempt accounting
 - [x] No enumeration oracle: known and unknown emails get identical status, body and timing
 - [x] Brute-force lockout on `(email, ip)` — 10 failures → 15 min, cleared on success
@@ -28,7 +28,7 @@ Out of scope (explicit): DDoS absorption (provider edge), device compromise, Gem
 - [x] `Retry-After` + draft-7 `RateLimit` headers on every 429
 - [x] `Cache-Control: no-store` + `requestId` on every auth response
 - [x] CORS allowlist, fail-closed boot in production
-- [x] Helmet headers; CSP **enforced** in production (strict `script-src 'self'` + Google; `object-src 'none'`, `frame-ancestors 'self'`)
+- [x] Helmet headers on API JSON; document CSP (`script-src 'self'` + Google; `object-src 'none'`, `frame-ancestors 'self'`), `X-Frame-Options`, `nosniff`, `Referrer-Policy` and `Permissions-Policy` defined in `vercel.json` (commit `0156780`, `tests/deployment-config.test.js`). **Not yet live:** on 2026-10-21 the deployment served no document CSP and `0156780`'s `/offline.js` returned `404`, so live enforcement is unverified.
 - [x] Access token memory-only on client; localStorage holds `{ user }` only (`src/lib/auth.js:13-17`); refresh cookie httpOnly
 - [x] Pooled-DB resilience: one retry on a connection-level failure, TCP keepalive on
 

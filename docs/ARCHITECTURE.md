@@ -19,7 +19,7 @@
 ## Request lifecycle
 
 1. Vercel rewrites `/api/*` → function (or Vite dev proxy → `:3000`).
-2. `api/index.js` strips `/api`, Express matches `/api/v1/*` (canonical) or legacy `/`.
+2. `api/index.js` strips `/api`, Express matches `/api/v1/*` (canonical). The legacy bare mounts also exist when `src/server.js` runs directly, but on the deployment they are not reachable (`404`).
 3. `apiLimiter` (all but `/health`) → `llmLimiter` (6 LLM paths, both mounts) → zod `validate()` → handler.
 4. Handler: `ok()` → `{ data, meta? }`; throws → `errorHandler` → `{ error: { code, message, details?, requestId } }` (+ `Retry-After` on 429).
 5. Every response carries `X-Request-Id` (accepted from client or generated).

@@ -6,7 +6,7 @@
 
 | Source | What | Freshness | Provenance |
 |---|---|---|---|
-| Hand-curated seed | 60 restaurants, 8 cities, full fields (dishes, prices, spice, dietary) | Frozen at seed; `verified:true` | `src/data/restaurants.json` → `npm run db:migrate` |
+| Hand-curated seed | 60 restaurants, 8 cities; dishes, prices, spice, dietary; **`opening_hours` is null on all 60** (measured 2026-10-20) | Frozen at seed; `verified:true` | `src/data/restaurants.json` → `npm run db:migrate` |
 | OpenStreetMap (Overpass) | Lagos, Abuja, Port Harcourt, Ibadan; name/coords/cuisine/hours/address | Daily via `.github/workflows/refresh.yml` (manual trigger included) | `osm_id`, `source:'osm'`, `last_seen`, `verified:false` |
 
 ## Pipeline

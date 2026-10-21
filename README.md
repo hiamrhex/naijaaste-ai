@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Node ≥24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)
 
-> **Status:** landing page, app shell and the API are live at [naijaaste-ai.vercel.app](https://naijaaste-ai.vercel.app) — `/health` returns 200. Everything below is verified against the code today; evidence lives in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
+> **Status:** landing page, app shell and the API are live at [naijataste-ai.vercel.app](https://naijataste-ai.vercel.app) — `/health` returns 200. Everything below is verified against the code today; evidence lives in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 ![NaijaTaste landing page](docs/media/shot-landing-desktop.png)
 ![NaijaTaste sign-in on mobile](docs/media/shot-login-mobile.png)
@@ -100,7 +100,7 @@ sequenceDiagram
 ```mermaid
 flowchart LR
   LP["Landing / (static)"] --> APP["SPA /app (Vite 8, BrowserRouter /app)"]
-  APP -->|"Bearer JWT + refresh cookie"| API["Express 4 API (/api/v1 + legacy /)"]
+  APP -->|"Bearer JWT + refresh cookie"|   API["Express 4 API (/api/v1; legacy /api/* via rewrite)"]
   API --> MW["Rate limit → JWT middleware → zod validation"]
   MW --> R["Routes: agent · chat · nearby · persona · recommend · review · ratings · reports · admin"]
   R --> AG["Agent loop — Gemini function calling, MAX_STEPS=6"]
@@ -259,11 +259,11 @@ Every error is `{ error: { code, message, details?, requestId } }`; 429s add `Re
 
 Threat model (STRIDE), controls inventory and disclosure policy: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) · [`docs/SECURITY.md`](docs/SECURITY.md) · [`SECURITY.md`](SECURITY.md).
 
-- Ownership enforced: cross-user session/favorite/rating access → 403/404 (tested).
+- Ownership enforced (tested): chat sessions return `404` to non-owners (`tests/chat-ownership.test.js`); `/agent` returns `403`; favorites/saved-places filter by owner in SQL (`200 {"removed":false}` / `404`, no data leak).
 - Refresh rotation with reuse detection; logout revokes server-side; access tokens never touch localStorage.
 - OTP: HMAC-hashed, 10-min TTL, 5 attempts, 60s cooldown, timing-safe compare, generic responses.
-- Rate limits per surface (auth 20/15min, reset 10/min, LLM 10/min, global 600/15min); `/health` exempt.
-- Strict CSP (`script-src 'self'` + Google), helmet headers, nosniff, frame-ancestors self.
+- Rate limits per surface (defaults, 15 min unless noted): signup 25, signin 50, refresh 60, Google 10, forgot 10, reset 20, LLM 10/min, global 600/15 min; `/health` exempt. Limiter tests trip real `429`s; live limits were not driven (unverified).
+- Security headers: CSP (`script-src 'self'` + Google, `object-src 'none'`, `frame-ancestors 'self'`), `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy` ship to HTML documents via `vercel.json` (commit `0156780`, `tests/deployment-config.test.js`) and to API JSON via helmet. Live document-header scan is **pending deployment** (commit `0156780` was not live on 2026-10-21).
 - CORS allowlist, fail-closed boot in production; refresh cookie `httpOnly` + `sameSite=strict` + root path.
 - Break-it battery (14 attacks) and agent-safety probes (5) recorded in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
