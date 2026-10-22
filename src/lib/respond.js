@@ -8,7 +8,7 @@ export const ok = (res, data, meta, status = 200) => {
   return res.status(status).json(body);
 };
 
-export const fail = (res, { status, code, message, details, requestId, retryAfterSec, ...extra }) => {
+export const fail = (res, { status, code, message, details, requestId, retryAfterSec }) => {
   if (retryAfterSec) res.set('Retry-After', String(retryAfterSec));
   return res.status(status).json({
     error: {
@@ -16,7 +16,6 @@ export const fail = (res, { status, code, message, details, requestId, retryAfte
       message,
       ...(details ? { details } : {}),
       ...(requestId ? { requestId } : {}),
-      ...extra,
     },
   });
 };

@@ -3,12 +3,6 @@ import { fail } from '../lib/respond.js';
 import { logger } from '../lib/logger.js';
 import { captureException } from '../lib/monitoring.js';
 
-// TEMPORARY diagnostic (2026-10-21): the Vercel runtime failed every POST
-// with a JSON body, and the error class was invisible from outside. It is
-// reported for 5xx only, and only the error class/message of a programming
-// error (no user data). Remove once the runtime behaviour is confirmed.
-const DEBUG_5XX = true;
-
 export const errorHandler = (err, req, res, _next) => {
   let status = 500;
   let code = 'INTERNAL';
@@ -46,9 +40,6 @@ export const errorHandler = (err, req, res, _next) => {
     status = 400;
     code = 'VALIDATION_ERROR';
     message = 'Malformed JSON body';
-    // TEMPORARY: the first bytes that arrived, to identify the runtime's
-    // body framing.
-    if (DEBUG_5XX && err.body_preview) details = err.body_preview;
   } else if (typeof err?.status === 'number') {
     // LLM SDK errors (GoogleGenAI ApiError) carry .status — anything unexpected
     // from the LLM upstream is a 502, never a leak of the SDK message.
@@ -68,21 +59,5 @@ export const errorHandler = (err, req, res, _next) => {
     });
   }
 
-  // TEMPORARY (see DEBUG_5XX above): expose the error class of a 5xx so the
-  // runtime-specific failure can be identified from a live probe.
-  const debug = DEBUG_5XX && status >= 500 && err?.name
-    ? {
-      error_debug: {
-        name: err.name,
-        message: String(err.message || '').slice(0, 200),
-        ...(err.stack ? { stack: String(err.stack).split('\n').slice(1, 14).join(' | ').slice(0, 1400) } : {}),
-        ...(err.runtime_diagnostic ? { runtime: err.runtime_diagnostic } : {}),
-        socket: req?.socket === null ? 'null' : typeof req?.socket,
-        connection: req?.connection === null ? 'null' : typeof req?.connection,
-        client_ip: req?.clientIp ?? null,
-      },
-    }
-    : {};
-
-  fail(res, { status, code, message, details, requestId: req.id, retryAfterSec, ...debug });
+  fail(res, { status, code, message, details, requestId: req.id, retryAfterSec });
 };
