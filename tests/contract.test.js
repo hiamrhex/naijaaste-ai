@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -14,9 +14,22 @@ import { ok, fail } from '../src/lib/respond.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe('contract group (layers 19/20/25/26/27)', () => {
+  let token;
+
+  beforeAll(async () => {
+    const res = await request(app).post('/auth/signup').send({
+      name: 'Test User',
+      email: `test${Date.now()}@example.com`,
+      password: 'Str0ng!Passw0rd',
+    });
+    token = res.body.accessToken;
+  });
+
+  const auth = () => ({ Authorization: `Bearer ${token}` });
+
   it('v1 and legacy paths serve identical handlers', async () => {
-    const v1 = await request(app).post('/api/v1/chat').send({}).expect(400);
-    const legacy = await request(app).post('/chat').send({}).expect(400);
+    const v1 = await request(app).post('/api/v1/chat').set(auth()).send({}).expect(400);
+    const legacy = await request(app).post('/chat').set(auth()).send({}).expect(400);
     expect(v1.body.error.code).toBe('VALIDATION_ERROR');
     expect(legacy.body.error.code).toBe('VALIDATION_ERROR');
   });

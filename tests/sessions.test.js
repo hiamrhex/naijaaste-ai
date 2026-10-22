@@ -31,14 +31,14 @@ const auth = (t) => ({ Authorization: `Bearer ${t}` });
 
 describe('session params + ownership (plan 012)', () => {
   it('non-UUID session ids are 400, not 404', async () => {
-    await request(app).get('/chat/not-a-uuid').expect(400);
-    await request(app).delete('/chat/__proto__').expect(400);
+    await request(app).get('/chat/not-a-uuid').set(auth(tokenA)).expect(400);
+    await request(app).delete('/chat/__proto__').set(auth(tokenA)).expect(400);
   });
 
   it('well-formed unknown UUIDs stay 404', async () => {
     const id = randomUUID();
-    await request(app).get(`/chat/${id}`).expect(404);
-    await request(app).delete(`/chat/${id}`).expect(404);
+    await request(app).get(`/chat/${id}`).set(auth(tokenA)).expect(404);
+    await request(app).delete(`/chat/${id}`).set(auth(tokenA)).expect(404);
   });
 
   it('another user reusing my agent session gets 403', async () => {
@@ -65,7 +65,7 @@ describe('session params + ownership (plan 012)', () => {
     // owning user's token.
     const created = await request(app).post('/agent')
       .set(auth(tokenA)).send({ message: 'seafood in Port Harcourt' }).expect(200);
-    await request(app).get(`/chat/${created.body.session_id}`).expect(404);
+    await request(app).get(`/chat/${created.body.session_id}`).set(auth(tokenB)).expect(404);
     await request(app).get(`/chat/${created.body.session_id}`).set(auth(tokenA)).expect(200);
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { Readable } from 'stream';
 import request from 'supertest';
 import { jsonBody } from '../src/middleware/jsonBody.js';
@@ -155,10 +155,25 @@ describe('jsonBody parser', () => {
 });
 
 describe('the API accepts a JSON body', () => {
+  let token;
+
+  beforeAll(async () => {
+    const { app } = await import('../src/app.js');
+    const res = await request(app).post('/auth/signup').send({
+      name: 'Test User',
+      email: `test${Date.now()}@example.com`,
+      password: 'Str0ng!Passw0rd',
+    });
+    token = res.body.accessToken;
+  });
+
+  const auth = () => ({ Authorization: `Bearer ${token}` });
+
   it('POST with a body is validated, not 500', async () => {
     const { app } = await import('../src/app.js');
     const res = await request(app)
       .post('/api/v1/chat')
+      .set(auth())
       .set('content-type', 'application/json')
       .send({ nope: true });
     // The body was parsed (so validation ran) and the request carries a
@@ -173,6 +188,7 @@ describe('the API accepts a JSON body', () => {
     const { app } = await import('../src/app.js');
     const res = await request(app)
       .post('/api/v1/chat')
+      .set(auth())
       .set('content-type', 'application/json')
       .send('{bad json');
     expect(res.status).toBe(400);

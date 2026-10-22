@@ -1,12 +1,25 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { errorHandler } from '../src/middleware/errorHandler.js';
 import { badRequest, notFound } from '../src/lib/errors.js';
 
 describe('error contract (layers 19/20/26/27)', () => {
+  let token;
+
+  beforeAll(async () => {
+    const res = await request(app).post('/auth/signup').send({
+      name: 'Test User',
+      email: `test${Date.now()}@example.com`,
+      password: 'Str0ng!Passw0rd',
+    });
+    token = res.body.accessToken;
+  });
+
+  const auth = () => ({ Authorization: `Bearer ${token}` });
+
   it('validation failure uses the unified shape { error: { code, message, requestId } }', async () => {
-    const res = await request(app).post('/chat').send({}).expect(400);
+    const res = await request(app).post('/chat').set(auth()).send({}).expect(400);
     expect(Object.keys(res.body)).toEqual(['error']);
     expect(res.body.error).toMatchObject({ code: 'VALIDATION_ERROR', message: 'message is required' });
     expect(res.body.error.requestId).toMatch(/^[A-Za-z0-9-]{8,64}$/);
@@ -23,6 +36,7 @@ describe('error contract (layers 19/20/26/27)', () => {
   it('rejects over-long chat messages with 400 (was 200)', async () => {
     const res = await request(app)
       .post('/chat')
+      .set(auth())
       .send({ message: 'x'.repeat(501) })
       .expect(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
@@ -31,6 +45,7 @@ describe('error contract (layers 19/20/26/27)', () => {
   it('DELETE of a missing session returns 404 SESSION_NOT_FOUND (was 200)', async () => {
     const res = await request(app)
       .delete('/chat/11111111-1111-4111-8111-111111111111')
+      .set(auth())
       .expect(404);
     expect(res.body.error.code).toBe('SESSION_NOT_FOUND');
   });
@@ -44,12 +59,12 @@ describe('error contract (layers 19/20/26/27)', () => {
   });
 
   it('review with missing body returns 400 without calling the LLM', async () => {
-    const res = await request(app).post('/generate-review').send({}).expect(400);
+    const res = await request(app).post('/generate-review').set(auth()).send({}).expect(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('recommend with missing persona returns 400 without calling the LLM', async () => {
-    const res = await request(app).post('/recommend').send({}).expect(400);
+    const res = await request(app).post('/recommend').set(auth()).send({}).expect(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 

@@ -8,12 +8,19 @@ const PREV = {
 };
 
 let app;
+let token;
 
 beforeAll(async () => {
   process.env.RATE_LIMIT_API_MAX = '3';
   process.env.RATE_LIMIT_LLM_MAX = '10';
   process.env.CORS_ORIGIN = 'https://allowed.example';
   ({ app } = await import('../src/app.js'));
+  const res = await request(app).post('/auth/signup').send({
+    name: 'Test User',
+    email: `test${Date.now()}@example.com`,
+    password: 'Str0ng!Passw0rd',
+  });
+  token = res.body.accessToken;
 });
 
 afterAll(() => {
@@ -22,6 +29,8 @@ afterAll(() => {
     else process.env[k] = v;
   }
 });
+
+const auth = () => ({ Authorization: `Bearer ${token}` });
 
 describe('rate limiting (layer 1)', () => {
   it('never throttles /health (probes exempt)', async () => {
@@ -32,11 +41,12 @@ describe('rate limiting (layer 1)', () => {
 
   it('throttles general routes after RATE_LIMIT_API_MAX requests with a contract 429', async () => {
     // GET /chat/:id (no LLM): 3 pass (404), 4th → 429
-    await request(app).get('/chat/11111111-1111-4111-8111-111111111111').expect(404);
-    await request(app).get('/chat/11111111-1111-4111-8111-111111111111').expect(404);
-    await request(app).get('/chat/11111111-1111-4111-8111-111111111111').expect(404);
+    await request(app).get('/chat/11111111-1111-4111-8111-111111111111').set(auth()).expect(404);
+    await request(app).get('/chat/11111111-1111-4111-8111-111111111111').set(auth()).expect(404);
+    await request(app).get('/chat/11111111-1111-4111-8111-111111111111').set(auth()).expect(404);
     const res = await request(app)
       .get('/chat/11111111-1111-4111-8111-111111111111')
+      .set(auth())
       .expect(429);
     expect(res.body).not.toHaveProperty('success');
     expect(res.body.error.code).toBe('RATE_LIMITED');

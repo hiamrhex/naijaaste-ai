@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeAll } from 'vitest';
 import request from 'supertest';
 
 afterEach(() => {
@@ -22,6 +22,20 @@ const llmMock = (fn) => ({
 });
 
 describe('Gemini budget (server)', () => {
+  let token;
+
+  beforeAll(async () => {
+    const { app } = await import('../src/app.js');
+    const res = await request(app).post('/auth/signup').send({
+      name: 'Test User',
+      email: `test${Date.now()}@example.com`,
+      password: 'Str0ng!Passw0rd',
+    });
+    token = res.body.accessToken;
+  });
+
+  const auth = () => ({ Authorization: `Bearer ${token}` });
+
   it('chat returns JSON 504 AI_TIMEOUT with a requestId when the model exceeds our budget', async () => {
     vi.resetModules();
     vi.doMock('../src/services/llm.service.js', () => llmMock(async () => {
@@ -34,6 +48,7 @@ describe('Gemini budget (server)', () => {
     const { app } = await import('../src/app.js');
     const res = await request(app)
       .post('/api/v1/chat')
+      .set(auth())
       .send({ message: 'Find me jollof rice in Lagos' });
 
     expect(res.status).toBe(504);
@@ -54,6 +69,7 @@ describe('Gemini budget (server)', () => {
     const { app } = await import('../src/app.js');
     const res = await request(app)
       .post('/api/v1/chat')
+      .set(auth())
       .send({ message: 'Find me jollof rice in Lagos' });
 
     expect(res.status).toBe(503);
