@@ -148,7 +148,24 @@ const apiLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
   keyGenerator: keyByClientIp,
-  skip: (req) => req.path === "/health" || req.path === "/health/ready", // probes never throttled
+  // Skip paths that have their own more-specific limiters:
+  // - /health, /health/ready (probes)
+  // - /auth/* (signup, signin, refresh, google, forgot, reset, favorites, saved-places, me)
+  // - /chat, /extract-persona, /update-preference, /recommend, /generate-review, /agent (LLM)
+  // - /api/v1/* equivalents of the above
+  skip: (req) => {
+    const path = req.path;
+    if (path === "/health" || path === "/health/ready") return true;
+    if (path.startsWith("/auth/")) return true;
+    if (path.startsWith("/api/v1/auth/")) return true;
+    if (
+      path === "/chat" || path === "/extract-persona" || path === "/update-preference" ||
+      path === "/recommend" || path === "/generate-review" || path === "/agent" ||
+      path === "/api/v1/chat" || path === "/api/v1/extract-persona" || path === "/api/v1/update-preference" ||
+      path === "/api/v1/recommend" || path === "/api/v1/generate-review" || path === "/api/v1/agent"
+    ) return true;
+    return false;
+  },
   handler: limiterHandler(900),
 });
 

@@ -6,6 +6,11 @@
 // frontend calls /api/auth/… — strip that mount prefix back to the paths
 // Express actually serves (/auth/…, /api/v1/…). Local dev is unaffected
 // (requests there never carry the /api prefix).
+//
+// Vercel rewrite behavior: /api/:path* → function receives :path* as req.url
+//   /api/v1/auth/signup  → req.url = "/v1/auth/signup"
+//   /api/auth/signup     → req.url = "/auth/signup"
+//   /api/health          → req.url = "/health"
 import { app } from '../src/app.js';
 import { initMonitoring, captureException } from '../src/lib/monitoring.js';
 
@@ -13,16 +18,17 @@ import { initMonitoring, captureException } from '../src/lib/monitoring.js';
 await initMonitoring().catch(() => {});
 
 export default (req, res) => {
-  // Two documented path shapes arrive here through the /api rewrite:
-  //   /api/v1/…       → the router's CANONICAL base (src/app.js mounts /api/v1)
-  //                       → keep as-is, Express strips the /api/v1 base itself.
-  //   /api/auth|agent… → same-origin lightweight prefix the SPA uses
-  //                       → strip the outer /api so the mounted-at-/ routers match.
-  if (req.url === '/api') {
+  // Normalize Vercel-rewritten paths to what Express mounts expect:
+  // Mounts in src/app.js: "/api/v1" (canonical) and "/" (legacy)
+  if (req.url === '/api' || req.url === '/') {
     req.url = '/';
+  } else if (req.url.startsWith('/v1/') || req.url === '/v1') {
+    // Vercel rewrote /api/v1/... → /v1/...; prepend /api so /api/v1 mount matches
+    req.url = '/api' + req.url;
   } else if (req.url.startsWith('/api/v1/') || req.url === '/api/v1') {
-    // keep as-is; the /api/v1 mount handles it
+    // Direct call (local dev or non-Vercel) — keep as-is
   } else if (req.url.startsWith('/api/')) {
+    // SPA calls /api/auth/... → strip /api so "/" mount matches
     req.url = req.url.slice(4) || '/';
   }
   try {
