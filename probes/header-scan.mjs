@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const mode = process.argv[2] || 'live';
-const paths = process.argv.slice(3).length
+let paths = process.argv.slice(3).length
   ? process.argv.slice(3)
   : ['/', '/app/login', '/sw.js', '/offline.html', '/api/health'];
 
@@ -95,6 +95,8 @@ if (mode === 'local') {
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${server.address().port}`;
   console.log(`# local simulation of vercel.json headers (${compiled.length} rules) on ${base}`);
+  // The local server is static only: there is no function behind /api here.
+  paths = paths.filter((p) => !p.startsWith('/api'));
 } else {
   base = 'https://naijataste-ai.vercel.app';
   console.log(`# live header scan → ${base}`);
@@ -102,12 +104,19 @@ if (mode === 'local') {
 
 for (const p of paths) {
   const res = await fetch(base + p, { redirect: 'manual' });
-  const found = WANTED.map((h) => [h, res.headers.get(h)]).filter(([, v]) => v);
-  const missing = WANTED.filter((h) => !res.headers.get(h));
-  console.log(`\n${p}  → ${res.status} ${res.headers.get('content-type') || ''}`);
+  const isApi = /^\/(api\/)?(health|v1\/)/.test(p) || p.startsWith('/api');
+  // Documents get the platform rules (vercel.json); API JSON answers get
+  // helmet's set, which deliberately has no Permissions-Policy (the header
+  // is meaningless on a JSON body).
+  const wanted = isApi
+    ? ['content-security-policy', 'x-frame-options', 'x-content-type-options', 'referrer-policy']
+    : ['content-security-policy', 'x-frame-options', 'x-content-type-options', 'referrer-policy', 'permissions-policy'];
+  const found = wanted.map((h) => [h, res.headers.get(h)]).filter(([, v]) => v);
+  const missing = wanted.filter((h) => !res.headers.get(h));
+  console.log(`\n${p}  → ${res.status} ${res.headers.get('content-type') || ''}  (${isApi ? 'API' : 'document'})`);
   for (const [k, v] of found) console.log(`  ${k}: ${v.length > 110 ? `${v.slice(0, 110)}…` : v}`);
   if (missing.length) console.log(`  MISSING: ${missing.join(', ')}`);
-  else console.log('  all requested headers present');
+  else console.log('  all expected headers present');
 }
 
 server?.close();

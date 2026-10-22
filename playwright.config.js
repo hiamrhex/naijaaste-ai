@@ -28,7 +28,16 @@ export default defineConfig({
       command: 'node src/server.js',
       port: 3000,
       reuseExistingServer: true,
-      env: { ...process.env, NODE_ENV: 'test' },
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+        // The e2e suite must never write to the production database: it
+        // signs up, saves places and requests OTPs on every run. Point it at
+        // the in-process pg-mem instead (the same choice the vitest suite
+        // makes), so a test run cannot leave accounts in Neon.
+        DATABASE_URL: '',
+        DATABASE_URL_DIRECT: '',
+      },
     },
     {
       // Vite dev (not preview): the spa-app-fallback plugin serves the SPA
