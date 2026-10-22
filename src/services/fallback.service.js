@@ -62,6 +62,25 @@ const toPick = (r, i) => ({
 });
 
 /**
+ * Turn the spots the agent NAMED in its answer into real catalogue rows.
+ *
+ * The agent often answers in prose ("check out **Durbar Restaurant Kano**")
+ * without calling get_recommendations, which left the results panel empty
+ * and the food as a wall of markdown. This matches the names it mentioned
+ * against the catalogue, so the answer and the cards always agree.
+ */
+export const picksFromAnswer = async (answer, persona) => {
+  const text = String(answer || '').toLowerCase();
+  if (!text.trim()) return [];
+  const rows = persona?.city_known ? await getCatalogueByCity(persona.city) : await getCatalogue();
+  const hits = rows.filter((r) => {
+    const name = String(r.name || '').toLowerCase();
+    return name.length > 2 && text.includes(name);
+  });
+  return hits.slice(0, 5).map(toPick);
+};
+
+/**
  * Deterministic answer for the agent path.
  * Returns null when even the catalogue cannot help (no city, no match).
  */

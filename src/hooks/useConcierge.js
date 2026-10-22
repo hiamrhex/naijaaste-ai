@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react';
 import { API, HERO_PHRASES, STAGES } from '../constants/index.js';
 import { recordCheckInEvent } from './useCheckIn.js';
 import { authFetch, getFavorites, addFavorite, removeFavorite } from '../lib/auth.js';
 import { apiFetchJson, errorMessage, readJson } from '../lib/api.js';
+import { chatStore } from '../app/chat-store.js';
 
 const HISTORY_KEY = 'nt.history.v1';
 const HISTORY_CAP = 30;
-const WELCOME = "Welcome! I'm NaijaTaste AI — your personal guide to the best restaurants across Nigeria. Tell me about yourself — your city, your budget, what you're craving — and I'll find the perfect spot for you.";
 
 const readHistory = () => {
   try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
@@ -25,27 +25,53 @@ const logHistory = (entry) => {
 export function useConcierge({ chatEndRef }) {
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroVisible, setHeroVisible] = useState(true);
-  const [messages, setMessages] = useState([{ role: 'assistant', content: WELCOME }]);
-  const [sessionId, setSessionId] = useState(null);
-  const [inputVal, setInputVal] = useState('');
   const [loading, setLoading] = useState(false);
-  const [stage, setStage] = useState('gather');
-  const [persona, setPersona] = useState(null);
-  const [recs, setRecs] = useState(null);
-  const [meta, setMeta] = useState(null);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [review, setReview] = useState(null);
   const [reviewRestaurant, setReviewRestaurant] = useState(null);
   const [showReview, setShowReview] = useState(false);
   const [thinkOpen, setThinkOpen] = useState(true);
   const [resultsOpen, setResultsOpen] = useState(true);
-  const [showQuickPrompts, setShowQuickPrompts] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [nearby, setNearby] = useState(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [nearbyError, setNearbyError] = useState('');
   const [showNearby, setShowNearby] = useState(false);
   const [geoCache, setGeoCache] = useState({});
+  const [inputVal, setInputVal] = useState('');
+
+  // The conversation itself lives OUTSIDE React (see src/app/chat-store.js):
+  // it survives a tab switch and a reload, and it is one continuous history.
+  const stored = useSyncExternalStore(chatStore.subscribe, chatStore.get, chatStore.get);
+  const { messages, sessionId, persona, recs, meta, stage, showQuickPrompts } = stored;
+
+  const setMessages = useCallback((update) => {
+    chatStore.set((prev) => ({
+      messages: typeof update === 'function' ? update(prev.messages) : update,
+    }));
+  }, []);
+  const setSessionId = useCallback((value) => {
+    chatStore.set((prev) => ({
+      sessionId: typeof value === 'function' ? value(prev.sessionId) : value,
+    }));
+  }, []);
+  const setPersona = useCallback((value) => {
+    chatStore.set((prev) => ({ persona: typeof value === 'function' ? value(prev.persona) : value }));
+  }, []);
+  const setRecs = useCallback((value) => {
+    chatStore.set((prev) => ({ recs: typeof value === 'function' ? value(prev.recs) : value }));
+  }, []);
+  const setMeta = useCallback((value) => {
+    chatStore.set((prev) => ({ meta: typeof value === 'function' ? value(prev.meta) : value }));
+  }, []);
+  const setStage = useCallback((value) => {
+    chatStore.set((prev) => ({ stage: typeof value === 'function' ? value(prev.stage) : value }));
+  }, []);
+  const setShowQuickPrompts = useCallback((value) => {
+    chatStore.set((prev) => ({
+      showQuickPrompts: typeof value === 'function' ? value(prev.showQuickPrompts) : value,
+    }));
+  }, []);
 
   useEffect(() => {
     getFavorites().then(setFavorites).catch(() => {});
@@ -218,14 +244,10 @@ export function useConcierge({ chatEndRef }) {
   }, [persona, reviewLoading]);
 
   const reset = useCallback(() => {
-    setMessages([{ role: 'assistant', content: WELCOME }]);
-    setSessionId(null);
-    setStage('gather');
-    setPersona(null);
-    setRecs(null);
-    setMeta(null);
+    // Start a genuinely new conversation: the server session is dropped too,
+    // so the next message opens a fresh one.
+    chatStore.reset();
     setInputVal('');
-    setShowQuickPrompts(true);
     setResultsOpen(true);
   }, []);
 

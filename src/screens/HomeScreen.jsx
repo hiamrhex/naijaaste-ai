@@ -9,6 +9,7 @@ import { RestaurantCard } from '../components/RestaurantCard.jsx';
 import { ReviewModal } from '../components/ReviewModal.jsx';
 import { ThinkingDots } from '../components/ThinkingDots.jsx';
 import { NearbyPanel } from '../components/NearbyPanel.jsx';
+import { Markdown } from '../components/Markdown.jsx';
 import { Header, Footer } from '../components/SiteChrome.jsx';
 import { useAuth } from '../app/useAuth.js';
 import { useConcierge } from '../hooks/useConcierge.js';
@@ -29,6 +30,9 @@ export default function HomeScreen() {
   // conversation is fresh - once the user has said something, the chat owns
   // the screen, the way it does in Claude or ChatGPT.
   const fresh = c.messages.length <= 1;
+
+  // The trace of the most recent agent turn - what it actually did.
+  const lastTrace = [...c.messages].reverse().find((m) => m.trace?.length)?.trace || [];
 
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); c.sendMsg(); }
@@ -179,16 +183,16 @@ export default function HomeScreen() {
                       <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--orange)', letterSpacing: '0.08em' }}>NAIJATASTE</span>
                     </div>
                     {/* Plain text on the page, not a box: the answer has to be
-                        readable in one column, like every modern AI chat. */}
+                        readable in one column, like every modern AI chat.
+                        The model writes markdown, so it is rendered - the
+                        raw **asterisks** are what made it look broken. */}
                     <div
                       style={{
                         fontSize: 14, lineHeight: 1.65,
                         color: m.error ? '#F87171' : 'var(--text-primary)',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
                       }}
                     >
-                      {m.content}
+                      <Markdown text={m.content} />
                     </div>
                     {m.error && m.retryText && (
                       <button
@@ -268,12 +272,39 @@ export default function HomeScreen() {
                   <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--orange)', animation: 'pulseDot 2s infinite', display: 'inline-block' }} />
                   Stage: {STAGE_LABELS[c.stage]}
                 </div>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 8px', lineHeight: 1.55 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 10px', lineHeight: 1.55 }}>
                   {STAGE_TIPS[c.stage]}
                 </p>
+
+                {/* What the agent actually did - the trace of the last turn,
+                    not just a label. */}
+                {lastTrace.length > 0 && (
+                  <ol style={{ margin: '0 0 10px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {lastTrace.map((s, i) => (
+                      <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                        <span style={{
+                          width: 18, height: 18, borderRadius: 9, flexShrink: 0,
+                          background: s.ok ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+                          border: `1px solid ${s.ok ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          color: s.ok ? 'var(--green)' : '#F87171',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 10, fontWeight: 700,
+                        }}>{i + 1}</span>
+                        <span style={{ fontFamily: 'ui-monospace, "Cascadia Mono", monospace', fontSize: 11.5 }}>{s.tool}</span>
+                        {s.error && (
+                          <span style={{ fontSize: 11, color: '#F87171' }}>{String(s.error).slice(0, 60)}</span>
+                        )}
+                        {s.ms != null && (
+                          <span style={{ fontSize: 11, color: 'var(--text-hint)', marginLeft: 'auto' }}>{s.ms}ms</span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
                   <span style={{ fontSize: 11, color: 'var(--text-hint)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <Zap size={11} />{c.meta?.steps ?? 0} agent steps
+                    <Zap size={11} />{lastTrace.length || c.meta?.steps || 0} agent steps
                   </span>
                   {c.meta?.latency_ms != null && (
                     <span style={{ fontSize: 11, color: 'var(--text-hint)', display: 'flex', alignItems: 'center', gap: 5 }}>

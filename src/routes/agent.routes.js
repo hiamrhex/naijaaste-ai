@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { runAgent } from '../agent/agent.js';
 import { requireAuth } from '../auth/middleware.js';
 import { getSession, saveSession } from '../services/chat.service.js';
-import { deterministicAgentReply } from '../services/fallback.service.js';
+import { deterministicAgentReply, picksFromAnswer, buildFallbackPersona } from '../services/fallback.service.js';
+import { getDeterministicRecommendations } from '../services/recommend.service.js';
 import { ApiError } from '../lib/errors.js';
 import { fail } from '../lib/respond.js';
 import { validate } from '../middleware/validate.js';
@@ -90,6 +91,32 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
         fallback: true,
         recommendations: fallback.picks,
       };
+    }
+
+    // The agent often answers in prose without calling get_recommendations,
+    // which left the results panel empty and the food as markdown. Match the
+    // spots it named against the catalogue so the cards always appear, and
+    // fall back to a deterministic ranking if it named none.
+    if (!session.recommendations) {
+      try {
+        const persona = buildFallbackPersona(session, message);
+        const named = await picksFromAnswer(text, persona);
+        const picks = named.length
+          ? named
+          : (persona.city_known
+            ? (await getDeterministicRecommendations(persona, 'AGENT_NO_PICKS')).recommendations || []
+            : []);
+        if (picks.length) {
+          session.stage = 'recommend';
+          session.recommendations = {
+            success: true,
+            fallback: true,
+            recommendations: picks.map((p, i) => ({ ...p, rank: i + 1 })),
+          };
+        }
+      } catch (err) {
+        req.log?.warn({ err: err?.message }, 'could not build results for the agent turn');
+      }
     }
     await saveSession(session);
 
