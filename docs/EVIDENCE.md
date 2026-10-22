@@ -54,10 +54,14 @@ Reproduce with: `node probes/live-sweep.mjs`, `node probes/live-ownership-check.
 
 ### Not verified / still open (fix phase)
 
-### Not verified / still open (fix phase)
-
-- Live verification of the ownership rules requires a deploy; the live host still runs the pre-fix build (see L20-01).
-- `POST /chat` remains anonymous by design (it creates the session and hands out the capability); it is rate limited but not account-bound. This is now an explicit allow-list entry rather than an implicit gap.
+- **Neon branch**: none was created for the audit-account cleanup (operator decision, 2026-10-21). The delete was guarded by a single transaction, exact full ids and a rollback-on-drift fingerprint, but there was **no restore point** — see L21-09/L21-10.
+- **`GEMINI_MODEL` in the Vercel dashboard** is still `gemini-3.8-flash`, the model that never answers (L20-02). The code survives it through the model chain and the known-slow probe, but the environment variable itself should be `gemini-3.5-flash-lite`. Only an operator with dashboard access can change it.
+- **Sentry / alerting / backup-restore drill** remain un-armed (unchanged from previous sessions; the independent review's own gap list).
+- **Live rate limits**: the LLM limiter was observed live (`limit=10, remaining=9, reset=60`, and a real `429`), but the per-IP auth budgets were not driven to their thresholds on the deployment, so their live values are configured-and-unit-tested rather than measured.
+- **Model stability under load**: Gemini 3.5/3.6 answer but intermittently return `503` high demand (L20-03). The chain and the deterministic fallback cover it, but a soak test is still needed to state a real p95.
+- **A stale service worker** on a returning visitor's device is still not verifiable from here.
+- **The `gemini-3.8-flash` hang** was reproduced directly against the API (L20-02), but the vendor's cause is unknown; the mitigation is ours (chain + probe + deadline), not a fix upstream.
+- **`POST /chat` remains anonymous by design** (it creates the session and hands out the capability); it is rate limited but not account-bound. This is now an explicit allow-list entry rather than an implicit gap.
 
 ## 2026-10-20 — Live chat failure: root cause, model switch, fallbacks, deployment config
 
