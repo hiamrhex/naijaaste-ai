@@ -259,11 +259,13 @@ Every error is `{ error: { code, message, details?, requestId } }`; 429s add `Re
 
 Threat model (STRIDE), controls inventory and disclosure policy: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) · [`docs/SECURITY.md`](docs/SECURITY.md) · [`SECURITY.md`](SECURITY.md).
 
-- Ownership enforced (tested): chat sessions return `404` to non-owners (`tests/chat-ownership.test.js`); `/agent` returns `403`; favorites/saved-places filter by owner in SQL (`200 {"removed":false}` / `404`, no data leak).
+- Ownership enforced (tested): chat sessions return `404` to non-owners on every mount (`tests/chat-ownership.test.js`, live proof in `docs/EVIDENCE.md` L21-06); anonymous sessions need their bearer capability; `/agent` returns `403`; favorites/saved-places filter by owner in SQL (`200 {"removed":false}` / `404`, no data leak).
 - Refresh rotation with reuse detection; logout revokes server-side; access tokens never touch localStorage.
 - OTP: HMAC-hashed, 10-min TTL, 5 attempts, 60s cooldown, timing-safe compare, generic responses.
-- Rate limits per surface (defaults, 15 min unless noted): signup 25, signin 50, refresh 60, Google 10, forgot 10, reset 20, LLM 10/min, global 600/15 min; `/health` exempt. Limiter tests trip real `429`s; live limits were not driven (unverified).
-- Security headers: CSP (`script-src 'self'` + Google, `object-src 'none'`, `frame-ancestors 'self'`), `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy` ship to HTML documents via `vercel.json` (commit `0156780`, `tests/deployment-config.test.js`) and to API JSON via helmet. Live document-header scan is **pending deployment** (commit `0156780` was not live on 2026-10-21).
+- No enumeration oracle (measured): known and unknown emails get the same status, the same body and the same work — sign-in p50 delta −2.8 ms, forgot-password +3.4 ms, reset −1.5 ms over 50 tries each (`probes/auth-timing-probe.mjs`).
+- Rate limits per surface (defaults, 15 min unless noted): signup 25, signin 50, refresh 60, Google 10, forgot 10, reset 20, LLM 10/min, global 600/15 min; `/health` exempt. Limiter tests trip real `429`s; the live LLM limiter was observed (`Ratelimit: limit=10, remaining=9, reset=60`); the per-IP live budgets were not driven (unverified).
+- Security headers: CSP (`script-src 'self'` + Google, `object-src 'none'`, `frame-ancestors 'self'`), `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy` ship to HTML documents via `vercel.json` and to API JSON via helmet. **Live and measured** on 2026-10-21: 5/5 headers on `/`, `/app/login`, `/sw.js`, `/offline.html`, `/offline.js` (`probes/header-scan.mjs live`).
+- The API answers JSON with a request id on every path, including the body-carrying requests that used to fail with a bare `500` on the serverless runtime (`docs/EVIDENCE.md` L21-03).
 - CORS allowlist, fail-closed boot in production; refresh cookie `httpOnly` + `sameSite=strict` + root path.
 - Break-it battery (14 attacks) and agent-safety probes (5) recorded in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
