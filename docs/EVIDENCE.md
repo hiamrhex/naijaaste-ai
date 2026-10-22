@@ -21,6 +21,36 @@ Windows/PowerShell 5.1 environment; dates in UTC.
 
 ### Live verification after the fix (2026-10-21, `naijataste-ai.vercel.app`)
 
+The deployed API was broken for **every request that carried a body** — signup, sign-in and chat all answered `500 INTERNAL` with no `X-Request-Id`, and the browser could not parse the reply. The cause was found by instrumenting the live error and reading its stack:
+
+```
+at getSocketAddr (forwarded/index.js:49)
+at forwarded (forwarded/index.js:31)
+at alladdrs (proxy-addr/index.js:57)
+at proxyaddr (proxy-addr/index.js:231)
+at IncomingMessage.ip (express/lib/request.js:351)
+at express-rate-limit/dist/index.mjs:875
+```
+
+`express-rate-limit` v8.7.1 evaluates `request.ip` for a **debug log on every request** (`debug("request from ip %o", request.ip)` — the argument is evaluated even when debug logging is off). Express's `req.ip` getter dereferences `req.socket`, and the Vercel runtime nulls **both** `req.socket` and `req.connection` → `TypeError: Cannot read properties of null (reading 'remoteAddress')` → a bare 500.
+
+Fixes: `src/middleware/requestId.js` captures the client IP **before** the body is read (while the socket is alive) and replaces Express's `req.ip`/`req.ips` getters with safe ones; `src/middleware/jsonBody.js` replaces `express.json()` (body-parser assumed a readable stream and a writable `req.body`); every limiter and the per-(email, ip) lockout key on the captured address.
+
+| ID | Check | Live result |
+|---|---|---|
+| L21-01 | Documents carry the security headers | `/`, `/app/login`, `/sw.js`, `/offline.html`, `/offline.js` → 200, **5/5** headers each (CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy) |
+| L21-02 | Probes answer JSON with a request id | `/health`, `/api/health`, `/health/ready`, `/api/v1/nearby`, `/api/v1/restaurants/geo` → 200, `reqId=yes`, `json=yes` |
+| L21-03 | The case that used to 500 | `POST /api/v1/nonexistent` with a JSON body → **404 JSON + request id** (was 500, no request id); no body → 404; malformed → **400**; `text/plain` → 400 |
+| L21-04 | Auth works end to end | `POST /api/v1/auth/signup` → **201** (user + refresh cookie); `POST /api/v1/auth/signin` → **200**; `GET /api/v1/auth/me` → 200; wrong password → 401; `DELETE /api/v1/auth/me` → 200 (probe account removed) |
+| L21-05 | The LLM paths answer | `POST /api/v1/chat` → **200** (real reply, session id, capability); `POST /api/v1/recommend` → **200** |
+| L21-06 | Session ownership holds in production | `probes/live-ownership-check.mjs`: owner reads 200; **other user reads 404**; anonymous read 404; other user deletes 404 (session survives); anonymous session readable **only** with its capability (200) and deletable **only** with it |
+| L21-07 | The limiter works on body-carrying requests | `Ratelimit: limit=10, remaining=9, reset=60` on `POST /api/v1/chat`; 429s with `Retry-After` when the budget is spent |
+| L21-08 | Schema is current on the live database | `probes/db-schema-check.mjs`: migrations `001`–`005` applied; `sessions.capability_hash` present |
+
+Reproduce with: `node probes/live-sweep.mjs`, `node probes/live-ownership-check.mjs`, `node probes/header-scan.mjs live`, `node probes/db-schema-check.mjs`.
+
+### Not verified / still open (fix phase)
+
 ### Not verified / still open (fix phase)
 
 - Live verification of the ownership rules requires a deploy; the live host still runs the pre-fix build (see L20-01).
