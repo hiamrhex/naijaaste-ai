@@ -11,16 +11,23 @@ export default defineConfig({
     // BASE_URL lets the same specs run against the deployment
     // (BASE_URL=https://naijataste-ai.vercel.app npx playwright test).
     baseURL: process.env.BASE_URL || 'http://localhost:5173',
-    viewport: { width: 390, height: 844 },
+    viewport: { width: 1440, height: 900 },
     trace: 'retain-on-failure',
   },
   projects: [
     {
+      name: 'desktop',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Local runs without downloaded browsers: PW_CHANNEL=msedge.
+        // CI leaves this unset (uses Playwright's bundled Chromium).
+        ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
+      },
+    },
+    {
       name: 'mobile',
       use: {
         ...devices['Pixel 7'],
-        // Local runs without downloaded browsers: PW_CHANNEL=msedge.
-        // CI leaves this unset (uses Playwright's bundled Chromium).
         ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
       },
     },

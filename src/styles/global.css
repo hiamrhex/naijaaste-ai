@@ -426,6 +426,7 @@ textarea::placeholder {
   background: var(--bg-primary);
   border-top: 1px solid var(--border);
   padding: 10px 0 12px;
+  z-index: 201; /* above tabbar (z-index: 200) so send button isn't intercepted */
 }
 
 /* The food gets room: a grid on wide screens, a stack on phones. */
