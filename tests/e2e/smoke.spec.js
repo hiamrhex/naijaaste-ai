@@ -29,7 +29,10 @@ test('signup, nearby, save, saved wishlist, sign out', async ({ page }) => {
   await nearMe.click();
   // Either populated cards or the honest empty state (geolocation is stubbed,
   // but live data varies) — both prove the flow completed.
-  await expect(page.locator('[role="listitem"], :text("No spots within")').first()).toBeVisible({ timeout: 20000 });
+  await expect(
+    page.locator('[role="listitem"]').first()
+      .or(page.getByText(/No spots within.*km/i))
+  ).toBeVisible({ timeout: 20000 });
 
   // Save the first spot if any appeared.
   const saveBtn = page.getByRole('button', { name: /save spot/i }).first();
