@@ -1,6 +1,8 @@
 import { randomUUID } from 'crypto';
 import { getPool } from '../db/pool.js';
 
+export const MAX_SAVED = 50;
+
 // Minimal green for TDD slice 1: save-anything by name.
 // Nullable price/hours, status unverified, never touches catalogue.
 //
@@ -8,9 +10,7 @@ import { getPool } from '../db/pool.js';
 // user's row (SELECT ... FOR UPDATE) before counting and inserting: two
 // concurrent creates for the same user serialize, so the count each insert
 // observes is the committed truth — the cap holds even under parallel bursts.
-
-export const MAX_SAVED = 50;
-
+//
 // Per-user in-process lock around the cap check.
 //
 // Postgres serializes the check with SELECT ... FOR UPDATE on the user's row,
@@ -69,12 +69,24 @@ export const deleteSavedPlace = async (userId, id) => {
 };
 
 export const createSavedPlace = async (userId, { name }) => {
-  const clean = (name || '').trim().slice(0, 100);
-  if (!clean) {
+  const raw = (name || '').trim();
+  if (!raw) {
     const err = new Error('name is required');
     err.code = 'VALIDATION_ERROR';
     throw err;
   }
+  if (raw.length > 100) {
+    const err = new Error('name must be 100 characters or fewer');
+    err.code = 'VALIDATION_ERROR';
+    throw err;
+  }
+  // Sanitize: escape HTML entities to prevent XSS in any downstream HTML surface
+  const clean = raw
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/'/g, '&apos;');
   return withCapLock(userId, async () => {
     const pool = await getPool();
     const db = await pool.connect();
