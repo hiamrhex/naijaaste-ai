@@ -5,6 +5,7 @@ import {
 import { callRecommendLLM } from './llm.service.js';
 import { getCatalogueByCity } from '../db/catalogue.js';
 import { logger } from '../lib/logger.js';
+import { checkAndIncrementQuota } from './llm-quota.service.js';
 
 // ─── Hard Filters ─────────────────────────────────────────────────────────────
 // Exported so the deterministic fallback can honour the same dietary rules —
@@ -146,7 +147,7 @@ export const getDeterministicRecommendations = async (persona, reason = 'LLM_UNA
 };
 
 // ─── Main Service ─────────────────────────────────────────────────────────────
-export const getRecommendations = async (persona) => {
+export const getRecommendations = async (persona, { quotaSubject = null } = {}) => {
   const startTime = Date.now();
 
   // City pushdown: the DB returns only this city's rows (scales past 100k).
@@ -181,18 +182,45 @@ export const getRecommendations = async (persona) => {
     ? buildWarmRecommendPrompt(persona, candidates)
     : buildColdStartRecommendPrompt(persona, candidates);
 
-  // Step 5 — Call LLM with correct token limit and retry logic.
+  // Step 5 — Monthly quota check before LLM call
+  if (quotaSubject) {
+    const quota = await checkAndIncrementQuota(quotaSubject.id, quotaSubject.type);
+    if (!quota.allowed) {
+      return {
+        success: false,
+        error: quota.error,
+        code: 'LLM_QUOTA_EXCEEDED',
+        status: 429,
+        retryAfterSec: quota.retryAfterSec,
+        limit: quota.limit,
+        persona_id: persona.persona_id
+      };
+    }
+  }
+
+  // Step 6 — Call LLM with correct token limit and retry logic.
   // On LLM failure (down, slow, throttled, circuit open): degrade to the
   // deterministic picks with a clear message instead of a 502 dead end.
   let llmResult;
   try {
-    llmResult = await callRecommendLLM(prompt);
+    llmResult = await callRecommendLLM(prompt, { quotaSubject });
   } catch (err) {
+    if (err?.code === 'LLM_QUOTA_EXCEEDED') {
+      return {
+        success: false,
+        error: err.message,
+        code: 'LLM_QUOTA_EXCEEDED',
+        status: 429,
+        retryAfterSec: err.retryAfterSec,
+        limit: err.limit,
+        persona_id: persona.persona_id
+      };
+    }
     logger.warn({ err: err?.code || err?.message }, 'recommend LLM failed, deterministic fallback');
     return fallbackResult(persona, scored, cityRestaurants.length, startTime, err);
   }
 
-  // Step 6 — Return with full metadata for judges
+  // Step 7 — Return with full metadata for judges
   return {
     success: true,
     ...llmResult,

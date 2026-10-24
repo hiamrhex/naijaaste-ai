@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { logger } from "../lib/logger.js";
 import { env } from "../env.js";
+import { checkAndIncrementQuota } from "./llm-quota.service.js";
 
 const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
@@ -266,6 +267,7 @@ export const callLLM = async (
 
   return llmBreaker.exec(async () => {
     let lastError;
+    let attempt = 0;
     while (Date.now() < deadline) {
       try {
         const { response } = await generateContentWithFallback(
@@ -290,9 +292,18 @@ export const callLLM = async (
         lastError = err;
         const status = typeof err?.status === 'number' ? err.status : 0;
         const isRateLimit = status === 429 || /resource[_ ]exhausted|rate limit|429/i.test(String(err?.message || ""));
-        if (!isRateLimit) break; // chain already tried other models
-        const delay = 1000 + Math.random() * 500;
+        const isServerError = status >= 500;
+        
+        if (!isRateLimit && !isServerError) {
+          // Non-retryable error (auth, 404, etc.) — chain already tried other models
+          break;
+        }
+        
+        // Retry with exponential backoff + jitter on rate limit or server errors
+        attempt += 1;
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1) + Math.random() * 500, 8000);
         if (Date.now() + delay >= deadline) break;
+        logger.warn({ attempt, delay_ms: delay, status, budget_left_ms: deadline - Date.now() }, 'llm retry');
         await sleep(delay);
       }
     }
@@ -308,12 +319,27 @@ export const callLLM = async (
  * Transport/upstream failures rethrow immediately (no wasted corrective
  * call on an undefined response); only genuine parse failures get the
  * corrective retry.
+ * 
+ * @param {Object} options.quotaSubject - Optional { id, type } for monthly quota check
  */
 export const callLLMJson = async (
   prompt,
   tokenLimit = TOKEN_LIMITS.default,
-  { budgetMs = LLM_TOTAL_TIMEOUT_MS } = {}
+  { budgetMs = LLM_TOTAL_TIMEOUT_MS, quotaSubject = null } = {}
 ) => {
+  // Monthly quota check before any LLM call
+  if (quotaSubject) {
+    const quota = await checkAndIncrementQuota(quotaSubject.id, quotaSubject.type);
+    if (!quota.allowed) {
+      const err = new Error(quota.error);
+      err.code = 'LLM_QUOTA_EXCEEDED';
+      err.status = 429;
+      err.retryAfterSec = quota.retryAfterSec;
+      err.limit = quota.limit;
+      throw err;
+    }
+  }
+
   // One deadline covers the primary call, its retries, AND the corrective
   // call — otherwise a slow model could spend two full budgets.
   const budget = Math.max(1, Math.min(budgetMs, LLM_TOTAL_TIMEOUT_MS));
@@ -352,20 +378,20 @@ Start your response with { and end with }.
 /**
  * Persona extraction — lower tokens, higher temperature for variety
  */
-export const callPersonaLLM = async (prompt) => {
-  return callLLMJson(prompt, TOKEN_LIMITS.persona);
+export const callPersonaLLM = async (prompt, { quotaSubject = null } = {}) => {
+  return callLLMJson(prompt, TOKEN_LIMITS.persona, { quotaSubject });
 };
 
 /**
  * Review generation
  */
-export const callReviewLLM = async (prompt) => {
-  return callLLMJson(prompt, TOKEN_LIMITS.review);
+export const callReviewLLM = async (prompt, { quotaSubject = null } = {}) => {
+  return callLLMJson(prompt, TOKEN_LIMITS.review, { quotaSubject });
 };
 
 /**
  * Recommendation — needs highest token limit for 5+ ranked results
  */
-export const callRecommendLLM = async (prompt) => {
-  return callLLMJson(prompt, TOKEN_LIMITS.recommend);
+export const callRecommendLLM = async (prompt, { quotaSubject = null } = {}) => {
+  return callLLMJson(prompt, TOKEN_LIMITS.recommend, { quotaSubject });
 };

@@ -28,6 +28,9 @@ const EnvSchema = z.object({
   SMTP_FROM: z.string().optional(),
   RATE_LIMIT_API_MAX: z.coerce.number().int().positive().default(600),
   RATE_LIMIT_LLM_MAX: z.coerce.number().int().positive().default(10),
+  // Monthly LLM quota per user/capability. Default 100 calls/month.
+  // Set to 0 to disable the monthly quota (not recommended for free tier).
+  LLM_MONTHLY_MAX: z.coerce.number().int().nonnegative().default(100),
   // Auth limits are per client IP. They are deliberately generous because
   // Nigerian carriers put whole neighbourhoods behind one address; the
   // precise control is the per-(email, ip) lockout in src/auth/lockout.js.
