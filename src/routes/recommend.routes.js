@@ -3,7 +3,6 @@ import { getRecommendations } from '../services/recommend.service.js';
 import { notFound } from '../lib/errors.js';
 import { validate } from '../middleware/validate.js';
 import { recommendSchema } from '../schemas/index.js';
-import { requireAuth } from '../auth/middleware.js';
 
 const router = Router();
 
