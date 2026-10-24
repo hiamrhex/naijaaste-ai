@@ -23,7 +23,7 @@ const quotaSubjectFromOwner = (owner) => {
 
 // Deterministic fallback for chat when LLM is unavailable.
 // Returns a structured response using the catalogue (no LLM call).
-const deterministicChatFallback = async (session, userMessage) => {
+const deterministicChatFallback = async (session, _userMessage) => {
   const pool = await getPool();
   const { rows } = await pool.query(
     `SELECT restaurant_id, name, city, price_tier, spice_profile, ambience, average_rating
