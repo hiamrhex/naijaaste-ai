@@ -8,7 +8,9 @@ export default defineConfig({
     timeout: 15000,
   },
   use: {
-    baseURL: 'http://localhost:5173',
+    // BASE_URL lets the same specs run against the deployment
+    // (BASE_URL=https://naijataste-ai.vercel.app npx playwright test).
+    baseURL: process.env.BASE_URL || 'http://localhost:5173',
     viewport: { width: 390, height: 844 },
     trace: 'retain-on-failure',
   },

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Map, ClipboardList, History, Settings, ShieldCheck, Heart } from 'lucide-react';
+import { Home, Map, ClipboardList, History, Settings, ShieldCheck, Heart, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAuth } from '../app/useAuth.js';
 
 const TABS = [
@@ -12,31 +13,45 @@ const TABS = [
 ];
 
 export function TabBar() {
+  const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
+  
   return (
-    <nav className="tabbar" aria-label="Main sections">
+    <nav className={`tabbar ${collapsed ? 'tabbar-collapsed' : ''}`} aria-label="Main sections">
       <div className="tabbar-brand" aria-hidden="true">
         <span className="tabbar-brand-mark">N</span>
         <span className="tabbar-brand-name">NaijaTaste <em>AI</em></span>
       </div>
-      {TABS.map(({ to, label, icon: Icon, end }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={end}
-          className={({ isActive }) => `tab-link${isActive ? ' tab-active' : ''}`}
-          aria-label={label}
-        >
-          <Icon size={20} aria-hidden="true" />
-          <span className="tab-label">{label}</span>
-        </NavLink>
-      ))}
-      {user?.role === 'admin' && (
-        <NavLink to="/admin" className={({ isActive }) => `tab-link${isActive ? ' tab-active' : ''}`} aria-label="Admin dashboard">
-          <ShieldCheck size={20} aria-hidden="true" />
-          <span className="tab-label">Admin</span>
-        </NavLink>
-      )}
+      
+      <div className="tabbar-content">
+        {TABS.map(({ to, label, icon: Icon, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            className={({ isActive }) => `tab-link${isActive ? ' tab-active' : ''}`}
+            aria-label={label}
+          >
+            <Icon size={20} aria-hidden="true" />
+            <span className="tab-label">{label}</span>
+          </NavLink>
+        ))}
+        {user?.role === 'admin' && (
+          <NavLink to="/admin" className={({ isActive }) => `tab-link${isActive ? ' tab-active' : ''}`} aria-label="Admin dashboard">
+            <ShieldCheck size={20} aria-hidden="true" />
+            <span className="tab-label">Admin</span>
+          </NavLink>
+        )}
+      </div>
+
+      <button
+        className="tabbar-toggle"
+        onClick={() => setCollapsed(!collapsed)}
+        aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}
+        aria-expanded={!collapsed}
+      >
+        {collapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+      </button>
     </nav>
   );
 }

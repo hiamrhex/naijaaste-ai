@@ -31,6 +31,11 @@ app.set("trust proxy", env.TRUST_PROXY);
 // Strict CSP minus style 'unsafe-inline': the SPA sets styles through React
 // (CSSOM, allowed) but AuthGate injects one <style> element and Google Fonts
 // ships a stylesheet — both need it. Scripts stay locked to self + GIS.
+// connectSrc includes localhost only in development.
+const connectSrc = ["'self'", "https://accounts.google.com", "https://commons.wikimedia.org"];
+if (env.NODE_ENV === 'development') {
+  connectSrc.push("http://localhost:3000");
+}
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -39,7 +44,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "http://localhost:3000", "https://accounts.google.com", "https://commons.wikimedia.org"],
+      connectSrc,
       frameSrc: ["https://accounts.google.com"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],

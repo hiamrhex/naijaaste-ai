@@ -317,11 +317,16 @@ router.post('/auth/forgot-password', noStore, forgotLimiter, async (req, res) =>
       }
       throw err;
     }
-    const delivery = await sendOtpEmail({
-      to: user ? user.email : sinkAddress(),
-      name: user ? user.name : 'there',
-      code,
-    });
+
+    // Fire-and-forget email send to eliminate timing oracle.
+    // Both known and unknown emails pay the same cost: OTP issuance + queueing.
+    // The actual SMTP round trip happens in the background.
+    const recipient = user ? user.email : sinkAddress();
+    const recipientName = user ? user.name : 'there';
+    sendOtpEmail({ to: recipient, name: recipientName, code }).catch(err =>
+      req.log?.error({ err }, 'forgot-password email send failed')
+    );
+
     return res.json({
       success: true,
       message: RESET_MESSAGE,
@@ -329,7 +334,7 @@ router.post('/auth/forgot-password', noStore, forgotLimiter, async (req, res) =>
       // real account (production never returns it). The work behind the
       // response is identical either way - that is what closes the timing
       // oracle - so the dev-only field stays a dev-only difference.
-      ...(user && delivery.dev_otp ? { dev_otp: delivery.dev_otp } : {}),
+      ...(user && otpShownInResponse() ? { dev_otp: code } : {}),
     });
   } catch (err) {
     req.log?.error({ err }, 'auth forgot-password failed');
@@ -421,6 +426,9 @@ router.post('/auth/saved-places', requireAuth, async (req, res) => {
   if (!name || typeof name !== 'string' || !name.trim()) {
     return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: 'name is required', requestId: req.id });
   }
+  if (name.length > 100) {
+    return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: 'name must be 100 characters or fewer', requestId: req.id });
+  }
   try {
     const place = await createSavedPlace(req.user.id, { name });
     return res.status(201).json({ success: true, place });
@@ -430,6 +438,9 @@ router.post('/auth/saved-places', requireAuth, async (req, res) => {
     }
     if (err.code === 'USER_NOT_FOUND') {
       return fail(res, { status: 404, code: 'NOT_FOUND', message: 'User not found', requestId: req.id });
+    }
+    if (err.code === 'VALIDATION_ERROR') {
+      return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: err.message, requestId: req.id });
     }
     throw err;
   }
