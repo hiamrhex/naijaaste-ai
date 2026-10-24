@@ -3,7 +3,6 @@ import { callLLMJson } from './llm.service.js';
 import { getRecommendations } from './recommend.service.js';
 import { getPool } from '../db/pool.js';
 import { logger } from '../lib/logger.js';
-import { AiTimeoutError, AiUnavailableError } from '../lib/errors.js';
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
