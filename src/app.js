@@ -123,15 +123,7 @@ const ENDPOINTS = [
   "PATCH /api/v1/admin/reports/:ticket",
 ];
 // Layer 20 — the unified failure shape lives in lib/respond.js.
-const limiterHandler = (windowSec) => (req, res) => {
-  fail(res, {
-    status: 429,
-    code: "RATE_LIMITED",
-    message: "Too many requests, please try again later.",
-    requestId: req.id,
-    retryAfterSec: windowSec,
-  });
-};
+
 
 // Key the limiters on the IP captured BEFORE the body was read. The default
 // keyGenerator reads req.ip, which throws on the serverless runtime once the
@@ -147,48 +139,63 @@ const keyByClientIp = (req) => {
   }
 };
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: env.RATE_LIMIT_API_MAX,
+// Single unified limiter: global + per-endpoint specific limits
+// Uses skip function to apply different limits per route group
+// Emits ONLY ONE set of RateLimit headers (draft-7) per response
+const createLimiter = (windowMs, limit, skipPaths = []) => rateLimit({
+  windowMs,
+  limit,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   keyGenerator: keyByClientIp,
-  // Skip paths that have their own more-specific limiters:
-  // - /health, /health/ready (probes)
-  // - /auth/* (signup, signin, refresh, google, forgot, reset, favorites, saved-places, me)
-  // - /chat, /extract-persona, /update-preference, /recommend, /generate-review, /agent (LLM)
-  // - /api/v1/* equivalents of the above
-  skip: (req) => {
-    const path = req.path;
-    if (path === "/health" || path === "/health/ready") return true;
-    if (path.startsWith("/auth/")) return true;
-    if (path.startsWith("/api/v1/auth/")) return true;
-    if (
-      path === "/chat" || path === "/extract-persona" || path === "/update-preference" ||
-      path === "/recommend" || path === "/generate-review" || path === "/agent" ||
-      path === "/api/v1/chat" || path === "/api/v1/extract-persona" || path === "/api/v1/update-preference" ||
-      path === "/api/v1/recommend" || path === "/api/v1/generate-review" || path === "/api/v1/agent"
-    ) return true;
-    return false;
-  },
-  handler: limiterHandler(900),
+  skip: (req) => skipPaths.some(p => req.path === p || req.path.startsWith(p)),
+  handler: (req, res) => fail(res, {
+    status: 429,
+    code: "RATE_LIMITED",
+    message: "Too many requests, please try again later.",
+    requestId: req.id,
+    retryAfterSec: Math.ceil(windowMs / 1000),
+  }),
 });
 
-const llmLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: env.RATE_LIMIT_LLM_MAX,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-  keyGenerator: keyByClientIp,
-  handler: limiterHandler(60),
-});
+// LLM endpoints: 10/min
+const llmPaths = [
+  "/chat", "/extract-persona", "/update-preference", "/recommend", "/generate-review", "/agent",
+  "/api/v1/chat", "/api/v1/extract-persona", "/api/v1/update-preference", "/api/v1/recommend", "/api/v1/generate-review", "/api/v1/agent"
+];
 
-app.use(apiLimiter);
-app.use(
-  ["/chat", "/extract-persona", "/update-preference", "/recommend", "/generate-review", "/agent",
-   "/api/v1/chat", "/api/v1/extract-persona", "/api/v1/update-preference", "/api/v1/recommend", "/api/v1/generate-review", "/api/v1/agent"],
-  llmLimiter
-);
+// Auth endpoints: per-flow limits (handled in auth.routes.js)
+const authPaths = ["/auth/", "/api/v1/auth/"];
+
+// Health: no limit
+const healthPaths = ["/health", "/health/ready"];
+
+// Global: 600/15min for everything else
+const globalLimiter = createLimiter(15 * 60 * 1000, env.RATE_LIMIT_API_MAX, [
+  ...healthPaths,
+  ...authPaths,
+  ...llmPaths
+]);
+
+// LLM limiter: 10/min
+const llmLimiter = createLimiter(60 * 1000, env.RATE_LIMIT_LLM_MAX, []);
+
+// Apply limiters in order: global first (catches everything), then LLM (overrides for LLM paths)
+// CRITICAL: Only ONE limiter runs per request to avoid stacked RateLimit headers
+app.use((req, res, next) => {
+  // Check if this is an LLM path
+  const isLlmPath = llmPaths.some(p => req.path === p || req.path.startsWith(p));
+  if (isLlmPath) {
+    return llmLimiter(req, res, next);
+  }
+  // Check if this is an auth/health path (skip global)
+  const isSkippedGlobal = [...healthPaths, ...authPaths].some(p => req.path === p || req.path.startsWith(p));
+  if (isSkippedGlobal) {
+    return next();
+  }
+  // Everything else: global limiter
+  return globalLimiter(req, res, next);
+});
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
