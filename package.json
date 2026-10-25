@@ -19,7 +19,8 @@
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "check:ng-data": "node scripts/check-ng-data.mjs",
-    "capture:media": "node scripts/capture-media.mjs"
+    "capture:media": "node scripts/capture-media.mjs",
+    "cleanup": "node scripts/cleanup.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",
