@@ -20,7 +20,8 @@
     "check:docs": "node scripts/check-docs.mjs",
     "check:ng-data": "node scripts/check-ng-data.mjs",
     "capture:media": "node scripts/capture-media.mjs",
-    "cleanup": "node scripts/cleanup.mjs"
+    "cleanup": "node scripts/cleanup.mjs",
+    "verify-build": "node scripts/verify-build.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",
