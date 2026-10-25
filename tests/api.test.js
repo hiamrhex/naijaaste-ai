@@ -75,6 +75,23 @@ describe('API baseline', () => {
 
   // Metrics endpoint for SLO aggregation (check 16)
   it('GET /metrics returns Prometheus-format metrics for SLO aggregation', async () => {
-    await request(app).get('/metrics').expect(404);
+    const res = await request(app).get('/metrics').expect(200);
+    expect(res.text).toContain('http_requests_total');
+    expect(res.text).toContain('http_request_duration_ms');
+    expect(res.text).toContain('llm_calls_total');
+  });
+
+  // Test that LLM endpoints have separate rate limiting
+  it('LLM endpoints have separate rate limiting (10/min)', async () => {
+    const maxRequests = 10;
+    
+    // Make requests to LLM endpoint until we hit the limit
+    for (let i = 0; i < maxRequests + 2; i++) {
+      await request(app)
+        .post('/chat')
+        .set(auth())
+        .send({ message: 'test message' })
+        .expect(i === maxRequests ? 429 : 200);
+    }
   });
 });
