@@ -22,7 +22,8 @@
     "capture:media": "node scripts/capture-media.mjs",
     "cleanup": "node scripts/cleanup.mjs",
     "verify-build": "node scripts/verify-build.mjs",
-    "generate-migration": "node scripts/generate-migration.mjs"
+    "generate-migration": "node scripts/generate-migration.mjs",
+    "init-db": "node scripts/init-db.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",
