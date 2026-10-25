@@ -197,6 +197,35 @@ app.use((req, res, next) => {
   return globalLimiter(req, res, next);
 });
 
+// Metrics endpoint for SLO aggregation
+app.get('/metrics', async (req, res) => {
+  // Mock Prometheus metrics for now - in production this would query actual metrics
+  const metrics = `# HELP http_requests_total Total HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",status=200} 42
+http_requests_total{method="POST",status=200} 28
+http_requests_total{method="GET",status=404} 5
+
+# HELP http_request_duration_ms HTTP request duration in milliseconds
+# TYPE http_request_duration_ms histogram
+http_request_duration_ms_bucket{le="100"} 65
+http_request_duration_ms_bucket{le="1000"} 70
+http_request_duration_ms_bucket{le="10000"} 70
+http_request_duration_ms_bucket{le="+Inf"} 70
+http_request_duration_ms_sum 5432
+http_request_duration_ms_count 70
+
+# HELP llm_calls_total Total LLM API calls
+# TYPE llm_calls_total counter
+llm_calls_total{model="gemini-3.5-flash-lite"} 156
+llm_calls_total{model="gemini-3.5-flash"} 89
+llm_calls_total{model="gemini-3.6-flash"} 67
+`;
+
+  res.set('Content-Type', 'text/plain');
+  res.send(metrics);
+});
+
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
   res.json({
