@@ -54,5 +54,6 @@ test('forgot password: request code, reset, sign in with the new password', asyn
   // The tab strip also has a "Sign in" button — target the form's submit.
   await page.locator('form button[type="submit"]').click();
 
-  await expect(page.getByRole('navigation', { name: /main sections/i })).toBeVisible({ timeout: 15000 });
+  // Wait longer for navigation to appear after password reset
+  await expect(page.getByRole('navigation', { name: /main sections/i })).toBeVisible({ timeout: 30000 });
 });

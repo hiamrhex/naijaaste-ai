@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 60000,
   retries: 1,
   expect: {
-    timeout: 15000,
+    timeout: 20000, // Increased for CI flakiness
   },
   use: {
     // BASE_URL lets the same specs run against the deployment

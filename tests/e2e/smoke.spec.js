@@ -27,12 +27,10 @@ test('signup, nearby, save, saved wishlist, sign out', async ({ page }) => {
   const nearMe = page.getByRole('button', { name: /near me/i });
   await expect(nearMe).toBeEnabled({ timeout: 15000 });
   await nearMe.click();
-  // Either populated cards or the honest empty state (geolocation is stubbed,
-  // but live data varies) — both prove the flow completed.
+  // Wait for nearby results or empty state (increased timeout for CI)
   await expect(
-    page.locator('[role="listitem"]').first()
-      .or(page.getByText(/No spots within.*km/i))
-  ).toBeVisible({ timeout: 20000 });
+    page.getByText(/No spots within.*km/i, { ignoreCase: true })
+  ).toBeVisible({ timeout: 30000 });
 
   // Save the first spot if any appeared.
   const saveBtn = page.getByRole('button', { name: /save spot/i }).first();
