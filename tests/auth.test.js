@@ -168,4 +168,13 @@ describe('Auth system', () => {
   it('DELETE /auth/me without token is 401', async () => {
     await request(app).delete('/auth/me').expect(401);
   });
+
+  // Mass assignment: POST role:'admin' must be ignored (never persisted)
+  it('POST /auth/signup ignores role in body — no mass assignment', async () => {
+    const res = await request(app)
+      .post('/auth/signup')
+      .send({ name: 'Mass Assign', email: `mass-${Date.now()}@example.com`, password: 'Pass123!', role: 'admin' })
+      .expect(201);
+    expect(res.body.user.role).toBe('user');
+  });
 });
