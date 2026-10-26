@@ -23,6 +23,7 @@ import { logger } from "./lib/logger.js";
 import { googleAuthEnabled } from "./auth/google.js";
 import { readinessProbe } from "./lib/readiness.js";
 import { clientIp } from "./lib/clientIp.js";
+import { requireAuth } from "./auth/middleware.js";
 
 export const app = express();
 
@@ -197,8 +198,8 @@ app.use((req, res, next) => {
   return globalLimiter(req, res, next);
 });
 
-// Metrics endpoint for SLO aggregation
-app.get('/metrics', async (req, res) => {
+// Metrics endpoint for SLO aggregation - requires authentication
+app.get('/metrics', requireAuth, async (req, res) => {
   // Mock Prometheus metrics for now - in production this would query actual metrics
   const metrics = `# HELP http_requests_total Total HTTP requests
 # TYPE http_requests_total counter
