@@ -110,9 +110,9 @@ export function NearbyPanel({ loading, error, nearby, onRetry, onClose, favorite
                   <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                     <MapPin size={10} /> {r.area}, {r.city}
                   </span>
-                  <span style={{ fontSize: 11, color: 'var(--amber)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                    <Star size={10} fill="var(--amber)" /> {r.average_rating}
-                  </span>
+                   <span style={{ fontSize: 11, color: 'var(--amber)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                     <Star size={10} fill="var(--amber)" /> {r.average_rating || 'No rating'}
+                   </span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
