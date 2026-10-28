@@ -51,7 +51,7 @@ const withRetry = (pool) => {
 export const getPool = async () => {
   if (!pool) {
     const createStart = Date.now();
-    if (env.DATABASE_URL) {
+    if (env.DATABASE_URL && env.DATABASE_URL.length > 0) {
       pool = withRetry(new pg.Pool({
         connectionString: env.DATABASE_URL,
         max: 3,

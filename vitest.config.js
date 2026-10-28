@@ -5,12 +5,8 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', 'tests/e2e/**'],
     // Run tests sequentially to share pg-mem state within a test file
     isolate: false,
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    pool: 'vmForks',
+    singleThread: true,
     // Integration-style suite (bcrypt + per-file pg-mem init); generous
     // timeouts so parallel CI load causes retries, not flakes.
     testTimeout: 30000,
