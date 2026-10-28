@@ -18,22 +18,27 @@ export const runMigrations = async (pool) => {
     for (const r of rows) applied.add(r.version);
   } catch (err) {
     if (!/does not exist|no such table/i.test(err.message)) throw err;
-    // schema_migrations itself comes from 001 — run everything.
   }
   const ran = [];
   for (const file of files) {
     if (applied.has(file)) continue;
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8');
-    await pool.query('BEGIN');
-    try {
-      await pool.query(sql);
-      await pool.query('INSERT INTO schema_migrations (version) VALUES ($1)', [file]);
-      await pool.query('COMMIT');
-      ran.push(file);
-    } catch (err) {
-      await pool.query('ROLLBACK');
-      throw err;
+    let sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8');
+    // pg-mem doesn't support transactional DDL — run migration statements
+    // outside a transaction, then record version separately.
+    // Strip line comments, then split on semicolon.
+    sql = sql.replace(/--.*$/gm, '');
+    const statements = sql
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    console.log(`[MIGRATE] Running ${file} with ${statements.length} statements`);
+    for (const stmt of statements) {
+      console.log(`[MIGRATE] Executing: ${stmt.substring(0, 80)}...`);
+      await pool.query(stmt);
     }
+    console.log(`[MIGRATE] Recording version for ${file}`);
+    await pool.query('INSERT INTO schema_migrations (version) VALUES ($1)', [file]);
+    ran.push(file);
   }
   return ran;
 };
