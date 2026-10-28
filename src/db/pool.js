@@ -65,7 +65,14 @@ export const getPool = async () => {
       pool.on('error', () => { /* idle client errors must not crash the process */ });
     } else {
       const { newDb } = await import('pg-mem');
-      const { Pool } = newDb().adapters.createPg();
+      const db = newDb();
+      db.public.registerFunction({
+        name: 'gen_random_uuid',
+        returns: 'uuid',
+        implementation: () => crypto.randomUUID(),
+        impure: true,
+      });
+      const { Pool } = db.adapters.createPg();
       pool = new Pool();
     }
     setDbTiming({ createMs: Date.now() - createStart });
