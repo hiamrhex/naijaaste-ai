@@ -29,7 +29,7 @@ async function init() {
     console.log('📋 Checking database tables...\n');
 
     // Check for required tables
-    const tables = ['users', 'sessions', 'restaurants', 'ratings', 'reports'];
+    const tables = ['users', 'sessions', 'otps', 'restaurants', 'ratings', 'reports', 'saved_places', 'refresh_tokens', 'favorites', 'auth_attempts'];
     const client = await pool.connect();
 
     for (const table of tables) {
@@ -48,16 +48,28 @@ async function init() {
       }
     }
 
-    // Check for recent migrations
-    const migResult = await client.query(
-      "SELECT version FROM schema_migrations ORDER BY applied_at DESC LIMIT 5"
+    // Check for recent migrations. On a fresh database this table does not
+    // exist yet, and querying it unconditionally aborted the whole script with
+    // a confusing error after it had already told the user to run migrations.
+    const migExists = await client.query(
+      `SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'schema_migrations'
+      )`
     );
 
-    if (migResult.rows.length > 0) {
-      console.log(`\n📋 Recent migrations:`);
-      migResult.rows.forEach(mig => {
-        console.log(`  - ${mig.version}`);
-      });
+    if (migExists.rows[0].exists) {
+      const migResult = await client.query(
+        'SELECT version FROM schema_migrations ORDER BY applied_at DESC LIMIT 5'
+      );
+      if (migResult.rows.length > 0) {
+        console.log('\n📋 Recent migrations:');
+        migResult.rows.forEach((mig) => {
+          console.log(`  - ${mig.version}`);
+        });
+      }
+    } else {
+      console.log('\n⚠️  No migrations recorded - run: npm run db:migrate');
     }
 
     client.release();
@@ -79,12 +91,11 @@ async function init() {
     console.log(`  Ratings: ${counts.ratings.rows[0].count}`);
     console.log(`  Reports: ${counts.reports.rows[0].count}`);
 
+    await pool.end();
   } catch (err) {
     console.error('❌ Error initializing database:', err.message);
     console.error('\nMake sure DATABASE_URL is set correctly in .env');
     process.exit(1);
-  } finally {
-    process.exit(0);
   }
 }
 
