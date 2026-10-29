@@ -2,38 +2,11 @@
 
 **Chat once about your city, budget and cravings — get ranked Nigerian restaurant picks with reasons, directions and AI-written reviews.**
 
-[![CI](https://img.shields.io/github/actions/workflow/status/hiamrhex/naijaaste-ai/ci.yml?branch=master&label=tests%20%26%20lint)](https://github.com/hiamrhex/naijaaste-ai/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/hiamrhex/naijaaste-ai/ci.yml?branch=master&label=tests%20&%20lint)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node ≥24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)
 
-> **Status:** landing page, app shell and the API are live at [naijataste-ai.vercel.app](https://naijataste-ai.vercel.app) — `/health` returns 200. Everything below is verified against the code today; evidence lives in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
-
-![NaijaTaste landing page](docs/media/shot-landing-desktop.png)
-![NaijaTaste sign-in on mobile](docs/media/shot-login-mobile.png)
-![Product tour](docs/media/demo.gif)
-
-## Table of contents
-
-- [Problem and solution](#problem-and-solution)
-- [Features](#features)
-- [How it works](#how-it-works)
-- [Architecture](#architecture)
-- [Key decisions](#key-decisions)
-- [Tech stack](#tech-stack)
-- [Quick start (~3 minutes)](#quick-start-3-minutes)
-- [Environment](#environment)
-- [API summary](#api-summary)
-- [Security summary](#security-summary)
-- [Testing and quality](#testing-and-quality)
-- [Performance and reliability](#performance-and-reliability)
-- [Operations](#operations)
-- [Deployment](#deployment)
-- [Data and attribution](#data-and-attribution)
-- [Roadmap and known limitations](#roadmap-and-known-limitations)
-- [Project structure](#project-structure)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License, author, acknowledgements](#license-author-acknowledgements)
+> **Status:** The API at `https://naijataste-ai.vercel.app` is live. `/health` returns 200. Evidence lives in `docs/EVIDENCE.md`.
 
 ## Problem and solution
 
@@ -43,18 +16,16 @@ NaijaTaste AI flips it: **one conversation → a taste persona → a ranked shor
 
 ## Features
 
-| Capability | How | Status |
-|---|---|---|
-| ReAct agent chat | Gemini reasons in a ≤6-step loop over 4 typed tools; every step traced in the UI | Live |
-| Taste persona | City, budget, spice, ambience, dietary flags extracted from chat | Live |
-| Near-you search | Indexed bounding-box prefilter + haversine sort, one-tap Google Maps directions | Live |
-| Favorites | Per-account, synced across devices | Live |
-| AI reviews | Written from your persona, matched to the restaurant by ID first | Live (LLM-dependent) |
-| Deterministic fallback | Pre-scored shortlist + honest message when the LLM circuit is open | Live (8/8 drill) |
-| Real auth | JWT (15-min access + rotating refresh), bcrypt-12, email-OTP reset, Google sign-in, admin roles | Live |
-| Ratings + reports | 1–5 check-ins and a feedback inbox with ticket IDs | Stored; ratings not yet consumed by ranking |
-| Map / Plan / History / Settings / Admin screens | Real React screens (Leaflet map, planner form, history search, settings with account deletion, admin stats inbox) | Live |
-| Installable PWA | `vite-plugin-pwa` manifest + offline fallback page | Live (manifest + `offline.html` in build) |
+- **ReAct agent chat** — Gemini reasons in a ≤6-step loop over 4 typed tools; every step traced in the UI (live)
+- **Taste persona** — City, budget, spice, ambience, dietary flags extracted from chat (live)
+- **Near-you search** — Indexed bounding-box prefilter + haversine sort, one-tap Google Maps directions (live)
+- **Favorites** — Per-account, synced across devices (live)
+- **AI reviews** — Written from your persona, matched to the restaurant by ID first (live, LLM-dependent)
+- **Deterministic fallback** — Pre-scored shortlist + honest message when the LLM circuit is open (live, 8/8 drill)
+- **Real auth** — JWT (15-min access + rotating refresh), bcrypt-12, email-OTP reset, Google sign-in, admin roles (live)
+- **Ratings + reports** — 1–5 check-ins and a feedback inbox with ticket IDs (stored; ratings not yet consumed by ranking)
+- **Map / Plan / History / Settings / Admin screens** — Real React screens (live)
+- **Installable PWA** — `vite-plugin-pwa` manifest + offline fallback page (live, manifest + `offline.html` in build)
 
 ## How it works
 
@@ -98,8 +69,7 @@ sequenceDiagram
 ## Architecture
 
 ```mermaid
-flowchart LR
-  LP["Landing / (static)"] --> APP["SPA /app (Vite 8, BrowserRouter /app)"]
+flowchart LP["Landing / (static)"] --> APP["SPA /app (Vite 8, BrowserRouter /app)"]
   APP -->|"Bearer JWT + refresh cookie"|   API["Express 4 API (/api/v1; legacy /api/* via rewrite)"]
   API --> MW["Rate limit → JWT middleware → zod validation"]
   MW --> R["Routes: agent · chat · nearby · persona · recommend · review · ratings · reports · admin"]
@@ -114,7 +84,7 @@ flowchart LR
 
 Component responsibilities, request lifecycle, failure modes and the first scaling bottlenecks: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-Entity model (abridged — full DDL in `migrations/001_restaurants.sql`, `migrations/002_core_tables.sql`):
+Entity model (abridged — full DDL in `migrations/001_core_tables.sql`, `migrations/002_restaurants.sql`):
 
 ```mermaid
 erDiagram
@@ -130,7 +100,6 @@ erDiagram
     restaurants {
       SERIAL id PK
       TEXT osm_id UK
-      TEXT code UK "r001… curated"
       TEXT name
       TEXT city "indexed"
       DOUBLE lat "indexed"
@@ -193,7 +162,7 @@ flowchart TB
 git clone https://github.com/hiamrhex/naijaaste-ai.git
 cd naijaaste-ai
 npm ci
-cp .env.example .env      # Windows: copy .env.example .env
+cp .env.example .env      # Windows: copy .env.example .evs
 # Fill GEMINI_API_KEY + JWT_ACCESS_SECRET + JWT_REFRESH_SECRET (see Environment)
 npm run db:migrate         # needs DATABASE_URL_DIRECT; safe no-op without a DB
 npm start                  # API on :3000  (second terminal:)
@@ -224,7 +193,7 @@ on in-process pg-mem.
 
 | Variable | Default | Fails boot if missing? |
 |---|---|---|
-| `GEMINI_MODEL` | `gemini-3.8-flash` | No |
+| `GEMINI_MODEL` | `gemini-3.5-flash` | No |
 | `PORT` | `3000` | No |
 | `NODE_ENV` | `development` | No |
 | `LOG_LEVEL` | `info` | No |
@@ -350,7 +319,7 @@ src/
   components/   cards, sheets, tab bar, auth gate, shell
   data/         restaurants.json — seed fixture only (runtime state is Postgres)
 migrations/     001 restaurants · 002 users/sessions/OTP/ratings/reports
-tests/          26 files — contracts, ownership, limiter, redaction, resilience, PG-backed suites
+tests/          41 files — contracts, ownership, limiter, redaction, resilience, PG-backed suites
 tests/e2e/      Playwright smoke (signup → nearby → save → sign-out)
 scripts/        break-it battery · agent-safety probes · secret scan · env audit
 public/         landing.css/js, favicon, icons, offline.html
@@ -358,8 +327,6 @@ docs/           ARCHITECTURE · API · SECURITY · THREAT_MODEL · SLO · RUNBOO
 ```
 
 ## Troubleshooting
-
-Eight errors actually hit in this repo's sessions:
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -378,4 +345,4 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) (setup <10 min, conventional commits, n
 
 ## License, author, acknowledgements
 
-MIT © [Team PRiME](https://github.com/hiamrhex) — built for the DSN × BCT LLM Agent Challenge 3.0. Restaurant data © OpenStreetMap contributors (ODbL). Standards consulted: [OWASP API Top 10 2023](https://owasp.org/API-Security/), [OWASP LLM Top 10 2025](https://genai.owasp.org/llm-top-10/), [Google SRE Book](https://sre.google/sre-book/service-level-objectives/), [Twelve-Factor App](https://12factor.net/), [DORA](https://dora.dev/capabilities/), [Neon limits](https://neon.com/docs/introduction/plans), [Vercel Functions limits](https://vercel.com/docs/functions/limitations). Research and scoring: [`docs/STANDARDS.md`](docs/STANDARDS.md) · [`docs/AUDIT.md`](docs/AUDIT.md) · [`docs/MATURITY.md`](docs/MATURITY.md).
+MIT © [hiamrhex](https://github.com/hiamrhex) — built for the DSN × BCT LLM Agent Challenge 3.0. Restaurant data © OpenStreetMap contributors (ODbL). Standards consulted: [OWASP API Top 10 2023](https://owasp.org/API-Security/), [OWASP LLM Top 10 2025](https://genai.owasp.org/llm-top-10/), [Google SRE Book](https://sre.google/sre-book/service-level-objectives/), [Twelve-Factor App](https://12factor.net/), [DORA](https://dora.dev/capabilities/), [Neon limits](https://neon.com/docs/introduction/plans), [Vercel Functions limits](https://vercel.com/docs/functions/limitations). Research and scoring: [`docs/STANDARDS.md`](docs/STANDARDS.md) · [`docs/AUDIT.md`](docs/AUDIT.md) · [`docs/MATURITY.md`](docs/MATURITY.md).
