@@ -2,14 +2,16 @@
 // Usage: node scripts/generate-migration.mjs <filename>
 // Example: node scripts/generate-migration.mjs add_users_table
 
-import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { existsSync, writeFileSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, '..', 'migrations');
 
-const timestamp = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 14);
+// ISO is 2026-10-28T22:38:12.380Z; stripping -:. gives 20261028T223812380Z.
+// Keep all 15 chars of YYYYMMDDTHHMMSS - slicing 14 cut the seconds in half.
+const timestamp = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15);
 
 const usage = `Usage: node scripts/generate-migration.mjs <filename>
 
@@ -30,8 +32,10 @@ if (process.argv.length < 3) {
 }
 
 const migrationName = process.argv[2];
-if (!migrationName || migrationName.includes(' ')) {
-  console.error('❌ Filename must be descriptive and use underscores (no spaces)');
+// Restrict to a safe slug: anything else could escape the migrations directory
+// (e.g. "../src/app") or produce a file the runner cannot sort predictably.
+if (!migrationName || !/^[a-z0-9_]+$/.test(migrationName)) {
+  console.error('❌ Filename must be lowercase letters, digits, and underscores only');
   console.error(usage);
   process.exit(1);
 }
@@ -60,7 +64,7 @@ console.log(`📝 Creating migration file: ${filename}\n`);
 try {
   // Check if file already exists
   const filePath = join(MIGRATIONS_DIR, filename);
-  if (require('fs').existsSync(filePath)) {
+  if (existsSync(filePath)) {
     console.error(`❌ Migration file already exists: ${filename}`);
     process.exit(1);
   }
