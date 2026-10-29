@@ -3,10 +3,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     exclude: ['node_modules', 'dist', 'tests/e2e/**'],
-    // Run tests sequentially to share pg-mem state within a test file
-    isolate: false,
-    pool: 'vmForks',
-    singleThread: true,
+    // Keep Vitest's default per-file isolation. A single shared module graph
+    // (isolate: false) leaks one pg-mem database across all test files, so
+    // rows and schema changes from one file break the next.
     // Integration-style suite (bcrypt + per-file pg-mem init); generous
     // timeouts so parallel CI load causes retries, not flakes.
     testTimeout: 30000,

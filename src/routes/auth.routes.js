@@ -75,6 +75,10 @@ const forgotLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_FORGOT_MAX, 'T
 const resetLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_RESET_MAX, 'Too many reset attempts. Try again in 15 minutes.');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// saved_places.id is UUID. Reject malformed ids before the query: Postgres
+// would raise 22P02 (invalid input syntax for uuid), which surfaced as a 500
+// instead of the intended not-found response.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // A valid bcrypt-12 hash of a value nobody knows. Comparing against it when
 // the account does not exist makes an unknown email cost the same wall-clock
@@ -448,6 +452,9 @@ router.post('/auth/saved-places', requireAuth, async (req, res) => {
 
 // Owner-only delete: another user's id (or a bogus id) is a 404, never a leak.
 router.delete('/auth/saved-places/:id', requireAuth, async (req, res) => {
+  if (!UUID_RE.test(req.params.id || '')) {
+    return fail(res, { status: 404, code: 'NOT_FOUND', message: 'Saved place not found', requestId: req.id });
+  }
   const removed = await deleteSavedPlace(req.user.id, req.params.id);
   if (!removed) {
     return fail(res, { status: 404, code: 'NOT_FOUND', message: 'Saved place not found', requestId: req.id });

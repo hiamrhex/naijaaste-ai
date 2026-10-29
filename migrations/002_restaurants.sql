@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS restaurants (
   id SERIAL PRIMARY KEY,
   osm_id TEXT UNIQUE NOT NULL,
+  code TEXT UNIQUE,
   name TEXT NOT NULL,
   city TEXT NOT NULL,
   area TEXT,
@@ -14,6 +15,8 @@ CREATE TABLE IF NOT EXISTS restaurants (
   lng DOUBLE PRECISION,
   quality_flag TEXT NOT NULL DEFAULT 'ok',
   source TEXT NOT NULL DEFAULT 'osm',
+  verified BOOLEAN NOT NULL DEFAULT false,
+  meta JSONB,
   first_seen TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_seen TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -1,12 +1,15 @@
--- 003: Saved places table for favorites
+-- 003: Saved places (free-text "save a spot" list, separate from favorites).
 CREATE TABLE IF NOT EXISTS saved_places (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  restaurant_id TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  name TEXT NOT NULL,
+  area TEXT,
+  price_per_head_ngn INTEGER,
+  price_source TEXT NOT NULL DEFAULT 'unknown',
+  hours TEXT,
+  hours_source TEXT NOT NULL DEFAULT 'unknown',
+  status TEXT NOT NULL DEFAULT 'unverified',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_saved_places_user_restaurant ON saved_places (user_id, restaurant_id);
 CREATE INDEX IF NOT EXISTS idx_saved_places_user_id ON saved_places (user_id);
-CREATE INDEX IF NOT EXISTS idx_saved_places_restaurant_id ON saved_places (restaurant_id);

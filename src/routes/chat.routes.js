@@ -69,7 +69,7 @@ router.post('/chat', validate(chatBodySchema), async (req, res, next) => {
     }
 
     return res.status(200).json(result);
-  } catch (err) {
+} catch (err) {
     if (err?.code === 'SESSION_FORBIDDEN') {
       return next(notFound('SESSION_NOT_FOUND', 'Session not found'));
     }

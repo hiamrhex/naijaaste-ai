@@ -27,9 +27,12 @@ test('signup, nearby, save, saved wishlist, sign out', async ({ page }) => {
   const nearMe = page.getByRole('button', { name: /near me/i });
   await expect(nearMe).toBeEnabled({ timeout: 15000 });
   await nearMe.click();
-  // Wait for nearby results or empty state (increased timeout for CI)
+  // Nearby can legitimately return either curated rows (seeded catalogue) or
+  // the "no spots" empty state depending on the geolocation box. Assert the
+  // request settled by accepting either, instead of assuming an empty city.
   await expect(
-    page.getByText(/No spots within.*km/i, { ignoreCase: true })
+    page.getByRole('list', { name: /nearby restaurants/i }).getByRole('listitem').first()
+      .or(page.getByText(/No spots within.*km/i, { ignoreCase: true }))
   ).toBeVisible({ timeout: 30000 });
 
   // Save the first spot if any appeared.
