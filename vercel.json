@@ -32,8 +32,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/health", "destination": "/api" },
-    { "source": "/health/:path*", "destination": "/api" },
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/health/:path*", "destination": "/api/health/:path*" },
     { "source": "/app", "destination": "/app/index.html" },
     { "source": "/app/:path*", "destination": "/app/index.html" },
     { "source": "/api/:path*", "destination": "/api" }

@@ -60,6 +60,15 @@ describe('deployment config (vercel.json)', () => {
     expect(sources).toContain('/app/:path*');
     expect(sources).toContain('/health');
   });
+
+  it('preserves the health path through the /api rewrite', () => {
+    // api/index.js strips the "/api" prefix and normalizes "/api" to "/".
+    // Rewriting /health -> /api therefore lands on "/", which Express does
+    // not serve (it only has /health and /health/ready), so probes 404'd.
+    const rewrite = (source) => vercel.rewrites.find((r) => r.source === source);
+    expect(rewrite('/health').destination).toBe('/api/health');
+    expect(rewrite('/health/:path*').destination).toBe('/api/health/:path*');
+  });
 });
 
 describe('static documents are CSP-safe', () => {
