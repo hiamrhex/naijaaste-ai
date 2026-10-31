@@ -31,9 +31,11 @@ export default memo(function SettingsScreen() {
   const [autonomy, setAutonomy] = useState(() => {
     try { return localStorage.getItem('nt.autonomy.v1') || 'ask'; } catch { return 'ask'; }
   });
-  const isIOSDevice = typeof navigator !== 'undefined' &&
-    (/iphone|ipad|ipod/i.test(navigator.userAgent || '') ||
-      (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1));
+  const isIOSDevice = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    return /iphone|ipad|ipod/i.test(navigator.userAgent || '') ||
+      (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
+  }, []);
 
   const chooseAutonomy = (v) => {
     setAutonomy(v);
@@ -129,12 +131,12 @@ export default memo(function SettingsScreen() {
     }
   };
 
-  const row = {
+  const row = useMemo(() => ({
     display: 'flex', alignItems: 'center', gap: 12,
     background: 'var(--bg-card)', border: '1px solid var(--border)',
     borderRadius: 12, padding: '12px 14px', width: '100%', boxSizing: 'border-box',
     color: 'var(--text-primary)', fontFamily: 'inherit', textAlign: 'left',
-  };
+  }), []);
 
   return (
     <div>
