@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { MapPin, Sparkles, TrendingUp, AlertCircle, CheckCircle, Heart, Navigation, ChevronDown, Flag } from 'lucide-react';
 import { Tag } from './Tag';
 import { SpiceBar } from './SpiceBar';
@@ -9,14 +9,14 @@ import { useLanguage } from '../app/useLanguage.js';
 
 const ART_EMOJI = ['🍲', '🍛', '🌶️', '🍗', '🥘', '🍜'];
 
-export function RestaurantCard({ rec, index, onReview, distanceKm, directionsUrl, isFavorite, onToggleFavorite }) {
+export const RestaurantCard = memo(function RestaurantCard({ rec, index, onReview, distanceKm, directionsUrl, isFavorite, onToggleFavorite }) {
   const { t } = useLanguage();
   // undefined = fetch pending, null/object = settled (no sync setState in effect)
   const [photo, setPhoto] = useState(undefined);
   const [whyOpen, setWhyOpen] = useState(false);
-  const matchPct = Math.round((rec.match_score || 0) * 100);
-  const price = PRICE_MAP[rec.price_tier?.toLowerCase()] || "₦₦";
-  const dish = rec.signature_dishes?.[0] || rec.cuisine_tags?.[0];
+  const matchPct = useMemo(() => Math.round((rec.match_score || 0) * 100), [rec.match_score]);
+  const price = useMemo(() => PRICE_MAP[rec.price_tier?.toLowerCase()] || "₦₦", [rec.price_tier]);
+  const dish = useMemo(() => rec.signature_dishes?.[0] || rec.cuisine_tags?.[0], [rec.signature_dishes, rec.cuisine_tags]);
   const photoTried = !dish || photo !== undefined;
 
   useEffect(() => {
@@ -245,4 +245,4 @@ export function RestaurantCard({ rec, index, onReview, distanceKm, directionsUrl
       </div>
     </div>
   );
-}
+});
