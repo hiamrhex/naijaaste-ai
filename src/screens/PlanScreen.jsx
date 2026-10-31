@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Users, Wallet, MapPin, Sparkles, Share2, Check } from 'lucide-react';
 import { API } from '../constants/index.js';
 import { RestaurantCard } from '../components/RestaurantCard.jsx';
@@ -16,7 +16,45 @@ const BUDGETS = [
 const OCCASIONS = ['date night', 'family outing', 'friends hangout', 'business meal', 'solo treat', 'celebration'];
 const DIETARY = ['halal', 'vegetarian', 'no_pork', 'no_alcohol'];
 
-export default function PlanScreen() {
+const OccasionButton = memo(({ occasion, selected, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={selected}
+    style={{
+      border: `1px solid ${selected ? 'rgba(249,115,22,0.5)' : 'var(--border)'}`,
+      background: selected ? 'rgba(249,115,22,0.12)' : 'var(--bg-card)',
+      color: selected ? 'var(--orange)' : 'var(--text-muted)',
+      borderRadius: 20, padding: '8px 14px', fontSize: 12.5, fontWeight: 600,
+      cursor: 'pointer', fontFamily: 'inherit', minHeight: 40,
+    }}
+  >
+    {occasion}
+  </button>
+));
+
+OccasionButton.displayName = 'OccasionButton';
+
+const DietaryButton = memo(({ dietary, selected, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={selected}
+    style={{
+      border: `1px solid ${selected ? 'rgba(16,185,129,0.5)' : 'var(--border)'}`,
+      background: selected ? 'rgba(16,185,129,0.1)' : 'var(--bg-card)',
+      color: selected ? 'var(--green)' : 'var(--text-muted)',
+      borderRadius: 20, padding: '8px 14px', fontSize: 12.5, fontWeight: 600,
+      cursor: 'pointer', fontFamily: 'inherit', minHeight: 40,
+    }}
+  >
+    {selected ? <Check size={12} style={{ verticalAlign: -2 }} /> : null} {dietary.replace('_', ' ')}
+  </button>
+));
+
+DietaryButton.displayName = 'DietaryButton';
+
+export default memo(function PlanScreen() {
   const { t } = useLanguage();
   const [groupSize, setGroupSize] = useState('2');
   const [budget, setBudget] = useState('mid');
@@ -36,23 +74,29 @@ export default function PlanScreen() {
     setDietary((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
   };
 
+  const createPersona = useMemo(() => {
+    return () => {
+      const size = Math.max(1, parseInt(groupSize, 10) || 1);
+      return {
+        persona_id: `plan-${Date.now()}`,
+        city: area.trim() || 'Lagos',
+        budget_level: (BUDGETS.find((b) => b.value === budget) || BUDGETS[1]).budget_level,
+        spice_tolerance: 'medium',
+        ambience_preference: 'casual',
+        social_context: size >= 5 ? 'group' : occasion,
+        preferred_cuisines: ['Street Food'],
+        dietary_flags: dietary.length ? dietary : ['none'],
+        preference_history: [],
+      };
+    };
+  }, [groupSize, budget, area, occasion, dietary]);
+
   const submit = async (e) => {
     e.preventDefault();
     setError('');
     setShared(false);
     setStatus('loading');
-    const size = Math.max(1, parseInt(groupSize, 10) || 1);
-    const persona = {
-      persona_id: `plan-${Date.now()}`,
-      city: area.trim() || 'Lagos',
-      budget_level: (BUDGETS.find((b) => b.value === budget) || BUDGETS[1]).budget_level,
-      spice_tolerance: 'medium',
-      ambience_preference: 'casual',
-      social_context: size >= 5 ? 'group' : occasion,
-      preferred_cuisines: ['Street Food'],
-      dietary_flags: dietary.length ? dietary : ['none'],
-      preference_history: [],
-    };
+    const persona = createPersona();
     try {
       const res = await fetch(`${API}/recommend`, {
         method: 'POST',
@@ -69,7 +113,7 @@ export default function PlanScreen() {
       try { globalThis.dispatchEvent(new Event('nt:good-moment')); } catch { /* noop */ }
       try { globalThis.dispatchEvent(new Event('nt:plan-done')); } catch { /* noop */ }
       if (list[0]?.restaurant_id) recordCheckInEvent(list[0].restaurant_id, 'planned');
-      writePlans([{ id: `plan-${Date.now()}`, at: new Date().toISOString(), inputs: { groupSize: size, budget, area, occasion, dietary }, recs: list }, ...readPlans()]);
+      writePlans([{ id: `plan-${Date.now()}`, at: new Date().toISOString(), inputs: { groupSize: parseInt(groupSize, 10), budget, area, occasion, dietary }, recs: list }, ...readPlans()]);
     } catch (err) {
       setError(errorMessage(err, t('genericError')));
       setStatus('error');
@@ -116,13 +160,13 @@ export default function PlanScreen() {
     }
   };
 
-  const field = { display: 'block' };
-  const label = { fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 };
-  const control = {
+  const field = useMemo(() => ({ display: 'block' }), []);
+  const label = useMemo(() => ({ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }), []);
+  const control = useMemo(() => ({
     width: '100%', boxSizing: 'border-box', background: 'var(--input-bg)',
     border: '1px solid var(--border)', borderRadius: 11, padding: '12px 14px',
     fontSize: 14, color: 'var(--text-primary)', fontFamily: 'inherit', outline: 'none', minHeight: 48,
-  };
+  }), []);
 
   return (
     <div>
@@ -152,19 +196,12 @@ export default function PlanScreen() {
             <span style={label}>Occasion</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} role="group" aria-label="Occasion">
               {OCCASIONS.map((o) => (
-                <button
-                  key={o} type="button" onClick={() => setOccasion(o)}
-                  aria-pressed={occasion === o}
-                  style={{
-                    border: `1px solid ${occasion === o ? 'rgba(249,115,22,0.5)' : 'var(--border)'}`,
-                    background: occasion === o ? 'rgba(249,115,22,0.12)' : 'var(--bg-card)',
-                    color: occasion === o ? 'var(--orange)' : 'var(--text-muted)',
-                    borderRadius: 20, padding: '8px 14px', fontSize: 12.5, fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'inherit', minHeight: 40,
-                  }}
-                >
-                  {o}
-                </button>
+                <OccasionButton
+                  key={o}
+                  occasion={o}
+                  selected={occasion === o}
+                  onClick={() => setOccasion(o)}
+                />
               ))}
             </div>
           </div>
@@ -172,19 +209,12 @@ export default function PlanScreen() {
             <span style={label}>Dietary needs</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} role="group" aria-label="Dietary needs">
               {DIETARY.map((d) => (
-                <button
-                  key={d} type="button" onClick={() => toggleDietary(d)}
-                  aria-pressed={dietary.includes(d)}
-                  style={{
-                    border: `1px solid ${dietary.includes(d) ? 'rgba(16,185,129,0.5)' : 'var(--border)'}`,
-                    background: dietary.includes(d) ? 'rgba(16,185,129,0.1)' : 'var(--bg-card)',
-                    color: dietary.includes(d) ? 'var(--green)' : 'var(--text-muted)',
-                    borderRadius: 20, padding: '8px 14px', fontSize: 12.5, fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'inherit', minHeight: 40,
-                  }}
-                >
-                  {dietary.includes(d) ? <Check size={12} style={{ verticalAlign: -2 }} /> : null} {d.replace('_', ' ')}
-                </button>
+                <DietaryButton
+                  key={d}
+                  dietary={d}
+                  selected={dietary.includes(d)}
+                  onClick={() => toggleDietary(d)}
+                />
               ))}
             </div>
           </div>
@@ -239,4 +269,4 @@ export default function PlanScreen() {
       </div>
     </div>
   );
-}
+});
