@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
+import { memo } from 'react';
 import {
   Send, ChefHat, Utensils, Zap, Square,
   RefreshCw, ChevronDown, Globe, Clock, BarChart3, MessageSquare, ArrowRight, MapPin, Sparkles, CheckCircle,
@@ -17,22 +18,22 @@ import { haversineKm } from '../utils/geo.js';
 import { VoiceButton } from '../components/VoiceButton.jsx';
 import { useLanguage } from '../app/useLanguage.js';
 
-export default function HomeScreen() {
+export default memo(function HomeScreen() {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const [voiceError, setVoiceError] = useState(null);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const c = useConcierge({ chatEndRef });
-  const currentHero = HERO_PHRASES[c.heroIdx];
+  const currentHero = useMemo(() => HERO_PHRASES[c.heroIdx], [c.heroIdx]);
 
   // The welcome furniture (hero + quick prompts) only shows while the
   // conversation is fresh - once the user has said something, the chat owns
   // the screen, the way it does in Claude or ChatGPT.
-  const fresh = c.messages.length <= 1;
+  const fresh = useMemo(() => c.messages.length <= 1, [c.messages.length]);
 
   // The trace of the most recent agent turn - what it actually did.
-  const lastTrace = [...c.messages].reverse().find((m) => m.trace?.length)?.trace || [];
+  const lastTrace = useMemo(() => [...c.messages].reverse().find((m) => m.trace?.length)?.trace || [], [c.messages]);
 
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); c.sendMsg(); }
@@ -514,4 +515,4 @@ export default function HomeScreen() {
       )}
     </div>
   );
-}
+});
