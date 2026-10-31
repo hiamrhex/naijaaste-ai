@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Crosshair, Loader2, Navigation, Heart, MapPin } from 'lucide-react';
@@ -31,9 +31,69 @@ const meIcon = L.divIcon({
   iconAnchor: [12, 12],
 });
 
-const fmtKm = (km) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km} km`);
+const fmtKm = useMemo((km) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km} km`), []);
 
-export default function MapScreen() {
+const ResultItem = memo(({ result, index, isFavorite, onToggleFavorite, fmtKm }) => {
+  return (
+    <div
+      role="listitem"
+      className="bubble-in"
+      style={{
+        border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
+        display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-card-hover)',
+      }}
+    >
+      <div style={{
+        width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+        background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 11, fontWeight: 800, color: 'var(--green)',
+      }}>
+        {fmtKm(result.distance_km)}
+      </div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {index + 1}. {result.name}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{result.area}, {result.city}</div>
+      </div>
+      <button
+        onClick={() => onToggleFavorite(result.restaurant_id)}
+        title={isFavorite ? 'Remove from saved' : 'Save spot'}
+        aria-label={isFavorite ? 'Remove from saved' : 'Save spot'}
+        aria-pressed={!!isFavorite}
+        style={{
+          background: isFavorite ? 'rgba(239,68,68,0.1)' : 'var(--bg-card)',
+          border: `1px solid ${isFavorite ? 'rgba(239,68,68,0.4)' : 'var(--border)'}`,
+          borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex', minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        <span key={String(!!isFavorite)} className={isFavorite ? 'heart-pop' : undefined} style={{ display: 'flex' }}>
+          <Heart size={13} color={isFavorite ? '#F87171' : 'var(--text-muted)'} fill={isFavorite ? '#F87171' : 'none'} />
+        </span>
+      </button>
+      {result.directions_url && (
+        <a
+          href={result.directions_url}
+          target="_blank" rel="noopener noreferrer"
+          title="Directions in Google Maps"
+          aria-label={`Directions to ${result.name}`}
+          style={{
+            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            borderRadius: 8, padding: 6, display: 'flex', color: 'var(--orange)', textDecoration: 'none',
+            minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <Navigation size={13} />
+        </a>
+      )}
+    </div>
+  );
+});
+
+ResultItem.displayName = 'ResultItem';
+
+export default memo(function MapScreen() {
   const { t } = useLanguage();
   const mapRef = useRef(null);
   const mapObj = useRef(null);
@@ -166,67 +226,18 @@ const locate = () => {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }} role="list" aria-label="Nearby restaurants">
-          {results.map((r, i) => {
-            const isFav = favorites.includes(r.restaurant_id);
-            return (
-              <div
-                key={r.restaurant_id || i}
-                role="listitem"
-                className="bubble-in"
-                style={{
-                  border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
-                  display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-card-hover)',
-                }}
-              >
-                <div style={{
-                  width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                  background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 800, color: 'var(--green)',
-                }}>
-                  {fmtKm(r.distance_km)}
-                </div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {i + 1}. {r.name}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.area}, {r.city}</div>
-                </div>
-                <button
-                  onClick={() => toggleFavorite(r.restaurant_id)}
-                  title={isFav ? 'Remove from saved' : 'Save spot'}
-                  aria-label={isFav ? 'Remove from saved' : 'Save spot'}
-                  aria-pressed={!!isFav}
-                  style={{
-                    background: isFav ? 'rgba(239,68,68,0.1)' : 'var(--bg-card)',
-                    border: `1px solid ${isFav ? 'rgba(239,68,68,0.4)' : 'var(--border)'}`,
-                    borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex', minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  <span key={String(!!isFav)} className={isFav ? 'heart-pop' : undefined} style={{ display: 'flex' }}>
-                    <Heart size={13} color={isFav ? '#F87171' : 'var(--text-muted)'} fill={isFav ? '#F87171' : 'none'} />
-                  </span>
-                </button>
-                {r.directions_url && (
-                  <a
-                    href={r.directions_url}
-                    target="_blank" rel="noopener noreferrer"
-                    title="Directions in Google Maps"
-                    aria-label={`Directions to ${r.name}`}
-                    style={{
-                      background: 'var(--bg-card)', border: '1px solid var(--border)',
-                      borderRadius: 8, padding: 6, display: 'flex', color: 'var(--orange)', textDecoration: 'none',
-                      minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center',
-                    }}
-                  >
-                    <Navigation size={13} />
-                  </a>
-                )}
-              </div>
-            );
-          })}
+          {results.map((r, i) => (
+            <ResultItem
+              key={r.restaurant_id || i}
+              result={r}
+              index={i}
+              isFavorite={favorites.includes(r.restaurant_id)}
+              onToggleFavorite={toggleFavorite}
+              fmtKm={fmtKm}
+            />
+          ))}
         </div>
       </div>
     </div>
   );
-}
+});
