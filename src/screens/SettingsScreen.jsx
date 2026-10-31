@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Trash2, LogOut, Globe, Moon, Sun, ShieldCheck, ChevronRight, Bell, BellOff, Bot } from 'lucide-react';
 import { loadPush, allowPush, denyPush, setPushMuted } from '../lib/push.js';
@@ -12,7 +12,7 @@ import { FeedbackForm } from '../components/FeedbackForm.jsx';
 import { readHistory } from '../hooks/useConcierge.js';
 import { readPlans } from '../lib/plans.js';
 
-export default function SettingsScreen() {
+export default memo(function SettingsScreen() {
   const { user, signOut } = useAuth();
   const { dark, toggle } = useTheme();
   const { lang, setLang, t } = useLanguage();
