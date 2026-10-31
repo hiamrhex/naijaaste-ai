@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition, memo } from 'react';
 import { Heart, Plus, Trash2 } from 'lucide-react';
 import { getSavedPlaces, addSavedPlace, deleteSavedPlace } from '../lib/auth.js';
 import { rankSaved } from '../lib/rankSaved.js';
@@ -8,7 +8,7 @@ import { ScreenHead } from '../components/ScreenHead.jsx';
 // typography-first hierarchy, restrained color, every microstate designed
 // (loading skeleton matches layout, empty invites action, errors direct).
 // No map, no catalogue lookup, names render as React text only (no HTML).
-export default function SavedScreen() {
+export default memo(function SavedScreen() {
   const [places, setPlaces] = useState([]);
   const [state, setState] = useState('loading');
   const [error, setError] = useState('');
@@ -88,7 +88,13 @@ export default function SavedScreen() {
     contentVisibility: 'auto', containIntrinsicSize: 'auto 64px',
   };
 
-  const spotCard = (p, hot) => (
+  const card = useMemo(() => ({
+    border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
+    background: 'var(--bg-card)', display: 'flex', alignItems: 'center', gap: 10,
+    contentVisibility: 'auto', containIntrinsicSize: 'auto 64px',
+  }), []);
+
+  const spotCard = memo((p, hot) => (
     <div key={p.id} style={card}>
       <Heart size={13} color={hot ? 'var(--orange)' : 'var(--text-hint)'} aria-hidden="true" />
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -114,7 +120,9 @@ export default function SavedScreen() {
         <Trash2 size={14} aria-hidden="true" />
       </button>
     </div>
-  );
+  ));
+
+  spotCard.displayName = 'spotCard';
 
   return (
     <div>
@@ -223,4 +231,4 @@ export default function SavedScreen() {
       </div>
     </div>
   );
-}
+});
