@@ -14,7 +14,10 @@ const SW_CACHE_VERSION = 'v2';
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Enable React 18 features
+      fastRefresh: true,
+    }),
     {
       // Dev-only: serve the SPA shell for /app/* (mirrors the Vercel rewrite).
       // Preview/prod behavior is covered by contract tests, not this plugin.
@@ -64,11 +67,22 @@ export default defineConfig({
   // Multi-page: / serves the landing page (index.html), the app lives at /app.
   build: {
     rollupOptions: {
-      input: {
-        main: resolve(root, 'index.html'),
-        app: resolve(root, 'app/index.html'),
+      output: {
+        manualChunks: {
+          // Split vendor chunks
+          vendor: ['react', 'react-dom'],
+          lucide: ['lucide-react'],
+          leaflet: ['leaflet'],
+          google: ['@google/genai'],
+        },
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
     },
+  },
+  optimizeDeps: {
+    include: ['lucide-react', 'leaflet'],
   },
   // Dev only: mirror the Vercel /api rewrite so same-origin frontend calls
   // reach the local API during `vite dev`.
