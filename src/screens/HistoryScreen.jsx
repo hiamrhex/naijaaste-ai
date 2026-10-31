@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Search, Trash2, MessageSquare, ClipboardList, Heart } from 'lucide-react';
 import { readHistory } from '../hooks/useConcierge.js';
 import { readPlans, deletePlan } from '../lib/plans.js';
@@ -6,13 +6,13 @@ import { getFavorites, removeFavorite } from '../lib/auth.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 import { useLanguage } from '../app/useLanguage.js';
 
-const timeFmt = (iso) => {
+const timeFmt = useMemo((iso) => {
   try {
     return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   } catch { return ''; }
-};
+}, []);
 
-export default function HistoryScreen() {
+export default memo(function HistoryScreen() {
   const { t } = useLanguage();
   const [q, setQ] = useState('');
   const [chats, setChats] = useState(readHistory);
@@ -47,18 +47,18 @@ export default function HistoryScreen() {
   const plansF = useMemo(() => plans.filter((p) => !needle || JSON.stringify(p.inputs).toLowerCase().includes(needle)), [plans, needle]);
   const favsF = useMemo(() => favorites.filter((f) => !needle || f.restaurant_id.toLowerCase().includes(needle)), [favorites, needle]);
 
-  const rowBtn = {
+  const rowBtn = useMemo(() => ({
     background: 'none', border: '1px solid var(--border)', borderRadius: 8,
     padding: 7, cursor: 'pointer', color: 'var(--text-muted)', display: 'flex',
     minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  };
+  }), []);
 
-  const sectionTitle = {
+  const sectionTitle = useMemo(() => ({
     fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 14,
     color: 'var(--text-primary)', margin: '18px 0 8px', display: 'flex', alignItems: 'center', gap: 7,
-  };
+  }), []);
 
-  const empty = { fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0' };
+  const empty = useMemo(() => ({ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0' }), []);
 
   return (
     <div>
@@ -132,4 +132,4 @@ export default function HistoryScreen() {
       </div>
     </div>
   );
-}
+});
