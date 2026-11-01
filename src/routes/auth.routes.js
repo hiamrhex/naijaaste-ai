@@ -29,50 +29,7 @@ const noStore = (_req, res, next) => {
   next();
 };
 
-// One bucket per flow. A shared bucket meant a signup loop could lock a user
-// out of sign-in and refresh (and vice versa) - the limit protected the
-// server, but the user paid for it.
-//
-// The bucket is keyed on the IP captured before the body was read: the
-// default keyGenerator reads req.ip, which throws on the serverless runtime
-// once the body has been consumed (see src/lib/clientIp.js).
-const limiter = (windowMs, max, message) => rateLimit({
-  windowMs,
-  max,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    const ip = clientIp(req);
-    if (!ip || ip === 'unknown') return 'unknown';
-    try {
-      return ipKeyGenerator(ip);
-    } catch {
-      return ip;
-    }
-  },
-  handler: (req, res) => fail(res, {
-    status: 429,
-    code: 'RATE_LIMITED',
-    message,
-    requestId: req.id,
-    retryAfterSec: Math.ceil(windowMs / 1000),
-  }),
-});
-
-// Limits are per client IP. They are generous on purpose: Nigerian mobile
-// carriers put whole neighbourhoods behind one address (carrier-grade NAT), so
-// a tight IP budget locks out innocent neighbours. The precise control is the
-// per-(email, ip) lockout below, which cannot be used to lock a victim out.
-const signupLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_SIGNUP_MAX, 'Too many accounts created from this network. Try again in 15 minutes.');
-const signinLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_SIGNIN_MAX, 'Too many sign-in attempts. Try again in 15 minutes.');
-// A live tab rehydrates its access token from the cookie on load and on every
-// 401, so this bucket has to be generous or long-lived sessions break.
-const refreshLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_REFRESH_MAX, 'Too many session refreshes. Try again in 15 minutes.');
-const googleLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_GOOGLE_MAX, 'Too many Google sign-in attempts. Try again in 15 minutes.');
-// Requesting a code and guessing a code are different budgets: a user who
-// mistypes their code must not spend the same quota as one who spams requests.
-const forgotLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_FORGOT_MAX, 'Too many reset codes requested. Try again in 15 minutes.');
-const resetLimiter = limiter(15 * 60 * 1000, env.AUTH_RATE_LIMIT_RESET_MAX, 'Too many reset attempts. Try again in 15 minutes.');
+import { limiter, signupLimiter, signinLimiter, refreshLimiter, googleLimiter, forgotLimiter, resetLimiter } from '../rate-limiter.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // saved_places.id is UUID. Reject malformed ids before the query: Postgres
@@ -86,23 +43,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // ~5ms against ~300ms for a known one, which enumerated accounts by timing.
 const DUMMY_HASH = '$2b$12$ZTYY5K5HLW9ioreuYOavCexQvP5mkWhSqT5ogWo2iB9V/N.YPBjHC';
 
-const validateSignup = (body) => {
-  const errors = [];
-  const { name, email, password } = body || {};
-  if (!name || typeof name !== 'string' || name.trim().length < 2) errors.push('name must be at least 2 characters');
-  if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) errors.push('valid email is required');
-  const weak = passwordProblem(password, email);
-  if (weak) errors.push(weak);
-  return errors;
-};
-
-const validateSignin = (body) => {
-  const errors = [];
-  const { email, password } = body || {};
-  if (!email || typeof email !== 'string') errors.push('email is required');
-  if (!password || typeof password !== 'string' || password.length < 1) errors.push('password is required');
-  return errors;
-};
+import { validateSignup, validateSignin } from '../validation.js';
 
 const issueTokens = async (user, res, status = 200) => {
   const accessToken = signAccessToken(user);
