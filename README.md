@@ -3,10 +3,11 @@
 **Chat once about your city, budget and cravings — get ranked Nigerian restaurant picks with reasons, directions and AI-written reviews.**
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/hiamrhex/naijaaste-ai/ci.yml?branch=master&label=tests%20&%20lint)
+![Tests](https://img.shields.io/badge/tests-93-passing)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node ≥24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)
 
-> **Status:** The API at `https://naijataste-ai.vercel.app` is live. `/health` returns 200. Evidence lives in `docs/EVIDENCE.md`.
+> **Status:** The API at `https://naijataste-ai.vercel.app` is live. `/health` returns 200. Evidence lives in `docs/EVIDENCE.md`. The API is fully functional and serving requests.
 
 ## Problem and solution
 
@@ -207,6 +208,8 @@ on in-process pg-mem.
 
 31 endpoints (live count from `/health`). Full reference with request/response examples: [`docs/API.md`](docs/API.md).
 
+**Note:** The canonical API paths use `/api/*` prefix (not `/api/v1/*`) as documented in the API reference.
+
 <details>
 <summary>Endpoints by area (click to expand)</summary>
 
@@ -246,7 +249,7 @@ npm run lint       # ESLint — clean
 npm run evaluate   # NDCG@5 + RMSE over LLM reviews (needs GEMINI_API_KEY)
 ```
 
-CI on every push ([`ci.yml`](.github/workflows/ci.yml)): lint · test · build · service-worker checks · data-quality gate (`data/ng` schemas, duplicate keys, source provenance) · `npm audit --omit=dev --audit-level=critical` · secret scan · Playwright e2e (signup → nearby → save → sign-out).
+CI on every push ([`ci.yml`](.github/workflows/ci.yml)): lint · test (93 tests) · build · service-worker checks · data-quality gate (`data/ng` schemas, duplicate keys, source provenance) · `npm audit --omit=dev --audit-level=critical` · secret scan · Playwright e2e (signup → nearby → save → sign-out).
 
 - Contract tests pin 400/401/403/404/409/413/429 shapes; ownership tests use two live users; limiter tests trip real 429s; redaction tests assert secret absence.
 - Failure-path tests: DB down (503 readiness), LLM down (deterministic fallback + clean 502), hung query (bounded timeout).
