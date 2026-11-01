@@ -27,6 +27,8 @@ NaijaTaste AI flips it: **one conversation → a taste persona → a ranked shor
 - **Ratings + reports** — 1–5 check-ins and a feedback inbox with ticket IDs (stored; ratings not yet consumed by ranking)
 - **Map / Plan / History / Settings / Admin screens** — Real React screens (live)
 - **Installable PWA** — `vite-plugin-pwa` manifest + offline fallback page (live, manifest + `offline.html` in build)
+- **Rate limiting** — Per-endpoint rate limits with retry-after headers (live)
+- **Error handling** — Consistent error format with request IDs (live)
 
 ## How it works
 
@@ -156,6 +158,7 @@ flowchart TB
 | Frontend | React 19, Vite 8, react-router-dom 7, Leaflet, lucide icons | Lazy routes, real URLs, offline-capable map |
 | Landing | Zero-dependency HTML/CSS/JS (28,875 bytes total) | Loads in milliseconds, nothing to break |
 | Tests | Vitest 5 + supertest + Playwright, ESLint 10 | Same runner for unit + HTTP contract + e2e |
+| Build | Vite 8 with PWA plugin | Fast builds, service worker support, offline capability |
 
 ## Quick start (~3 minutes)
 
@@ -177,30 +180,31 @@ on in-process pg-mem.
 
 ## Environment
 
-| Variable | Required? | Purpose |
-|---|---|---|
-| `GEMINI_API_KEY` / `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | **Yes** — boot fails without them | LLM auth, token signing |
-| `DATABASE_URL` (pooled) | **Yes in production** — boot fails without it | runtime Postgres |
-| `CORS_ORIGIN` | **Yes in production** — boot fails without it | allowed frontend origin(s) |
-| `DATABASE_URL_DIRECT` | Migrate only | direct URL for `npm run db:migrate` |
-| `ADMIN_EMAILS` | No — but someone must be admin | comma-separated admin seeding |
-| `SMTP_HOST/PORT/USER/PASS/FROM` | No — reset stays fail-closed without them | OTP email delivery (Gmail app password works) |
-| `GOOGLE_CLIENT_ID` | No — button hides without it | Google sign-in |
-| `DEV_OTP_ENABLED` | No (`false`) — **never `true` outside local dev** | dev OTP fallback |
-| `RATE_LIMIT_*`, `GEMINI_MODEL`, `PORT`, `LOG_LEVEL`, `TRUST_PROXY` | No (sane defaults) | tuning |
+| Variable | Required? | Purpose | Default |
+|---|---|---|---|
+| `GEMINI_API_KEY` / `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | **Yes** — boot fails without them | LLM auth, token signing | - |
+| `DATABASE_URL` (pooled) | **Yes in production** — boot fails without it | runtime Postgres | - |
+| `CORS_ORIGIN` | **Yes in production** — boot fails without it | allowed frontend origin(s) | - |
+| `DATABASE_URL_DIRECT` | Migrate only | direct URL for `npm run db:migrate` | - |
+| `ADMIN_EMAILS` | No — but someone must be admin | comma-separated admin seeding | - |
+| `SMTP_HOST/PORT/USER/PASS/FROM` | No — reset stays fail-closed without them | OTP email delivery (Gmail app password works) | - |
+| `GOOGLE_CLIENT_ID` | No — button hides without it | Google sign-in | - |
+| `DEV_OTP_ENABLED` | No (`false`) — **never `true` outside local dev** | dev OTP fallback | `false` |
+| `RATE_LIMIT_*`, `GEMINI_MODEL`, `PORT`, `LOG_LEVEL`, `TRUST_PROXY` | No (sane defaults) | tuning | See table below |
 
 <details>
 <summary>Full default table (click to expand)</summary>
 
-| Variable | Default | Fails boot if missing? |
-|---|---|---|
-| `GEMINI_MODEL` | `gemini-3.5-flash` | No |
-| `PORT` | `3000` | No |
-| `NODE_ENV` | `development` | No |
-| `LOG_LEVEL` | `info` | No |
-| `RATE_LIMIT_API_MAX` | `600` / 15 min | No |
-| `RATE_LIMIT_LLM_MAX` | `10` / min, both mounts | No |
-| `TRUST_PROXY` | `1` | No |
+| Variable | Default | Fails boot if missing? | Description |
+|---|---|---|---|
+| `GEMINI_MODEL` | `gemini-3.5-flash` | No | LLM model to use |
+| `PORT` | `3000` | No | API server port |
+| `NODE_ENV` | `development` | No | Environment mode |
+| `LOG_LEVEL` | `info` | No | Logging verbosity |
+| `RATE_LIMIT_API_MAX` | `600` / 15 min | No | General API rate limit |
+| `RATE_LIMIT_LLM_MAX` | `10` / min, both mounts | No | LLM endpoint rate limit |
+| `TRUST_PROXY` | `1` | No | Enable proxy trust (Vercel) |
+| `CORS_ORIGIN` | `http://localhost:5173` | No | Development frontend origin |
 
 </details>
 
