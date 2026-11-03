@@ -175,7 +175,8 @@ const healthPaths = ["/health", "/health/ready"];
 const globalLimiter = createLimiter(15 * 60 * 1000, env.RATE_LIMIT_API_MAX, [
   ...healthPaths,
   ...authPaths,
-  ...llmPaths
+  ...llmPaths,
+  '/chat/:id',  // Session access is rate-limited
 ]);
 
 // LLM limiter: 10/min

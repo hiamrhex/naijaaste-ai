@@ -1,4 +1,6 @@
 // Validation functions for authentication endpoints
+import { passwordProblem } from './auth/password.js';
+
 export const validateSignup = (body) => {
   const errors = [];
   const { name, email, password } = body || {};

@@ -5,6 +5,11 @@
 // The bucket is keyed on the IP captured before the body was read: the
 // default keyGenerator reads req.ip, which throws on the serverless runtime
 // once the body has been consumed (see src/lib/clientIp.js).
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { env } from './env.js';
+import { clientIp } from './lib/clientIp.js';
+import { fail } from './lib/respond.js';
+
 export const limiter = (windowMs, max, message) => rateLimit({
   windowMs,
   max,

@@ -3,6 +3,7 @@ import { callLLMJson } from './llm.service.js';
 import { getRecommendations } from './recommend.service.js';
 import { getPool } from '../db/pool.js';
 import { logger } from '../lib/logger.js';
+import { AiTimeoutError, AiUnavailableError } from '../lib/errors.js';
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,46 +24,6 @@ const quotaSubjectFromOwner = (owner) => {
 
 // Deterministic fallback for chat when LLM is unavailable.
 // Returns a structured response using the catalogue (no LLM call).
-const deterministicChatFallback = async (session, _userMessage) => {
-  const pool = await getPool();
-  const { rows } = await pool.query(
-    `SELECT restaurant_id, name, city, price_tier, spice_profile, ambience, average_rating
-     FROM restaurants
-     WHERE city = COALESCE($1, 'Lagos')
-     ORDER BY average_rating DESC NULLS LAST, restaurant_id
-     LIMIT 5`,
-    [session.extracted_persona?.city]
-  );
-
-  const spots = rows.map((r, i) => ({
-    rank: i + 1,
-    restaurant_id: r.restaurant_id,
-    name: r.name,
-    city: r.city,
-    price_tier: r.price_tier,
-    spice_profile: r.spice_profile,
-    ambience: r.ambience,
-    average_rating: r.average_rating,
-    match_reason: 'Popular in your area (AI unavailable — showing top-rated)'
-  }));
-
-  return {
-    success: true,
-    session_id: session.session_id,
-    stage: 'recommend',
-    message: "The AI chef is taking a break. Here are some popular spots from the catalogue instead.",
-    recommendations: spots,
-    extracted_persona: session.extracted_persona,
-    missing_fields: [],
-    meta: {
-      turn_count: session.conversation_history.filter(m => m.role === 'user').length,
-      persona_complete: false,
-      session_persisted: true,
-      fallback: true,
-      latency_ms: 0
-    }
-  };
-};
 
 // Session expiry — 24 hours
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -231,7 +192,6 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
 
   const quotaSubject = quotaSubjectFromOwner(owner);
   let llmResponse;
-  let usedFallback = false;
   try {
     llmResponse = await callLLMJson(combinedPrompt, 1500, { quotaSubject });
   } catch (err) {
@@ -240,24 +200,21 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
     //   LLM_QUOTA_EXCEEDED → 429 with retry-after (no fallback)
     //   provider/circuit → 503 AI_UNAVAILABLE
     //   other → rethrow
-    if (err?.code === 'LLM_QUOTA_EXCEEDED') {
-      // Quota exceeded is a client error, not an upstream failure — rethrow
-      throw err;
-    }
+    //
+    // `/chat` is the low-level transcript endpoint and must stay honest about
+    // model failure. The deterministic catalogue fallback belongs to `/agent`
+    // (see routes/agent.routes.js), which can extract hints and returns the
+    // full trace the UI renders.
     if (err?.code === 'LLM_TIMEOUT') {
-      logger.warn({ err: err.code, timeout_ms: err.timeoutMs }, 'chat turn: LLM budget exhausted, using fallback');
-      usedFallback = true;
-    } else if (isUpstreamFailure(err)) {
-      logger.warn({ err: err.code || err.message }, 'chat turn: upstream LLM unavailable, using fallback');
-      usedFallback = true;
-    } else {
+      throw new AiTimeoutError();
+    }
+    if (err?.code === 'LLM_QUOTA_EXCEEDED') {
       throw err;
     }
-  }
-
-  if (usedFallback) {
-    // Deterministic fallback: return catalogue-based results
-    return deterministicChatFallback(session, session.conversation_history[session.conversation_history.length - 1]?.content || '');
+    if (isUpstreamFailure(err)) {
+      throw new AiUnavailableError();
+    }
+    throw err;
   }
 
   // Merge extracted persona
