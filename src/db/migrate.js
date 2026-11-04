@@ -1,5 +1,3 @@
-// Migration runner: node src/db/migrate.js  (npm run db:migrate)
-// Applies migrations/*.sql in filename order, tracked in schema_migrations.
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -23,9 +21,7 @@ export const runMigrations = async (pool) => {
   for (const file of files) {
     if (applied.has(file)) continue;
     let sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8');
-    // pg-mem doesn't support transactional DDL — run migration statements
-    // outside a transaction, then record version separately.
-    // Strip line comments, then split on semicolon.
+    
     sql = sql.replace(/--.*$/gm, '');
     const statements = sql
       .split(';')

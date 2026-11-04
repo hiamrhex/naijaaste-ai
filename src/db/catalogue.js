@@ -1,9 +1,5 @@
 import { getPool } from './pool.js';
 
-// Single catalogue read path: every consumer queries Postgres (pg-mem in
-// tests, Neon in prod). Curated rows carry their full original object in
-// `meta`; OSM rows are rebuilt from columns. restaurants.json is only the
-// seed fixture — never read at request time.
 export const mapRow = (row) => {
   if (row.meta) {
     const m = typeof row.meta === 'string' ? JSON.parse(row.meta) : row.meta;
