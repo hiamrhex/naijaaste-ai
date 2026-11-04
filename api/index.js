@@ -1,16 +1,3 @@
-// Vercel serverless entry — imports the Express app WITHOUT calling listen
-// (listen lives in src/server.js for local/production-long-running only).
-// An Express app is a (req, res) handler, so it is a valid function export.
-//
-// Same-origin: vercel.json rewrites /api/* to this function, so the
-// frontend calls /api/auth/… — strip that mount prefix back to the paths
-// Express actually serves (/auth/…, /api/v1/…). Local dev is unaffected
-// (requests there never carry the /api prefix).
-//
-// Vercel rewrite behavior: /api/:path* → function receives :path* as req.url
-//   /api/v1/auth/signup  → req.url = "/v1/auth/signup"
-//   /api/auth/signup     → req.url = "/auth/signup"
-//   /api/health          → req.url = "/health"
 import { app } from '../src/app.js';
 import { initMonitoring, captureException } from '../src/lib/monitoring.js';
 

@@ -6,6 +6,8 @@
 ![Tests](https://img.shields.io/badge/tests-93-passing)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node ≥24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)
+![Contributors](https://img.shields.io/github/contributors/hiamrhex/naijaaste-ai)
+![Last Commit](https://img.shields.io/github/last-commit/hiamrhex/naijaste-ai/master)
 
 > **Status:** The API at `https://naijataste-ai.vercel.app` is live. `/health` returns 200. Evidence lives in `docs/EVIDENCE.md`. The API is fully functional and serving requests.
 
@@ -168,6 +170,7 @@ cd naijaaste-ai
 npm ci
 cp .env.example .env      # Windows: copy .env.example .evs
 # Fill GEMINI_API_KEY + JWT_ACCESS_SECRET + JWT_REFRESH_SECRET (see Environment)
+npm test                  # 93 tests, ~40s, no Docker needed (pg-mem)
 npm run db:migrate         # needs DATABASE_URL_DIRECT; safe no-op without a DB
 npm start                  # API on :3000  (second terminal:)
 npm run dev                # SPA on :5173, app at /app
@@ -191,6 +194,24 @@ on in-process pg-mem.
 | `GOOGLE_CLIENT_ID` | No — button hides without it | Google sign-in | - |
 | `DEV_OTP_ENABLED` | No (`false`) — **never `true` outside local dev** | dev OTP fallback | `false` |
 | `RATE_LIMIT_*`, `GEMINI_MODEL`, `PORT`, `LOG_LEVEL`, `TRUST_PROXY` | No (sane defaults) | tuning | See table below |
+
+### Quick Setup Commands
+
+```bash
+# Clone and setup
+git clone https://github.com/hiamrhex/naijaste-ai.git
+cd naijataste-ai
+npm ci
+
+# Environment setup
+cp .env.example .env
+# Edit .env with your credentials
+
+# Test and run
+npm test                  # 93 tests
+npm start                  # API server
+npm run dev                # Frontend dev server
+```
 
 <details>
 <summary>Full default table (click to expand)</summary>

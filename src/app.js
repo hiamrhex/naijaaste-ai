@@ -143,9 +143,9 @@ const keyByClientIp = (req) => {
 // Single unified limiter: global + per-endpoint specific limits
 // Uses skip function to apply different limits per route group
 // Emits ONLY ONE set of RateLimit headers (draft-7) per response
-const createLimiter = (windowMs, limit, skipPaths = []) => rateLimit({
+const createLimiter = (windowMs, max, skipPaths = []) => rateLimit({
   windowMs,
-  limit,
+  max,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   keyGenerator: keyByClientIp,
@@ -159,7 +159,9 @@ const createLimiter = (windowMs, limit, skipPaths = []) => rateLimit({
   }),
 });
 
-// LLM endpoints: 10/min
+// LLM endpoints (POST only): 10/min
+// These are the endpoints that actually call the LLM.
+// GET /chat/:id and DELETE /chat/:id are NOT LLM endpoints - they only read/delete session state.
 const llmPaths = [
   "/chat", "/extract-persona", "/update-preference", "/recommend", "/generate-review", "/agent",
   "/api/v1/chat", "/api/v1/extract-persona", "/api/v1/update-preference", "/api/v1/recommend", "/api/v1/generate-review", "/api/v1/agent"
@@ -174,9 +176,9 @@ const healthPaths = ["/health", "/health/ready"];
 // Global: 600/15min for everything else
 const globalLimiter = createLimiter(15 * 60 * 1000, env.RATE_LIMIT_API_MAX, [
   ...healthPaths,
-  ...authPaths,
-  ...llmPaths,
-  '/chat/:id',  // Session access is rate-limited
+  ...authPaths
+  // llmPaths removed: the middleware above routes POST to llmLimiter,
+  // and non-POST LLM paths (e.g., GET /chat/:id) fall through to global.
 ]);
 
 // LLM limiter: 10/min
@@ -185,8 +187,13 @@ const llmLimiter = createLimiter(60 * 1000, env.RATE_LIMIT_LLM_MAX, []);
 // Apply limiters in order: global first (catches everything), then LLM (overrides for LLM paths)
 // CRITICAL: Only ONE limiter runs per request to avoid stacked RateLimit headers
 app.use((req, res, next) => {
-  // Check if this is an LLM path
-  const isLlmPath = llmPaths.some(p => req.path === p || req.path.startsWith(p));
+  // Check if this is an LLM path (POST only - GET/DELETE /chat/:id are not LLM endpoints)
+  const isLlmPath = llmPaths.some(p => {
+    if (req.path === p) return true;
+    if (req.path.startsWith(p + '/')) return true;
+    return false;
+  }) && req.method === 'POST';
+  
   if (isLlmPath) {
     return llmLimiter(req, res, next);
   }

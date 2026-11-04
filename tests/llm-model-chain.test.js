@@ -66,6 +66,10 @@ describe('Gemini model chain', () => {
   });
 
   it('surfaces AI_UNAVAILABLE (not a timeout) when every model fails', async () => {
+    // Reduce timeouts so the test runs fast (it tries all 3 models in chain)
+    process.env.GEMINI_TOTAL_TIMEOUT_MS = '200';
+    process.env.GEMINI_ATTEMPT_TIMEOUT_MS = '50';
+    
     const { callLLMJson } = await import('../src/services/llm.service.js');
     state.behaviour = async () => {
       const err = new Error('nope');
