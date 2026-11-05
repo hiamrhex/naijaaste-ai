@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 // Custom hook for debouncing expensive operations
 export function useDebounce(value, delay) {
@@ -65,7 +65,7 @@ export function useImageLoading(src, placeholder = null) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const img = new Image();
+    const img = new globalThis.Image();
     setIsLoading(true);
     setError(null);
 
@@ -95,6 +95,9 @@ export function useAPICall(apiFunction, options = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Default to an empty array: spreading `undefined` in the dependency list
+  // below throws before the hook can run.
+  const dependencies = options.dependencies || [];
 
   const execute = useCallback(async (...args) => {
     setLoading(true);
@@ -110,7 +113,7 @@ export function useAPICall(apiFunction, options = {}) {
     } finally {
       setLoading(false);
     }
-  }, [apiFunction, ...options.dependencies]);
+  }, [apiFunction, ...dependencies]);
 
   return { data, loading, error, execute };
 }
