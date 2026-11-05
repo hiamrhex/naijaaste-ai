@@ -34,6 +34,20 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   {
+    // Client-side modules that are plain .js (hooks, API clients, constants).
+    // They run in the browser, but the blanket src/**/*.js rule above gives
+    // them Node globals, which turned every document/window use into a bogus
+    // no-undef error.
+    files: [
+      'src/hooks/**/*.js',
+      'src/lib/**/*.js',
+      'src/utils/**/*.js',
+      'src/constants/**/*.js',
+      'src/app/**/*.js',
+    ],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
     // Browser specs: the assertions run inside the page, so the DOM globals
     // are legitimately referenced from the test file itself.
     files: ['tests/e2e/**/*.spec.js'],
