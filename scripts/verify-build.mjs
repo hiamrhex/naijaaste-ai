@@ -22,18 +22,28 @@ if (!existsSync(PROD_DIR)) {
 }
 checks.push({ name: 'dist directory exists', passed: true });
 
-// 2. Check for critical files. Hashed assets live in dist/assets, not dist,
-// so each entry names its directory and a matcher for the file name.
+// 2. Check for critical files. Hashed assets live under dist/assets/js and
+// dist/assets/css (see vite.config.js), so match recursively instead of
+// assuming a flat directory.
+const walk = (dir) => {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    return entry.isDirectory() ? walk(full) : [full];
+  });
+};
+
 const criticalFiles = [
-  { dir: PROD_DIR, label: 'index.html', test: (f) => f === 'index.html' },
-  { dir: PROD_DIR, label: 'sw.js', test: (f) => f === 'sw.js' },
-  { dir: PROD_DIR, label: 'manifest.webmanifest', test: (f) => f === 'manifest.webmanifest' },
-  { dir: ASSETS_DIR, label: 'assets/app-*.js', test: (f) => /^app-.+\.js$/.test(f) },
-  { dir: ASSETS_DIR, label: 'assets/app-*.css', test: (f) => /^app-.+\.css$/.test(f) },
+  { label: 'index.html', roots: [PROD_DIR], test: (f) => f === join(PROD_DIR, 'index.html') },
+  { label: 'dist/app/index.html (SPA entry)', roots: [PROD_DIR], test: (f) => f === join(PROD_DIR, 'app', 'index.html') },
+  { label: 'sw.js', roots: [PROD_DIR], test: (f) => f === join(PROD_DIR, 'sw.js') },
+  { label: 'manifest.webmanifest', roots: [PROD_DIR], test: (f) => f === join(PROD_DIR, 'manifest.webmanifest') },
+  { label: 'assets/**/app-*.js', roots: [ASSETS_DIR], test: (f) => /^app-.+\.js$/.test(f.split(/[\\/]/).pop()) },
+  { label: 'assets/**/app-*.css', roots: [ASSETS_DIR], test: (f) => /^app-.+\.css$/.test(f.split(/[\\/]/).pop()) },
 ];
 
-for (const { dir, label, test } of criticalFiles) {
-  const files = existsSync(dir) ? readdirSync(dir).filter(test) : [];
+for (const { label, roots, test } of criticalFiles) {
+  const files = roots.flatMap(walk).filter(test);
   checks.push({ name: files.length ? `Found: ${label}` : `Missing: ${label}`, passed: files.length > 0 });
 }
 
