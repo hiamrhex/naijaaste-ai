@@ -82,12 +82,6 @@ export default memo(function SavedScreen() {
     }
   };
 
-  const card = {
-    border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
-    background: 'var(--bg-card)', display: 'flex', alignItems: 'center', gap: 10,
-    contentVisibility: 'auto', containIntrinsicSize: 'auto 64px',
-  };
-
   const card = useMemo(() => ({
     border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
     background: 'var(--bg-card)', display: 'flex', alignItems: 'center', gap: 10,

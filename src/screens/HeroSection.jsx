@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { Globe } from 'lucide-react';
-import { HERO_PHRASES } from '../constants/index.js';
 
 export const HeroSection = memo(({ heroIdx, heroVisible, currentHero }) => {
   return (

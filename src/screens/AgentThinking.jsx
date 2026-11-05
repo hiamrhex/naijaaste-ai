@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Zap, ChevronDown, Clock } from 'lucide-react';
+import { Zap, Clock } from 'lucide-react';
 import { STAGE_LABELS, STAGE_TIPS } from '../constants/index.js';
 
 export const AgentThinking = memo(({ thinkOpen, stage, lastTrace, meta }) => {

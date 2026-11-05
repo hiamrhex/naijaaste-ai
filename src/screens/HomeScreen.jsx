@@ -1,12 +1,12 @@
 import { useRef, useState, useMemo } from 'react';
 import { memo } from 'react';
-import { Send, ChefHat, Utensils, Zap, Square, MapPin, Sparkles } from 'lucide-react';
+import { Send, Utensils, Zap, Square, MapPin, Sparkles, ChevronDown } from 'lucide-react';
 import { Header, Footer } from '../components/SiteChrome.jsx';
 import { useAuth } from '../app/useAuth.js';
 import { useConcierge } from '../hooks/useConcierge.js';
-import { haversineKm } from '../utils/geo.js';
 import { VoiceButton } from '../components/VoiceButton.jsx';
 import { useLanguage } from '../app/useLanguage.js';
+import { HERO_PHRASES } from '../constants/index.js';
 import { HeroSection } from './HeroSection.jsx';
 import { StageBar } from './StageBar.jsx';
 import { QuickStart } from './QuickStart.jsx';
@@ -84,6 +84,7 @@ export default memo(function HomeScreen() {
               <ChevronDown size={16} color="var(--text-hint)" style={{ transform: c.thinkOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
             </button>
             {c.thinkOpen && <AgentThinking thinkOpen={c.thinkOpen} stage={c.stage} lastTrace={lastTrace} meta={c.meta} />}
+          </div>
 
           {/* ── THE FOOD: below the conversation, full width ── */}
           <ResultsSection

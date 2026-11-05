@@ -346,4 +346,4 @@ export default memo(function SettingsScreen() {
       </div>
     </div>
   );
-}
+});

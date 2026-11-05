@@ -6,11 +6,13 @@ import { getFavorites, removeFavorite } from '../lib/auth.js';
 import { ScreenHead } from '../components/ScreenHead.jsx';
 import { useLanguage } from '../app/useLanguage.js';
 
-const timeFmt = useMemo((iso) => {
+// Plain formatter: this used to be a useMemo at module scope, which is an
+// invalid hook call at import time (the whole screen crashed on load).
+const timeFmt = (iso) => {
   try {
     return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   } catch { return ''; }
-}, []);
+};
 
 export default memo(function HistoryScreen() {
   const { t } = useLanguage();

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { ChefHat, RefreshCw, Zap } from 'lucide-react';
+import { ChefHat, RefreshCw, Square, Zap } from 'lucide-react';
 import { Markdown } from '../components/Markdown.jsx';
 import { ThinkingDots } from '../components/ThinkingDots.jsx';
 
@@ -90,6 +90,24 @@ export const ConversationStream = memo(({ messages, loading, generateReview, sto
           <div style={{ background: 'var(--chat-bot-bg)', border: '1px solid var(--border)', borderRadius: '4px 14px 14px 14px', padding: '8px 12px' }}>
             <ThinkingDots />
           </div>
+          {stop && (
+            <button
+              type="button"
+              onClick={() => stop()}
+              aria-label="Stop generating"
+              title="Stop generating"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: 'transparent', border: '1px solid var(--border)',
+                borderRadius: 20, padding: '3px 10px', cursor: 'pointer',
+                color: 'var(--text-muted)', fontSize: 11, fontWeight: 600,
+                fontFamily: 'inherit', minHeight: 44, marginTop: 4,
+              }}
+            >
+              <Square size={9} fill="currentColor" aria-hidden="true" />
+              Stop
+            </button>
+          )}
         </div>
       )}
     </div>

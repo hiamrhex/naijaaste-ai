@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Crosshair, Loader2, Navigation, Heart, MapPin } from 'lucide-react';
@@ -31,7 +31,9 @@ const meIcon = L.divIcon({
   iconAnchor: [12, 12],
 });
 
-const fmtKm = useMemo((km) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km} km`), []);
+// Plain formatter: this was a useMemo at module scope, an invalid hook call
+// at import time (the whole Map screen crashed on load).
+const fmtKm = (km) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km} km`);
 
 const ResultItem = memo(({ result, index, isFavorite, onToggleFavorite, fmtKm }) => {
   return (
