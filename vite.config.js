@@ -1,12 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-
-// https://vite.dev/config/
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { VitePWA } from 'vite-plugin-pwa';
-
-const root = dirname(fileURLToPath(import.meta.url));
 
 // Bump when the navigation/offline behaviour changes so old precaches are
 // dropped on activate (see public/sw.js + its tests).
@@ -68,12 +62,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Split vendor chunks
-          vendor: ['react', 'react-dom'],
-          lucide: ['lucide-react'],
-          leaflet: ['leaflet'],
-          google: ['@google/genai'],
+        // Vite 8 (Rolldown) requires manualChunks to be a function.
+        // Keep the vendor split during the rollup→rolldown transition.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('node_modules/react')) return 'vendor';
+          if (id.includes('node_modules/lucide-react')) return 'lucide';
+          if (id.includes('node_modules/leaflet')) return 'leaflet';
+          if (id.includes('node_modules/@google/genai')) return 'google';
+          return undefined;
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
