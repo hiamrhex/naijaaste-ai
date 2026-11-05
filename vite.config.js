@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // Bump when the navigation/offline behaviour changes so old precaches are
@@ -61,6 +62,13 @@ export default defineConfig({
   // Multi-page: / serves the landing page (index.html), the app lives at /app.
   build: {
     rollupOptions: {
+      // Both HTML entry points must be declared. Without `app`, Vite only
+      // emitted the landing page and /app/index.html 404'd in production
+      // even though vercel.json rewrites /app/* to it.
+      input: {
+        landing: resolve(process.cwd(), 'index.html'),
+        app: resolve(process.cwd(), 'app/index.html'),
+      },
       output: {
         // Vite 8 (Rolldown) requires manualChunks to be a function.
         // Keep the vendor split during the rollup→rolldown transition.
