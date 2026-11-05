@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
-import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
@@ -29,7 +28,7 @@ const noStore = (_req, res, next) => {
   next();
 };
 
-import { limiter, signupLimiter, signinLimiter, refreshLimiter, googleLimiter, forgotLimiter, resetLimiter } from '../rate-limiter.js';
+import { signupLimiter, signinLimiter, refreshLimiter, googleLimiter, forgotLimiter, resetLimiter } from '../rate-limiter.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // saved_places.id is UUID. Reject malformed ids before the query: Postgres

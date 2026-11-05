@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { loadLeaflet } from '../utils/dynamicImports.js';
 
 // Dynamic Map component that loads Leaflet only when needed
@@ -10,7 +10,9 @@ export function DynamicMap({ children, ...props }) {
     
     const loadMap = async () => {
       try {
-        const L = await loadLeaflet();
+        // Warm the Leaflet chunk so the real map mounts without a second
+        // network round trip. The module value itself is not needed here.
+        await loadLeaflet();
         const Map = ({ children, ...props }) => {
           // Map implementation would go here
           return <div {...props}>{children}</div>;

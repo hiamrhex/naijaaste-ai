@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 
+// A real, 1x1 transparent GIF. The previous placeholder value was the literal
+// string 'data:image/svg+xml;base64,...' which every browser rejects, so lazy
+// images flashed a broken-image icon until the real asset arrived.
+const BLANK_PIXEL =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+
 // Preloader component for optimizing resource loading
 export const Preloader = memo(({ 
   resources, 
@@ -12,6 +19,47 @@ export const Preloader = memo(({
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
   const loadedResources = useRef(new Set());
+
+  // Declared before the effect that calls it: the old order relied on the
+  // const being initialised later, which the hooks linter correctly rejects.
+  const loadResource = useCallback(async (resource) => {
+    if (typeof resource === 'string') {
+      // Load image
+      if (resource.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = resource;
+        });
+      }
+
+      // Load CSS
+      if (resource.match(/\.(css)$/i)) {
+        return new Promise((resolve, reject) => {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = resource;
+          link.onload = resolve;
+          link.onerror = reject;
+          document.head.appendChild(link);
+        });
+      }
+
+      // Load script
+      if (resource.match(/\.(js)$/i)) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = resource; // was `src = resource`, an implicit global
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+    } else if (resource instanceof Promise) {
+      return resource;
+    }
+  }, []);
 
   useEffect(() => {
     const loadResources = async () => {
@@ -44,46 +92,7 @@ export const Preloader = memo(({
     };
 
     loadResources();
-  }, [resources, onReady, onError]);
-
-  const loadResource = useCallback(async (resource) => {
-    if (typeof resource === 'string') {
-      // Load image
-      if (resource.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = resource;
-        });
-      }
-      
-      // Load CSS
-      if (resource.match(/\.(css)$/i)) {
-        return new Promise((resolve, reject) => {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = resource;
-          link.onload = resolve;
-          link.onerror = reject;
-          document.head.appendChild(link);
-        });
-      }
-      
-      // Load script
-      if (resource.match(/\.(js)$/i)) {
-        return new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          src = resource;
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-    } else if (resource instanceof Promise) {
-      return resource;
-    }
-  }, []);
+  }, [resources, onReady, onError, loadResource]);
 
   if (error) {
     return <div className={`error ${className}`}>Error loading resources</div>;
@@ -108,18 +117,11 @@ Preloader.displayName = 'Preloader';
 // Resource loader component with caching
 export const ResourceLoader = memo(({ 
   children, 
-  resources, 
   cacheKey = 'default',
   preload = false 
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [cache, setCache] = useState(new Map());
-
-  useEffect(() => {
-    if (preload) {
-      loadResources();
-    }
-  }, [preload, resources]);
 
   const loadResources = useCallback(async () => {
     if (cache.get(cacheKey)) {
@@ -136,6 +138,12 @@ export const ResourceLoader = memo(({
       console.error('Failed to load resources:', error);
     }
   }, [cache, cacheKey]);
+
+  useEffect(() => {
+    if (preload) {
+      loadResources();
+    }
+  }, [preload, loadResources]);
 
   if (!isLoaded && !preload) {
     return <div>Loading resources...</div>;
@@ -157,7 +165,6 @@ export function useIntersectionObserver({
   const [node, setNode] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
-  const observer = useRef(null);
 
   useEffect(() => {
     const element = node;
@@ -191,12 +198,6 @@ export function useIntersectionObserver({
     };
   }, [node, threshold, root, rootMargin, freezeOnceVisible]);
 
-  useEffect(() => {
-    if (entry?.isIntersecting && hasBeenVisible) {
-      return;
-    }
-  }, [entry, hasBeenVisible]);
-
   return {
     ref: setNode,
     entry,
@@ -209,7 +210,7 @@ export function useIntersectionObserver({
 export const LazyImage = memo(({ 
   src, 
   alt, 
-  placeholder = 'data:image/svg+xml;base64,...',
+  placeholder = BLANK_PIXEL,
   className = '',
   onLoad,
   onError,
@@ -259,8 +260,7 @@ LazyImage.displayName = 'LazyImage';
 export const OptimizedImage = memo(({ 
   src, 
   alt, 
-  formats = ['webp', 'jpg'], 
-  placeholder = 'data:image/svg+xml;base64,...',
+  placeholder = BLANK_PIXEL,
   className = '',
   ...props 
 }) => {
@@ -268,7 +268,7 @@ export const OptimizedImage = memo(({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const loadImage = useCallback(async (format) => {
+  const loadImage = useCallback(async () => {
     try {
       // In a real implementation, you'd have different versions for each format
       const img = new Image();
@@ -278,24 +278,20 @@ export const OptimizedImage = memo(({
         setError(false);
       };
       img.onerror = () => {
-        if (format === formats[formats.length - 1]) {
-          setError(true);
-          setLoading(false);
-        }
+        setError(true);
+        setLoading(false);
       };
       img.src = src;
     } catch (err) {
-      console.error(`Failed to load image in ${format} format:`, err);
+      console.error('Failed to load image:', err);
     }
-  }, [src, formats]);
+  }, [src]);
 
   useEffect(() => {
     if (src) {
-      setLoading(true);
-      setError(false);
-      loadImage(formats[0]);
+      loadImage();
     }
-  }, [src, formats, loadImage]);
+  }, [src, loadImage]);
 
   if (error) {
     return <div className={`image-error ${className}`}>Failed to load image</div>;

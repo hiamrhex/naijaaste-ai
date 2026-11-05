@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, Profiler as ReactProfiler } from 'react';
 
 // Performance profiler component for measuring component performance
 export const Profiler = memo(({ 
@@ -13,34 +13,37 @@ export const Profiler = memo(({
   const [isSlow, setIsSlow] = useState(false);
   const [renderCount, setRenderCount] = useState(0);
   const totalTimeRef = useRef(0);
+  const renderCountRef = useRef(0);
 
   const onRenderCallback = useCallback((
     id, // the "id" prop of the Profiler tree that has just committed
     phase, // either "mount" (if the tree just mounted) or "update" (if it re-rendered)
     actualDuration, // time spent rendering the committed update
     baseDuration, // estimated time to render the entire subtree without memoization
-    startTime, // when React began rendering this update
-    commitTime, // when React committed this update
-    interactions // the Set of interactions belonging to this update
+    _startTime, // when React began rendering this update
+    _commitTime, // when React committed this update
+    _interactions // the Set of interactions belonging to this update
   ) => {
+    renderCountRef.current += 1;
+    totalTimeRef.current += actualDuration;
     setRenderTime(actualDuration);
     setIsSlow(actualDuration > threshold);
-    setRenderCount(prev => prev + 1);
-    totalTimeRef.current += actualDuration;
-    
+    setRenderCount(renderCountRef.current);
+
     onRender?.({
       id,
       phase,
       actualDuration,
       baseDuration,
       isSlow: actualDuration > threshold,
-      renderCount: renderCount + 1,
-      averageTime: totalTimeRef.current / (renderCount + 1),
+      renderCount: renderCountRef.current,
+      averageTime: totalTimeRef.current / renderCountRef.current,
     });
-  }, [onRender, renderCount, threshold]);
+  }, [onRender, threshold]);
 
   const renderChildren = useCallback(() => {
-    if (metrics) {
+    // showOnlySlowRenders keeps the tree but drops the badge on fast renders.
+    if (metrics && (!showOnlySlowRenders || isSlow)) {
       return (
         <div className="performance-metrics" style={{
           position: 'relative',
@@ -62,24 +65,18 @@ export const Profiler = memo(({
             borderRadius: '3px',
             fontSize: '10px',
           }}>
-            {renderTime.toFixed(1)}ms {isSlow ? '(SLOW)' : ''}
+            {renderTime.toFixed(1)}ms {isSlow ? '(SLOW)' : ''} · #{renderCount}
           </div>
         </div>
       );
     }
     return children;
-  }, [children, metrics, renderTime, isSlow]);
-
-  useEffect(() => {
-    if (showOnlySlowRenders && !isSlow) {
-      return null;
-    }
-  }, [showOnlySlowRenders, isSlow]);
+  }, [children, metrics, renderTime, isSlow, showOnlySlowRenders]);
 
   return (
-    <React.Profiler id={id} onRender={onRenderCallback}>
+    <ReactProfiler id={id} onRender={onRenderCallback}>
       {renderChildren()}
-    </React.Profiler>
+    </ReactProfiler>
   );
 });
 
@@ -155,6 +152,7 @@ export function useComponentPerformance(componentName) {
   }, []);
 
   return {
+    componentName,
     metrics,
     onRender,
     isSlow: metrics.renderTime > 16,
@@ -201,32 +199,38 @@ export function useBundleSize() {
   });
 
   useEffect(() => {
-    if (window.performance && window.performance.getEntriesByType) {
-      const resources = performance.getEntriesByType('resource');
-      const jsResources = resources.filter(r => r.name.includes('.js'));
-      
-      const totalSize = jsResources.reduce((sum, resource) => sum + resource.transferSize, 0);
-      
-      setBundleInfo({
-        size: totalSize,
-        chunks: jsResources.map(r => ({
-          name: r.name,
-          size: r.transferSize,
-          duration: r.duration,
-        })),
-        loaded: true,
-      });
-    }
+    // Read one frame after mount so the resource timing buffer already holds
+    // the bundles that were just fetched. Deferring also avoids a synchronous
+    // setState inside the effect, which forces a second render pass.
+    const frame = requestAnimationFrame(() => {
+      if (window.performance && window.performance.getEntriesByType) {
+        const resources = performance.getEntriesByType('resource');
+        const jsResources = resources.filter(r => r.name.includes('.js'));
+
+        const totalSize = jsResources.reduce((sum, resource) => sum + resource.transferSize, 0);
+
+        setBundleInfo({
+          size: totalSize,
+          chunks: jsResources.map(r => ({
+            name: r.name,
+            size: r.transferSize,
+            duration: r.duration,
+          })),
+          loaded: true,
+        });
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   return bundleInfo;
 }
 
 // Performance monitoring dashboard
-export const PerformanceDashboard = memo(({ isVisible = false }) => {
+export const PerformanceDashboard = memo(({ isVisible = false, metrics = {} }) => {
   const memory = useMemoryUsage();
   const bundleInfo = useBundleSize();
-  const [metrics, setMetrics] = useState({});
 
   if (!isVisible) return null;
 

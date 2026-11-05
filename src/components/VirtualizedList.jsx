@@ -25,7 +25,6 @@ export const VirtualizedList = memo(({
 
   const visibleItems = items.slice(startIndex, endIndex + 1);
   const totalHeight = items.length * itemHeight;
-  const offsetY = startIndex * itemHeight;
 
   // Handle scroll events with throttling
   const handleScroll = useCallback(() => {
@@ -51,15 +50,6 @@ export const VirtualizedList = memo(({
     }
   }, []);
 
-  // Handle wheel events for smoother scrolling
-  const handleWheel = useCallback((e) => {
-    e.preventDefault();
-    if (!containerRef.current) return;
-    
-    containerRef.current.scrollTop += e.deltaY;
-    handleScroll();
-  }, [handleScroll]);
-
   // Clean up animation frame
   useEffect(() => {
     return () => {
@@ -69,7 +59,9 @@ export const VirtualizedList = memo(({
     };
   }, []);
 
-  // Render items with virtualization
+  // Render items with virtualization. Call renderItem once per row: the old
+  // code called it twice and spread the React element into a style object,
+  // which both doubled the work and produced invalid CSS.
   const renderItems = visibleItems.map((item, index) => {
     const actualIndex = startIndex + index;
     return (
@@ -81,7 +73,6 @@ export const VirtualizedList = memo(({
           left: 0,
           right: 0,
           height: itemHeight,
-          ...renderItem(item, actualIndex),
         }}
       >
         {renderItem(item, actualIndex)}
@@ -97,10 +88,13 @@ export const VirtualizedList = memo(({
         height: containerHeight,
         overflowY: 'auto',
         position: 'relative',
+        // Native scrolling only: a manual onWheel handler that called
+        // preventDefault cannot work with React's passive wheel listener and
+        // fought the browser's own momentum scrolling.
+        overscrollBehavior: 'contain',
         ...style,
       }}
       onScroll={handleScroll}
-      onWheel={handleWheel}
     >
       <div
         style={{
@@ -171,29 +165,29 @@ export function useVirtualizedList(items, options = {}) {
     setIsNearBottom(distanceFromBottom <= threshold);
   }, [items.length, itemHeight, overscan, threshold]);
 
+  const calculateScrollPosition = useCallback((index, align = 'center') => {
+    const itemTop = index * itemHeight;
+    const itemBottom = itemTop + itemHeight;
+    const height = containerRef.current?.clientHeight || containerHeight;
+
+    switch (align) {
+      case 'start':
+        return itemTop;
+      case 'end':
+        return itemBottom - height;
+      case 'center':
+      default:
+        return itemTop - (height - itemHeight) / 2;
+    }
+  }, [itemHeight, containerHeight]);
+
   const scrollToIndex = useCallback((index, align = 'center') => {
     if (!containerRef.current) return;
 
     const scrollTop = calculateScrollPosition(index, align);
     containerRef.current.scrollTop = scrollTop;
     handleScroll();
-  }, [handleScroll]);
-
-  const calculateScrollPosition = useCallback((index, align = 'center') => {
-    const itemTop = index * itemHeight;
-    const itemBottom = itemTop + itemHeight;
-    const containerHeight = containerRef.current?.clientHeight || 400;
-
-    switch (align) {
-      case 'start':
-        return itemTop;
-      case 'end':
-        return itemBottom - containerHeight;
-      case 'center':
-      default:
-        return itemTop - (containerHeight - itemHeight) / 2;
-    }
-  }, [itemHeight]);
+  }, [handleScroll, calculateScrollPosition]);
 
   return {
     containerRef,
