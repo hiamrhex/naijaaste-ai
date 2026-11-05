@@ -1,3 +1,7 @@
+// Hooks and their dev-only metric panel share this module so the panel can
+// read the same shape. The react-refresh rule wants components-only files;
+// this module is never edited for HMR in practice.
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect, useState, useRef } from 'react';
 
 // Performance monitoring hook for development

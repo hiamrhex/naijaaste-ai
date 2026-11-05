@@ -100,24 +100,37 @@ describe('API baseline', () => {
     expect(res.text).toContain('llm_calls_total');
   });
 
-  // Test that LLM endpoints have separate rate limiting
-  it('LLM endpoints have separate rate limiting (10/min)', async () => {
-    const maxRequests = 12; // Account for ~8 previous requests in this test file, limit is 20
-    
-    // Make requests to LLM endpoint until we hit the limit
-    for (let i = 0; i < maxRequests + 2; i++) {
+  // Test that LLM endpoints use their own, separate bucket. Previous tests in
+// this file already consumed part of the budget, so assert the behaviour
+// (requests are admitted until the limit, then always 429) rather than an
+// exact index that silently breaks when a test above changes.
+  it('LLM endpoints have a separate rate-limit bucket', async () => {
+    let firstLimitedAt = -1;
+    for (let i = 0; i < 30; i++) {
       const res = await request(app)
         .post('/chat')
         .set(auth())
         .send({ message: 'test message' });
-      if (i < maxRequests) {
-        // First 12 requests: may succeed (200) or fail LLM (503) - but rate limiter allows them
-        expect([200, 503]).toContain(res.status);
-      } else {
-        // 13th+ requests: rate limited to 429
-        expect(res.status).toBe(429);
+
+      if (res.status === 429) {
+        firstLimitedAt = i;
         expect(res.body.error.code).toBe('RATE_LIMITED');
+        expect(res.body).not.toHaveProperty('success');
+        break;
       }
+      // Before the limit: admitted to the route (200) or the LLM is down (503).
+      expect([200, 503]).toContain(res.status);
     }
+
+    expect(firstLimitedAt).toBeGreaterThanOrEqual(0);
+    expect(firstLimitedAt).toBeLessThanOrEqual(20);
+
+    // Once limited, the bucket keeps answering 429 (no leak through the route).
+    const after = await request(app)
+      .post('/chat')
+      .set(auth())
+      .send({ message: 'test message' });
+    expect(after.status).toBe(429);
+    expect(after.body.error.code).toBe('RATE_LIMITED');
   });
 });
