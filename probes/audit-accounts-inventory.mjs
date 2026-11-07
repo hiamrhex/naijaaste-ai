@@ -1,10 +1,3 @@
-// READ-ONLY inventory of the three audit accounts.
-//
-// Shows the exact full ids and every row that belongs to them, plus a
-// fingerprint of the rest of the database so the cleanup can be proven to
-// touch nothing else. This script NEVER writes.
-//
-//   node probes/audit-accounts-inventory.mjs
 import 'dotenv/config';
 import pg from 'pg';
 
