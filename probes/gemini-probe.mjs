@@ -1,10 +1,3 @@
-// Gemini health probe — read-only.
-//
-// Answers the two questions that decide the model config:
-//   1. Is the API key valid at all?
-//   2. Which models answer, how fast, and do they return valid JSON?
-//
-// Prints model + status + latency only; the key is never printed.
 import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
 
