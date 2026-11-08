@@ -1,18 +1,3 @@
-// Timing-oracle measurement.
-//
-// The independent review (D-4 / IQ-21) found that the response time of
-// the auth endpoints revealed whether an account existed. This probe measures
-// both cases 50 times each and reports whether the two distributions are
-// separable.
-//
-//   node probes/auth-timing-probe.mjs [tries] [port]
-//
-// It starts a real server (so the whole HTTP path is measured), creates one
-// throwaway account, and afterwards deletes every row it created.
-//
-// The per-(email, ip) lockout would fire after 10 failed sign-ins, so the
-// probe clears the lockout counter for its own probe addresses between
-// attempts. Nothing outside the probe's own rows is touched.
 import 'dotenv/config';
 import { spawn } from 'child_process';
 import { setTimeout as sleep } from 'timers/promises';

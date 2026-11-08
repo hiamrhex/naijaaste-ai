@@ -1,6 +1,3 @@
-// Read-only cold-start probe: boots the Express app in-process, makes ONE
-// readiness request (which wakes Neon), and prints only timings — never the
-// connection string or any credential.
 import 'dotenv/config';
 import request from 'supertest';
 

@@ -1,11 +1,3 @@
-// Header scan — shows exactly which security headers a response carries.
-//
-//   node probes/header-scan.mjs live     → probe the deployed site
-//   node probes/header-scan.mjs local    → serve ./dist with the vercel.json
-//                                            header rules applied (what the
-//                                            platform will send after deploy)
-//
-// Usage: node probes/header-scan.mjs [live|local] [path ...]
 import { readFileSync, existsSync, statSync } from 'fs';
 import { createServer } from 'http';
 import { join, dirname, extname, resolve } from 'path';

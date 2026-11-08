@@ -1,7 +1,3 @@
-// Post-cleanup verification: the audit accounts are gone, and every other
-// table changed by EXACTLY the number of rows that belonged to them.
-//
-//   node probes/audit-accounts-verify.mjs
 import 'dotenv/config';
 import pg from 'pg';
 
