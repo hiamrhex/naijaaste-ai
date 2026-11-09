@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 
 // Error boundary for catching and handling React errors
 export class ErrorBoundary extends React.Component {
@@ -25,7 +25,7 @@ export class ErrorBoundary extends React.Component {
 
   trackError = (error, errorInfo) => {
     // In production, send to error tracking service
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env?.PROD) {
       // Example: Sentry, LogRocket, etc.
       console.error('Error tracked:', error, errorInfo);
     }
