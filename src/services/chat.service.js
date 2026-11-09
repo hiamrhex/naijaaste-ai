@@ -278,12 +278,14 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
   // Persist — await the write so the flag is honest
   const persisted = await persistSession(session, capability ? hashCapability(capability) : null);
 
+  const activeRecommendations = recommendations || session.recommendations || null;
+
   return {
     success: true,
     session_id: sessionId,
     stage: session.stage,
     message: llmResponse.message,
-    recommendations: recommendations || session.recommendations || null,
+    recommendations: activeRecommendations,
     extracted_persona: session.extracted_persona,
     missing_fields: llmResponse.missing_fields || [],
     // The capability is returned exactly once, at creation. Anonymous
@@ -295,7 +297,11 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
       persona_complete: isPersonaComplete(session.extracted_persona),
       session_persisted: persisted,
       last_active: session.last_active,
-      latency_ms: Date.now() - startTime
+      latency_ms: Date.now() - startTime,
+      // ResultsSection renders these badges, so forward them from the
+      // recommender's meta instead of leaving the counts undefined.
+      after_hard_filter: activeRecommendations?.meta?.after_hard_filter ?? null,
+      candidates_sent_to_llm: activeRecommendations?.meta?.candidates_sent_to_llm ?? null
     }
   };
 };

@@ -104,4 +104,13 @@ describe('chat recommendation latch', () => {
 
     expect(mocks.getRecommendations).toHaveBeenCalledTimes(1);
   });
+
+  it('forwards the recommender counts so the results badges can render', async () => {
+    mocks.getRecommendations.mockResolvedValue(picks);
+
+    const res = await postChat('I want jollof');
+
+    expect(res.body.meta.after_hard_filter).toBe(7);
+    expect(res.body.meta.candidates_sent_to_llm).toBe(5);
+  });
 });
