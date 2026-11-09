@@ -152,8 +152,7 @@ function generateEventId() {
 export function useUserBehavior(options = {}) {
   const { 
     enableTracking = true,
-    throttleMs = 100,
-    debounceMs = 300 
+    throttleMs = 100
   } = options;
 
   const [mouseMovements, setMouseMovements] = useState([]);

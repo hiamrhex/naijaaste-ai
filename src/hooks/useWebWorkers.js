@@ -5,8 +5,7 @@ export function useWebWorker(workerCode, options = {}) {
   const { 
     onMessage, 
     onError, 
-    onReady,
-    name = 'worker'
+    onReady
   } = options;
 
   const workerRef = useRef(null);

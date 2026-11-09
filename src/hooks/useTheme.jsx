@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 
 // Dark mode hook with system preference detection
 export function useDarkMode(options = {}) {
@@ -125,8 +125,6 @@ export const ColorSchemes = {
 
 // Theme switcher component
 export const ThemeSwitcher = memo(({ 
-  currentTheme, 
-  onThemeChange,
   className = '' 
 }) => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();

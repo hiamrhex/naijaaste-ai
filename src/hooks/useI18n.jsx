@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 
 // Internationalization (i18n) hook for multilingual support
 export function useI18n(options = {}) {

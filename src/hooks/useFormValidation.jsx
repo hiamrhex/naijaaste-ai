@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 
 // Form validation hook with comprehensive validation rules
 export function useFormValidation(schema, options = {}) {

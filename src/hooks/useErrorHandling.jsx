@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 
 // Error boundary for catching and handling React errors
 export class ErrorBoundary extends React.Component {
@@ -293,7 +293,6 @@ export function useAsyncOperation(initialState = 'idle') {
   const [state, setState] = useState(initialState); // idle, loading, success, error
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [operation, setOperation] = useState(null);
 
   const execute = useCallback(async (asyncOperation, options = {}) => {
     const { 
@@ -336,7 +335,6 @@ export function useAsyncOperation(initialState = 'idle') {
     setState(initialState);
     setData(null);
     setError(null);
-    setOperation(null);
   }, [initialState]);
 
   return {
