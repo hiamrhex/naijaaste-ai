@@ -42,6 +42,14 @@ const WEIGHTS = {
   social_context: 0.10
 };
 
+// What a persona optimises for at a given price: the budget ceiling above is
+// about what they can spend, this is about what they value per naira.
+const VALUE_TIER_PREFERENCE = {
+  price_conscious: ['budget'],
+  value_seeker: ['budget', 'mid_range'],
+  quality_first: ['mid_range', 'premium'],
+};
+
 // Exported so the evaluation script scores with the same function the ranker
 // uses — a second copy silently drifted from this one.
 export const preScore = (restaurant, persona) => {
@@ -70,6 +78,11 @@ export const preScore = (restaurant, persona) => {
   // Social context match
   if (restaurant.social_tags?.includes(persona.social_context))
     score += WEIGHTS.social_context;
+
+  // Value sensitivity match
+  const preferredTiers = VALUE_TIER_PREFERENCE[persona.value_sensitivity];
+  if (preferredTiers?.includes(restaurant.price_tier))
+    score += WEIGHTS.value_sensitivity;
 
   // Cuisine preference boost
   const cuisineMatch = persona.preferred_cuisines?.some(c =>
