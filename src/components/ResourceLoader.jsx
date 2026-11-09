@@ -120,32 +120,30 @@ export const ResourceLoader = memo(({
   cacheKey = 'default',
   preload = false 
 }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [cache, setCache] = useState(new Map());
+  const loadedKeys = useRef(new Set());
+  const [loadedKey, setLoadedKey] = useState(null);
 
-  const loadResources = useCallback(async () => {
-    if (cache.get(cacheKey)) {
-      setIsLoaded(true);
-      return;
-    }
-
-    try {
-      // Simulate resource loading
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setCache(prev => new Map(prev).set(cacheKey, true));
-      setIsLoaded(true);
-    } catch (error) {
-      console.error('Failed to load resources:', error);
-    }
-  }, [cache, cacheKey]);
+  // A lazy loader has nothing to wait for; a preloader only renders children
+  // once its key has finished loading.
+  const isLoaded = !preload || loadedKey === cacheKey;
 
   useEffect(() => {
-    if (preload) {
-      loadResources();
-    }
-  }, [preload, loadResources]);
+    if (!preload || loadedKeys.current.has(cacheKey)) return;
 
-  if (!isLoaded && !preload) {
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      loadedKeys.current.add(cacheKey);
+      setLoadedKey(cacheKey);
+    }, 1000);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [cacheKey, preload]);
+
+  if (!isLoaded) {
     return <div>Loading resources...</div>;
   }
 
