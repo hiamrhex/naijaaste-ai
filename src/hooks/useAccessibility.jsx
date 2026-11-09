@@ -12,7 +12,10 @@ export function useAccessibility(options = {}) {
   const [isKeyboardUser, setIsKeyboardUser] = useState(false);
   const [currentFocus, setCurrentFocus] = useState(null);
   const [announcement, setAnnouncement] = useState('');
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
 
   // Detect keyboard user
   useEffect(() => {
@@ -37,10 +40,9 @@ export function useAccessibility(options = {}) {
     };
   }, [enableKeyboardNavigation]);
 
-  // Detect reduced motion preference
+  // Track reduced motion changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mediaQuery.matches);
 
     const handleChange = (event) => {
       setReducedMotion(event.matches);
@@ -159,12 +161,17 @@ export function useAccessibility(options = {}) {
       
       // Focus trap logic
       if (event.key === 'Tab') {
-        const focusableElements = containerRef.current.querySelectorAll(
+        const container = containerRef.current;
+        if (!container) return;
+
+        const focusableElements = container.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
         
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (!firstElement || !lastElement) return;
         
         if (event.shiftKey) {
           if (document.activeElement === firstElement) {
@@ -181,16 +188,15 @@ export function useAccessibility(options = {}) {
     }, [containerRef, escapeToClose, onEscape, deactivate]);
 
     useEffect(() => {
-      if (containerRef.current) {
-        containerRef.current.addEventListener('keydown', handleKeyDown);
-      }
-      
+      const container = containerRef.current;
+      if (!container) return;
+
+      container.addEventListener('keydown', handleKeyDown);
+
       return () => {
-        if (containerRef.current) {
-          containerRef.current.removeEventListener('keydown', handleKeyDown);
-        }
+        container.removeEventListener('keydown', handleKeyDown);
       };
-    }, [handleKeyDown]);
+    }, [containerRef, handleKeyDown]);
 
     return { activate, deactivate };
   };
@@ -275,6 +281,12 @@ export const ARIA = {
 };
 
 // Accessibility checker component
+function checkColorContrast() {
+  // Simplified color contrast check
+  // In a real implementation, you'd use a proper color contrast library
+  return [];
+}
+
 export const AccessibilityChecker = memo(({ 
   children, 
   onIssues = () => {} 
@@ -325,13 +337,6 @@ export const AccessibilityChecker = memo(({
 
     return () => clearInterval(interval);
   }, [onIssues]);
-
-  const checkColorContrast = () => {
-    // Simplified color contrast check
-    // In a real implementation, you'd use a proper color contrast library
-    const elements = [];
-    return elements;
-  };
 
   if (issues.length === 0) {
     return children;
