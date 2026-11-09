@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 // Infinite scroll hook for loading data as the user scrolls
 export function useInfiniteScroll({

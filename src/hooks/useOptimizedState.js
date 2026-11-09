@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 // Optimized state management for frequently updated values
 export function useOptimizedState(initialValue, options = {}) {

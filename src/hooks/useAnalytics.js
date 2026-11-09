@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 // Analytics hook for tracking user interactions and performance
 export function useAnalytics(options = {}) {

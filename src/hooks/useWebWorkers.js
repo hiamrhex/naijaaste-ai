@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 // Web Worker wrapper for off-thread processing
 export function useWebWorker(workerCode, options = {}) {
