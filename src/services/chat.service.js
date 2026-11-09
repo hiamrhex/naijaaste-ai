@@ -236,7 +236,9 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
   });
   session.conversation_history = session.conversation_history.slice(-20);
 
-  // Trigger recommendation if ready
+  // Trigger recommendation if ready. Only latch results that actually contain
+  // picks: a zero-match response used to be stored forever, so the session
+  // never retried even after the user widened their preferences.
   let recommendations = null;
   if (llmResponse.ready_to_recommend && !session.recommendations) {
     const fullPersona = {
@@ -258,8 +260,16 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
     };
 
     try {
-      recommendations = await getRecommendations(fullPersona);
-      session.recommendations = recommendations;
+      const result = await getRecommendations(fullPersona);
+      if (Array.isArray(result?.recommendations) && result.recommendations.length > 0) {
+        recommendations = result;
+        session.recommendations = result;
+      } else {
+        logger.warn(
+          { personaId: fullPersona.persona_id, reason: result?.error },
+          'recommendation returned no picks; will retry on the next turn'
+        );
+      }
     } catch (err) {
       logger.error({ err }, 'recommendation failed in chat turn');
     }
