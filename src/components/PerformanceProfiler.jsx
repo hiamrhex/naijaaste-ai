@@ -71,7 +71,7 @@ export const Profiler = memo(({
       );
     }
     return children;
-  }, [children, metrics, renderTime, isSlow, showOnlySlowRenders]);
+  }, [children, metrics, renderTime, isSlow, renderCount, showOnlySlowRenders]);
 
   return (
     <ReactProfiler id={id} onRender={onRenderCallback}>
