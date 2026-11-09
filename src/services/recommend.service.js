@@ -42,7 +42,9 @@ const WEIGHTS = {
   social_context: 0.10
 };
 
-const preScore = (restaurant, persona) => {
+// Exported so the evaluation script scores with the same function the ranker
+// uses — a second copy silently drifted from this one.
+export const preScore = (restaurant, persona) => {
   let score = 0;
 
   // Budget match

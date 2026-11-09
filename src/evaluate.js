@@ -6,7 +6,7 @@
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { getRecommendations } from './services/recommend.service.js';
+import { getRecommendations, preScore } from './services/recommend.service.js';
 import { generateReview } from './services/review.service.js';
 import './env.js';
 
@@ -15,42 +15,8 @@ const restaurants = JSON.parse(
   readFileSync(join(__dirname, 'data/restaurants.json'), 'utf-8')
 );
 
-// ─── Scoring weights (must match recommend.service.js) ───────────────────────
-const WEIGHTS = {
-  budget_level: 0.30,
-  ambience_preference: 0.25,
-  spice_tolerance: 0.20,
-  value_sensitivity: 0.15,
-  social_context: 0.10
-};
-
-const spiceMap = { mild: 1, medium: 2, hot: 3, extra_hot: 4 };
-
-// Compute ideal relevance score for a restaurant-persona pair
-const computeRelevance = (restaurant, persona) => {
-  let score = 0;
-
-  if (restaurant.price_tier === persona.budget_level)
-    score += WEIGHTS.budget_level;
-  if (restaurant.ambience === persona.ambience_preference)
-    score += WEIGHTS.ambience_preference;
-
-  const pSpice = spiceMap[persona.spice_tolerance] || 2;
-  const rSpice = spiceMap[restaurant.spice_profile] || 2;
-  const diff = Math.abs(pSpice - rSpice);
-  if (diff === 0) score += WEIGHTS.spice_tolerance;
-  else if (diff === 1) score += WEIGHTS.spice_tolerance * 0.5;
-
-  if (restaurant.social_tags?.includes(persona.social_context))
-    score += WEIGHTS.social_context;
-
-  const cuisineMatch = persona.preferred_cuisines?.some(c =>
-    restaurant.cuisine_tags?.includes(c)
-  );
-  if (cuisineMatch) score += 0.1;
-
-  return parseFloat(score.toFixed(3));
-};
+// Relevance is produced by the production scorer so the metrics describe the
+// ranking users actually receive.
 
 // ─── NDCG@K computation ───────────────────────────────────────────────────────
 const dcg = (relevances, k) => {
@@ -154,7 +120,7 @@ const runEvaluation = async () => {
       );
 
       const idealRanking = cityRestaurants
-        .map(r => ({ ...r, relevance: computeRelevance(r, persona) }))
+        .map(r => ({ ...r, relevance: preScore(r, persona) }))
         .sort((a, b) => b.relevance - a.relevance);
 
       const idealRelevances = idealRanking.map(r => r.relevance);
@@ -165,7 +131,7 @@ const runEvaluation = async () => {
           r => r.restaurant_id === rec.restaurant_id ||
                r.name === rec.restaurant_name
         );
-        return restaurant ? computeRelevance(restaurant, persona) : 0;
+        return restaurant ? preScore(restaurant, persona) : 0;
       });
 
       // Compute NDCG@5
@@ -180,7 +146,7 @@ const runEvaluation = async () => {
         );
         if (!restaurant || !rec.predicted_rating) continue;
 
-        const expectedRating = 1 + computeRelevance(restaurant, persona) * 4;
+        const expectedRating = Math.min(5, 1 + preScore(restaurant, persona) * 4);
         const error = Math.pow(rec.predicted_rating - expectedRating, 2);
         rmseErrors.push(error);
       }
