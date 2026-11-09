@@ -33,3 +33,8 @@ src/data/ratings.json
 src/data/reports.json
 src/data/sessions.json
 test-results/
+
+# Scratch request bodies and one-off repair scripts from manual probing
+/test-*.json
+/test-output.txt
+/fix-store.*
