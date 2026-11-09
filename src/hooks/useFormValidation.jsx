@@ -148,12 +148,12 @@ export function useFormValidation(schema, options = {}) {
 
   // Check if field is valid
   const isFieldValid = useCallback((fieldName) => {
-    return !errors[fieldName] && touched[fieldName];
+    return !errors[fieldName] && Boolean(touched[fieldName]);
   }, [errors, touched]);
 
   // Check if field is invalid
   const isFieldInvalid = useCallback((fieldName) => {
-    return !!errors[fieldName] && touched[fieldName];
+    return Boolean(errors[fieldName]) && Boolean(touched[fieldName]);
   }, [errors, touched]);
 
   // Get form validation summary
