@@ -1,4 +1,74 @@
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
+
+function computeValidation(schema, values) {
+  const errors = {};
+  let isValid = true;
+
+  Object.keys(schema).forEach(fieldName => {
+    const fieldSchema = schema[fieldName];
+    const value = values[fieldName];
+
+    // Required validation
+    if (fieldSchema.required && !value) {
+      errors[fieldName] = `${fieldSchema.label || fieldName} is required`;
+      isValid = false;
+      return;
+    }
+
+    // Type validation
+    if (value && fieldSchema.type) {
+      if (fieldSchema.type === 'email' && !isValidEmail(value)) {
+        errors[fieldName] = 'Please enter a valid email address';
+        isValid = false;
+        return;
+      }
+
+      if (fieldSchema.type === 'url' && !isValidUrl(value)) {
+        errors[fieldName] = 'Please enter a valid URL';
+        isValid = false;
+        return;
+      }
+
+      if (fieldSchema.type === 'number' && isNaN(Number(value))) {
+        errors[fieldName] = 'Please enter a valid number';
+        isValid = false;
+        return;
+      }
+    }
+
+    // Min/max validation
+    if (value && fieldSchema.minLength && value.length < fieldSchema.minLength) {
+      errors[fieldName] = `${fieldSchema.label || fieldName} must be at least ${fieldSchema.minLength} characters`;
+      isValid = false;
+      return;
+    }
+
+    if (value && fieldSchema.maxLength && value.length > fieldSchema.maxLength) {
+      errors[fieldName] = `${fieldSchema.label || fieldName} must be no more than ${fieldSchema.maxLength} characters`;
+      isValid = false;
+      return;
+    }
+
+    // Pattern validation
+    if (value && fieldSchema.pattern && !fieldSchema.pattern.test(value)) {
+      errors[fieldName] = fieldSchema.message || `${fieldSchema.label || fieldName} is invalid`;
+      isValid = false;
+      return;
+    }
+
+    // Custom validation
+    if (fieldSchema.validate && typeof fieldSchema.validate === 'function') {
+      const customError = fieldSchema.validate(value);
+      if (customError) {
+        errors[fieldName] = customError;
+        isValid = false;
+      }
+    }
+  });
+
+  return { errors, isValid };
+}
+
 
 // Form validation hook with comprehensive validation rules
 export function useFormValidation(schema, options = {}) {
@@ -12,163 +82,42 @@ export function useFormValidation(schema, options = {}) {
   } = options;
 
   const [values, setValues] = useState(initialValues);
-  const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  const [isValid, setIsValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitCount, setSubmitCount] = useState(0);
 
-  // Validate form against schema
-  const validateForm = useCallback(() => {
-    const newErrors = {};
-    let formValid = true;
-
-    Object.keys(schema).forEach(fieldName => {
-      const fieldSchema = schema[fieldName];
-      const value = values[fieldName];
-
-      // Required validation
-      if (fieldSchema.required && !value) {
-        newErrors[fieldName] = `${fieldSchema.label || fieldName} is required`;
-        formValid = false;
-        return;
-      }
-
-      // Type validation
-      if (value && fieldSchema.type) {
-        if (fieldSchema.type === 'email' && !isValidEmail(value)) {
-          newErrors[fieldName] = 'Please enter a valid email address';
-          formValid = false;
-          return;
-        }
-
-        if (fieldSchema.type === 'url' && !isValidUrl(value)) {
-          newErrors[fieldName] = 'Please enter a valid URL';
-          formValid = false;
-          return;
-        }
-
-        if (fieldSchema.type === 'number' && isNaN(Number(value))) {
-          newErrors[fieldName] = 'Please enter a valid number';
-          formValid = false;
-          return;
-        }
-      }
-
-      // Min/max validation
-      if (value && fieldSchema.minLength && value.length < fieldSchema.minLength) {
-        newErrors[fieldName] = `${fieldSchema.label || fieldName} must be at least ${fieldSchema.minLength} characters`;
-        formValid = false;
-        return;
-      }
-
-      if (value && fieldSchema.maxLength && value.length > fieldSchema.maxLength) {
-        newErrors[fieldName] = `${fieldSchema.label || fieldName} must be no more than ${fieldSchema.maxLength} characters`;
-        formValid = false;
-        return;
-      }
-
-      // Pattern validation
-      if (value && fieldSchema.pattern && !fieldSchema.pattern.test(value)) {
-        newErrors[fieldName] = fieldSchema.message || `${fieldSchema.label || fieldName} is invalid`;
-        formValid = false;
-        return;
-      }
-
-      // Custom validation
-      if (fieldSchema.validate && typeof fieldSchema.validate === 'function') {
-        const customError = fieldSchema.validate(value);
-        if (customError) {
-          newErrors[fieldName] = customError;
-          formValid = false;
-          return;
-        }
-      }
-    });
-
-    setErrors(newErrors);
-    setIsValid(formValid);
-    return formValid;
-  }, [schema, values]);
-
-  // Validate individual field
-  const validateField = useCallback((fieldName, value) => {
-    const fieldSchema = schema[fieldName];
-    if (!fieldSchema) return null;
-
-    // Required validation
-    if (fieldSchema.required && !value) {
-      return `${fieldSchema.label || fieldName} is required`;
-    }
-
-    // Type validation
-    if (value && fieldSchema.type) {
-      if (fieldSchema.type === 'email' && !isValidEmail(value)) {
-        return 'Please enter a valid email address';
-      }
-
-      if (fieldSchema.type === 'url' && !isValidUrl(value)) {
-        return 'Please enter a valid URL';
-      }
-
-      if (fieldSchema.type === 'number' && isNaN(Number(value))) {
-        return 'Please enter a valid number';
-      }
-    }
-
-    // Min/max validation
-    if (value && fieldSchema.minLength && value.length < fieldSchema.minLength) {
-      return `${fieldSchema.label || fieldName} must be at least ${fieldSchema.minLength} characters`;
-    }
-
-    if (value && fieldSchema.maxLength && value.length > fieldSchema.maxLength) {
-      return `${fieldSchema.label || fieldName} must be no more than ${fieldSchema.maxLength} characters`;
-    }
-
-    // Pattern validation
-    if (value && fieldSchema.pattern && !fieldSchema.pattern.test(value)) {
-      return fieldSchema.message || `${fieldSchema.label || fieldName} is invalid`;
-    }
-
-    // Custom validation
-    if (fieldSchema.validate && typeof fieldSchema.validate === 'function') {
-      return fieldSchema.validate(value);
-    }
-
-    return null;
-  }, [schema]);
+  // Validation is derived from values so it can never drift out of sync
+  const { errors, isValid } = useMemo(
+    () => computeValidation(schema, values),
+    [schema, values]
+  );
 
   // Handle value changes
   const handleChange = useCallback((fieldName, value) => {
     setValues(prev => ({ ...prev, [fieldName]: value }));
-    setTouched(prev => ({ ...prev, [fieldName]: true }));
-
     if (validateOnChange) {
-      const error = validateField(fieldName, value);
-      setErrors(prev => ({ ...prev, [fieldName]: error }));
+      setTouched(prev => ({ ...prev, [fieldName]: true }));
     }
-  }, [validateField, validateOnChange]);
+  }, [validateOnChange]);
 
   // Handle blur events
   const handleBlur = useCallback((fieldName) => {
-    setTouched(prev => ({ ...prev, [fieldName]: true }));
-
     if (validateOnBlur) {
-      const error = validateField(fieldName, values[fieldName]);
-      setErrors(prev => ({ ...prev, [fieldName]: error }));
+      setTouched(prev => ({ ...prev, [fieldName]: true }));
     }
-  }, [validateField, validateOnBlur, values]);
+  }, [validateOnBlur]);
 
   // Handle form submission
   const handleSubmit = useCallback(async (e) => {
     if (e) e.preventDefault();
 
-    if (validateOnSubmit) {
-      const isValidForm = validateForm();
-      if (!isValidForm) {
-        onError?.(errors);
-        return;
-      }
+    if (validateOnSubmit && !isValid) {
+      const touchedFields = Object.fromEntries(
+        Object.keys(schema).map(fieldName => [fieldName, true])
+      );
+      setTouched(touchedFields);
+      onError?.(errors);
+      return;
     }
 
     setIsSubmitting(true);
@@ -182,14 +131,12 @@ export function useFormValidation(schema, options = {}) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [validateForm, onSubmit, onError, errors, values, validateOnSubmit]);
+  }, [schema, isValid, onSubmit, onError, errors, values, validateOnSubmit]);
 
   // Reset form
   const resetForm = useCallback(() => {
     setValues(initialValues);
-    setErrors({});
     setTouched({});
-    setIsValid(false);
     setIsSubmitting(false);
     setSubmitCount(0);
   }, [initialValues]);
@@ -225,11 +172,6 @@ export function useFormValidation(schema, options = {}) {
       errors,
     };
   }, [isValid, isSubmitting, submitCount, errors, touched]);
-
-  // Auto-validate when values change
-  useEffect(() => {
-    validateForm();
-  }, [values, validateForm]);
 
   return {
     values,
