@@ -10,6 +10,10 @@ export default defineConfig({
     // timeouts so parallel CI load causes retries, not flakes.
     testTimeout: 30000,
     hookTimeout: 60000,
+    // This suite is heavy (bcrypt + a pg-mem database per file). Letting Vitest
+    // spawn one worker per test file exhausts memory on developer laptops and
+    // small CI runners, so cap the pool. Override with VITEST_MAX_WORKERS.
+    maxWorkers: Number(process.env.VITEST_MAX_WORKERS) || 4,
     env: {
       // Test defaults so the fail-fast env schema (src/env.js) passes in CI
       // where no .env exists. dotenv never overrides these.
