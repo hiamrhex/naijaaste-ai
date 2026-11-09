@@ -34,6 +34,36 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   {
+    // Hook modules are not component modules. There is no component boundary to
+    // preserve across a fast refresh, so the rule does not apply to them.
+    files: ['src/hooks/**/*.{js,jsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    // Component modules that intentionally co-locate helper hooks or factories
+    // with their components. Listing the names explicitly keeps the guard active
+    // for every new export.
+    files: [
+      'src/components/PerformanceProfiler.jsx',
+      'src/components/VirtualizedList.jsx',
+      'src/components/ResourceLoader.jsx',
+    ],
+    rules: {
+      'react-refresh/only-export-components': ['error', {
+        allowExportNames: [
+          'useComponentPerformance',
+          'useMemoryUsage',
+          'useBundleSize',
+          'useVirtualizedList',
+          'createVirtualizedListComponent',
+          'useIntersectionObserver',
+        ],
+      }],
+    },
+  },
+  {
     // Client-side modules that are plain .js (hooks, API clients, constants).
     // They run in the browser, but the blanket src/**/*.js rule above gives
     // them Node globals, which turned every document/window use into a bogus
