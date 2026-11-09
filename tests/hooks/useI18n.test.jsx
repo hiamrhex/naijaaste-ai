@@ -27,7 +27,7 @@ function mockFetch() {
 describe('useI18n', () => {
   it('does not refetch on every render when called with default options', async () => {
     const fetchMock = mockFetch();
-    global.fetch = fetchMock;
+    globalThis.fetch = fetchMock;
 
     const { rerender, result } = renderHook(() => useI18n());
 
@@ -42,7 +42,7 @@ describe('useI18n', () => {
   });
 
   it('translates using the loaded messages', async () => {
-    global.fetch = mockFetch();
+    globalThis.fetch = mockFetch();
 
     const { result } = renderHook(() =>
       useI18n({ defaultLocale: 'en', messages: {} })
@@ -52,7 +52,7 @@ describe('useI18n', () => {
   });
 
   it('sets document direction from the new locale, not stale state', async () => {
-    global.fetch = mockFetch();
+    globalThis.fetch = mockFetch();
 
     const { result } = renderHook(() =>
       useI18n({ defaultLocale: 'en', supportedLocales: ['en', 'ar'] })
@@ -70,7 +70,7 @@ describe('useI18n', () => {
   });
 
   it('rejects unsupported locales without touching storage', async () => {
-    global.fetch = mockFetch();
+    globalThis.fetch = mockFetch();
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const { result } = renderHook(() => useI18n({ supportedLocales: ['en'] }));
