@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 
+function readStoredBoolean(storageKey) {
+  try {
+    const storedValue = localStorage.getItem(storageKey);
+    return storedValue === null ? null : storedValue === 'true';
+  } catch {
+    return null;
+  }
+}
+
 // Dark mode hook with system preference detection
 export function useDarkMode(options = {}) {
   const { 
@@ -9,37 +18,36 @@ export function useDarkMode(options = {}) {
     enableSystemPreference = true 
   } = options;
 
-  const [isDarkMode, setIsDarkMode] = useState(defaultValue);
-  const [isSystemDark, setIsSystemDark] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const storedValue = readStoredBoolean(storageKey);
+    if (storedValue !== null) return storedValue;
+    if (enableSystemPreference && typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return defaultValue;
+  });
+  const [isSystemDark, setIsSystemDark] = useState(() => {
+    if (!enableSystemPreference || typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+  const isInitialized = true;
 
-  // Detect system preference
+  // Track system preference changes and follow them until the user chooses a theme
   useEffect(() => {
     if (!enableSystemPreference) return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsSystemDark(mediaQuery.matches);
 
     const handleChange = (event) => {
       setIsSystemDark(event.matches);
+      if (readStoredBoolean(storageKey) === null) {
+        setIsDarkMode(event.matches);
+      }
     };
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [enableSystemPreference]);
-
-  // Load from localStorage or system preference
-  useEffect(() => {
-    const storedValue = localStorage.getItem(storageKey);
-    
-    if (storedValue !== null) {
-      setIsDarkMode(storedValue === 'true');
-    } else if (enableSystemPreference) {
-      setIsDarkMode(isSystemDark);
-    }
-    
-    setIsInitialized(true);
-  }, [storageKey, enableSystemPreference, isSystemDark]);
+  }, [enableSystemPreference, storageKey]);
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -159,14 +167,14 @@ export function useHighContrast(options = {}) {
     className = 'high-contrast' 
   } = options;
 
-  const [isHighContrast, setIsHighContrast] = useState(defaultValue);
-
-  useEffect(() => {
-    const storedValue = localStorage.getItem(storageKey);
-    if (storedValue !== null) {
-      setIsHighContrast(storedValue === 'true');
+  const [isHighContrast, setIsHighContrast] = useState(() => {
+    try {
+      const storedValue = localStorage.getItem(storageKey);
+      return storedValue === null ? defaultValue : storedValue === 'true';
+    } catch {
+      return defaultValue;
     }
-  }, [storageKey]);
+  });
 
   useEffect(() => {
     if (isHighContrast) {
@@ -201,18 +209,18 @@ export function useReducedMotion(options = {}) {
     storageKey = 'reduced-motion' 
   } = options;
 
-  const [isReducedMotion, setIsReducedMotion] = useState(defaultValue);
-
-  useEffect(() => {
-    const storedValue = localStorage.getItem(storageKey);
-    if (storedValue !== null) {
-      setIsReducedMotion(storedValue === 'true');
-    } else {
-      // Check system preference
-      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-      setIsReducedMotion(mediaQuery.matches);
+  const [isReducedMotion, setIsReducedMotion] = useState(() => {
+    try {
+      const storedValue = localStorage.getItem(storageKey);
+      if (storedValue !== null) return storedValue === 'true';
+    } catch {
+      // Fall through to system preference
     }
-  }, [storageKey]);
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return defaultValue;
+  });
 
   useEffect(() => {
     if (isReducedMotion) {
@@ -253,14 +261,15 @@ export function useFontSize(options = {}) {
     } 
   } = options;
 
-  const [fontSize, setFontSize] = useState(defaultValue);
-
-  useEffect(() => {
-    const storedValue = localStorage.getItem(storageKey);
-    if (storedValue && sizes[storedValue]) {
-      setFontSize(storedValue);
+  const [fontSize, setFontSize] = useState(() => {
+    try {
+      const storedValue = localStorage.getItem(storageKey);
+      if (storedValue && sizes[storedValue]) return storedValue;
+    } catch {
+      // Fall through to default
     }
-  }, [storageKey, sizes]);
+    return defaultValue;
+  });
 
   useEffect(() => {
     document.documentElement.style.fontSize = sizes[fontSize];
@@ -288,18 +297,22 @@ export function useThemeCustomization(options = {}) {
     storageKey = 'theme-customization' 
   } = options;
 
-  const [theme, setTheme] = useState(defaultTheme);
-  const [customColors, setCustomColors] = useState(defaultColors);
-  const [isCustomizing, setIsCustomizing] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setTheme(parsed.theme || defaultTheme);
-      setCustomColors(parsed.customColors || defaultColors);
+  const readStoredCustomization = () => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
     }
-  }, [defaultTheme, defaultColors, storageKey]);
+  };
+
+  const [theme, setTheme] = useState(
+    () => readStoredCustomization()?.theme || defaultTheme
+  );
+  const [customColors, setCustomColors] = useState(
+    () => readStoredCustomization()?.customColors || defaultColors
+  );
+  const [isCustomizing, setIsCustomizing] = useState(false);
 
   useEffect(() => {
     // Apply theme and custom colors
