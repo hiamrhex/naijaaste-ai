@@ -1,7 +1,7 @@
 // Cleanup script for test data and development artifacts
 // Run: node scripts/cleanup.mjs
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, existsSync, unlinkSync, rmSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 const DATA_DIR = join(process.cwd(), 'data');
@@ -19,9 +19,9 @@ if (process.env.NODE_ENV !== 'production') {
 
   for (const file of testFiles) {
     const filePath = join(DATA_DIR, file);
-    if (require('fs').existsSync(filePath)) {
+    if (existsSync(filePath)) {
       console.log(`Removing ${file}...`);
-      require('fs').unlinkSync(filePath);
+      unlinkSync(filePath);
     }
   }
 }
@@ -43,14 +43,18 @@ const cacheDirs = [
 
 for (const dir of cacheDirs) {
   const cachePath = join(process.cwd(), dir);
-  if (require('fs').existsSync(cachePath)) {
+  if (existsSync(cachePath)) {
     console.log(`Clearing ${dir}...`);
-    require('fs').rmSync(cachePath, { recursive: true, force: true });
+    rmSync(cachePath, { recursive: true, force: true });
   }
 }
 
-// 4. Remove temporary test files
-const tempFiles = [
+// 4. Remove temporary test files. The patterns are matched against the entries
+// in the repository root; `*` is the only wildcard supported.
+const patternToRegExp = (pattern) =>
+  new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`);
+
+const tempPatterns = [
   'test-body.json',
   'test-inject-*.json',
   'test-signin.json',
@@ -59,21 +63,19 @@ const tempFiles = [
   'test-saved-place.json',
   'test-sp-1.json',
   'test-sp-2.json',
-  'fix-store.js'
+  'test-output.txt',
+  'fix-store.js',
+  'fix-store.mjs'
 ];
 
-for (const pattern of tempFiles) {
-  const glob = require('glob');
-  glob(pattern, { cwd: process.cwd(), absolute: false }, (err, files) => {
-    if (err) return;
-    files.forEach(file => {
-      const filePath = join(process.cwd(), file);
-      if (require('fs').existsSync(filePath)) {
-        console.log(`Removing ${file}...`);
-        require('fs').unlinkSync(filePath);
-      }
-    });
-  });
+const rootEntries = readdirSync(process.cwd());
+for (const pattern of tempPatterns) {
+  const matcher = patternToRegExp(pattern);
+  for (const entry of rootEntries.filter(name => matcher.test(name))) {
+    const filePath = join(process.cwd(), entry);
+    console.log(`Removing ${entry}...`);
+    unlinkSync(filePath);
+  }
 }
 
 console.log('\n✅ Cleanup complete!');
