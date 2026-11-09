@@ -1,4 +1,6 @@
 import express from "express";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
@@ -276,7 +278,17 @@ for (const base of ["/api/v1", "/"]) {
   app.use(base, reportsRoutes);
   app.use(base, adminRoutes);
 }
-app.use(express.static('public'))
+// ─── Static assets ────────────────────────────────────────────────────────────
+// `vite build` writes the deployable app to dist/. public/ keeps the source
+// assets (service worker, offline page, landing scripts) that are not hashed
+// by the build. Serve the build first, then fall back to public/.
+const DIST_DIR = fileURLToPath(new URL("../dist", import.meta.url));
+const PUBLIC_DIR = fileURLToPath(new URL("../public", import.meta.url));
+
+if (existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+}
+app.use(express.static(PUBLIC_DIR))
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
