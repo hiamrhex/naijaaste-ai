@@ -99,6 +99,21 @@ export function useErrorTracking(options = {}) {
     enableAutoRecovery = true 
   } = options;
 
+  const attemptRecovery = useCallback((errorInfo) => {
+    setIsRecovering(true);
+    
+    // Simulate recovery attempt
+    setTimeout(() => {
+      setRecoveryAttempts(prev => prev + 1);
+      setIsRecovering(false);
+      
+      onRecovery?.(errorInfo);
+      
+      // Remove error from tracking if recovered
+      setErrors(prev => prev.filter(e => e.id !== errorInfo.id));
+    }, 1000);
+  }, [onRecovery]);
+
   const trackError = useCallback((error, context = {}) => {
     const errorWithInfo = {
       id: Date.now().toString(36) + Math.random().toString(36).substr(2),
@@ -118,22 +133,7 @@ export function useErrorTracking(options = {}) {
     }
 
     return errorWithInfo.id;
-  }, [onError, enableAutoRecovery, recoveryAttempts, maxRecoveryAttempts]);
-
-  const attemptRecovery = useCallback((errorInfo) => {
-    setIsRecovering(true);
-    
-    // Simulate recovery attempt
-    setTimeout(() => {
-      setRecoveryAttempts(prev => prev + 1);
-      setIsRecovering(false);
-      
-      onRecovery?.(errorInfo);
-      
-      // Remove error from tracking if recovered
-      setErrors(prev => prev.filter(e => e.id !== errorInfo.id));
-    }, 1000);
-  }, [onRecovery]);
+  }, [onError, enableAutoRecovery, recoveryAttempts, maxRecoveryAttempts, attemptRecovery]);
 
   const clearErrors = useCallback(() => {
     setErrors([]);
@@ -241,35 +241,42 @@ export function useRetry(options = {}) {
   const [lastError, setLastError] = useState(null);
 
   const retry = useCallback(async (operation, fallback) => {
-    if (attempts >= maxAttempts) {
-      return fallback?.() || Promise.reject(new Error('Max retry attempts reached'));
-    }
+    let currentAttempt = attempts;
 
     setIsRetrying(true);
-    
-    try {
-      const result = await operation();
-      setAttempts(0);
-      setIsRetrying(false);
-      return result;
-    } catch (error) {
-      setLastError(error);
-      setAttempts(prev => prev + 1);
-      
-      // Calculate delay with exponential backoff
-      const delay = Math.min(
-        initialDelay * Math.pow(backoffFactor, attempts),
-        maxDelay
-      );
-      
-      onRetry?.(error, attempts + 1, delay);
-      
-      // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
-      // Retry the operation
-      return retry(operation, fallback);
+
+    while (currentAttempt < maxAttempts) {
+      try {
+        const result = await operation();
+        setAttempts(0);
+        setIsRetrying(false);
+        return result;
+      } catch (error) {
+        setLastError(error);
+        currentAttempt += 1;
+        setAttempts(currentAttempt);
+
+        // Calculate delay with exponential backoff
+        const delay = Math.min(
+          initialDelay * Math.pow(backoffFactor, currentAttempt - 1),
+          maxDelay
+        );
+
+        onRetry?.(error, currentAttempt, delay);
+
+        if (currentAttempt < maxAttempts) {
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     }
+
+    setIsRetrying(false);
+    const fallbackResult = fallback ? await fallback() : undefined;
+    if (!fallbackResult) {
+      throw new Error('Max retry attempts reached');
+    }
+    return fallbackResult;
   }, [attempts, maxAttempts, initialDelay, maxDelay, backoffFactor, onRetry]);
 
   const reset = useCallback(() => {
