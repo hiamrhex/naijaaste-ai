@@ -1,12 +1,16 @@
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
+
+const DEFAULT_SUPPORTED_LOCALES = ['en', 'es', 'fr', 'de', 'ja'];
+const DEFAULT_MESSAGES = {};
+const RTL_LOCALES = ['ar', 'he', 'fa', 'ur'];
 
 // Internationalization (i18n) hook for multilingual support
 export function useI18n(options = {}) {
   const { 
     defaultLocale = 'en',
     fallbackLocale = 'en',
-    supportedLocales = ['en', 'es', 'fr', 'de', 'ja'],
-    messages = {},
+    supportedLocales = DEFAULT_SUPPORTED_LOCALES,
+    messages = DEFAULT_MESSAGES,
     storageKey = 'locale',
     enableRTL = false 
   } = options;
@@ -16,42 +20,25 @@ export function useI18n(options = {}) {
   const [messagesLoaded, setMessagesLoaded] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load messages from storage or API
+  // Options are often passed as inline literals, so read them through refs to
+  // keep the load effect from restarting on every render.
+  const supportedLocalesRef = useRef(supportedLocales);
+  const messagesRef = useRef(messages);
   useEffect(() => {
-    const loadMessages = async () => {
-      setIsLoading(true);
-      
-      try {
-        // Try to get from localStorage first
-        const storedLocale = localStorage.getItem(storageKey);
-        if (storedLocale && supportedLocales.includes(storedLocale)) {
-          setLocale(storedLocale);
-        }
+    supportedLocalesRef.current = supportedLocales;
+  }, [supportedLocales]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
-        // Load messages
-        const loadedMessages = await loadMessagesForLocale(locale);
-        setMessagesLoaded(loadedMessages);
-        
-        // Update RTL direction
-        updateRTLDirection(locale);
-      } catch (error) {
-        console.error('Failed to load messages:', error);
-        // Fallback to default locale
-        const fallbackMessages = await loadMessagesForLocale(fallbackLocale);
-        setMessagesLoaded(fallbackMessages);
-        setLocale(fallbackLocale);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadMessages();
-  }, [locale, storageKey, supportedLocales, fallbackLocale]);
+  const supportedLocalesKey = supportedLocales.join('|');
+  const messagesKey = Object.keys(messages).join('|');
 
   const loadMessagesForLocale = useCallback(async (localeCode) => {
     // Check if we have pre-loaded messages
-    if (messages[localeCode]) {
-      return messages[localeCode];
+    const preloaded = messagesRef.current;
+    if (preloaded[localeCode]) {
+      return preloaded[localeCode];
     }
 
     // In a real app, you'd fetch from an API
@@ -61,15 +48,54 @@ export function useI18n(options = {}) {
     }
     
     return response.json();
-  }, [messages]);
-
-  const updateRTLDirection = useCallback((localeCode) => {
-    const rtlLocales = ['ar', 'he', 'fa', 'ur'];
-    setIsRTL(rtlLocales.includes(localeCode));
   }, []);
 
+  const updateRTLDirection = useCallback((localeCode) => {
+    setIsRTL(RTL_LOCALES.includes(localeCode));
+  }, []);
+
+  // Load messages from storage or API
+  useEffect(() => {
+    const loadMessages = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Try to get from localStorage first
+        const storedLocale = localStorage.getItem(storageKey);
+        if (storedLocale && supportedLocalesRef.current.includes(storedLocale)) {
+          setLocale(storedLocale);
+        }
+
+        // Load messages
+        const loadedMessages = await loadMessagesForLocale(locale);
+        setMessagesLoaded(prev => ({ ...prev, [locale]: loadedMessages }));
+        
+        // Update RTL direction
+        updateRTLDirection(locale);
+      } catch (error) {
+        console.error('Failed to load messages:', error);
+        // Fallback to default locale
+        const fallbackMessages = await loadMessagesForLocale(fallbackLocale);
+        setMessagesLoaded(prev => ({ ...prev, [fallbackLocale]: fallbackMessages }));
+        setLocale(fallbackLocale);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMessages();
+  }, [
+    locale,
+    storageKey,
+    fallbackLocale,
+    supportedLocalesKey,
+    messagesKey,
+    loadMessagesForLocale,
+    updateRTLDirection,
+  ]);
+
   const setLocaleHandler = useCallback(async (newLocale) => {
-    if (!supportedLocales.includes(newLocale)) {
+    if (!supportedLocalesRef.current.includes(newLocale)) {
       console.warn(`Locale ${newLocale} is not supported`);
       return;
     }
@@ -78,7 +104,7 @@ export function useI18n(options = {}) {
     
     try {
       const loadedMessages = await loadMessagesForLocale(newLocale);
-      setMessagesLoaded(loadedMessages);
+      setMessagesLoaded(prev => ({ ...prev, [newLocale]: loadedMessages }));
       setLocale(newLocale);
       
       // Store in localStorage
@@ -89,7 +115,7 @@ export function useI18n(options = {}) {
       
       // Update document direction
       if (typeof document !== 'undefined') {
-        document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+        document.documentElement.dir = RTL_LOCALES.includes(newLocale) ? 'rtl' : 'ltr';
         document.documentElement.lang = newLocale;
       }
     } catch (error) {
@@ -97,7 +123,7 @@ export function useI18n(options = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [supportedLocales, storageKey, loadMessagesForLocale, updateRTLDirection, isRTL]);
+  }, [storageKey, loadMessagesForLocale, updateRTLDirection]);
 
   const t = useCallback((key, params = {}) => {
     if (!messagesLoaded[locale]) {
