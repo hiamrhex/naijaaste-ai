@@ -620,7 +620,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Bad
 const PORT = 3000;
 const DATABASE_URL = 'postgres://user:pass@localhost:5432/db';
-const JWT_SECRET = 'super-secret-key';
+const JWT_SECRET = 'super-secret-key'; // secret-scan: allow — deliberately bad example
 ```
 
 ### Configuration Management
