@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Chat recommendations are no longer latched after a zero-match turn; the next message retries.
+- Chat responses include `after_hard_filter` / `candidates_sent_to_llm`, which the results panel renders.
+- `ErrorBoundary` imports React correctly, and `useRetry` is bounded instead of recursing forever.
+- Theme, accessibility, form-validation and i18n hooks initialise without effect cascades; i18n no longer refetches on every render.
+- `ResourceLoader` renders children in lazy mode instead of hanging on "Loading resources...".
+- The server serves the Vite build from `dist/` before falling back to `public/`.
+- `scripts/cleanup.mjs` runs under ESM instead of crashing on `require`.
+
+### Changed
+- `value_sensitivity` contributes to pre-scoring, and the evaluation script uses the production scorer.
+- Vitest caps its worker pool (`VITEST_MAX_WORKERS`) to avoid out-of-memory runs.
+- Repository scratch artifacts were removed and `.gitignore` covers them.
+
 ### Added
+- 32 regression tests covering the fixes above (suite now 318 tests).
 - Documentation improvements and guides
 - Comprehensive API endpoint reference
 - Architecture diagrams and visualizations
