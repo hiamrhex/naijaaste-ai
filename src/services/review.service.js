@@ -7,8 +7,11 @@ import { findRestaurantByCode } from '../db/catalogue.js';
 const validateCompatibility = (persona, restaurant) => {
   const issues = [];
 
-  // City mismatch — reviewer visiting a restaurant outside their city
-  if (persona.city.toLowerCase() !== restaurant.city.toLowerCase()) {
+  // City mismatch — reviewer visiting a restaurant outside their city. Either
+  // side may be missing from a partial payload; that is not a violation.
+  const personaCity = String(persona.city || '').trim().toLowerCase();
+  const restaurantCity = String(restaurant.city || '').trim().toLowerCase();
+  if (personaCity && restaurantCity && personaCity !== restaurantCity) {
     issues.push(`Persona is from ${persona.city} but restaurant is in ${restaurant.city}`);
   }
 
@@ -79,17 +82,21 @@ export const generateReview = async (persona, restaurant) => {
   const prompt = buildReviewPrompt(persona, resolvedRestaurant);
   const llmResult = await callReviewLLM(prompt);
 
-  // Step 5 — Return with full metadata
+  // Step 5 — Return with full metadata. Model output is spread first so it
+  // cannot overwrite the server-owned identity fields.
+  const reviewText = typeof llmResult.review_text === 'string' ? llmResult.review_text : '';
+  const wordCount = reviewText.trim() ? reviewText.trim().split(/\s+/).length : 0;
+
   return {
+    ...llmResult,
     success: true,
     persona_id: persona.persona_id,
     restaurant_id: resolvedRestaurant.restaurant_id,
     restaurant_name: resolvedRestaurant.name,
-    ...llmResult,
     meta: {
       pre_match_score: preMatchScore,
       compatibility_issues: issues.length > 0 ? issues : null,
-      review_word_count: llmResult.review_text?.split(' ').length || 0,
+      review_word_count: wordCount,
       latency_ms: Date.now() - startTime
     }
   };
