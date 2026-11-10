@@ -40,7 +40,12 @@ const sanitizePersona = (extracted) => {
     }
   }
 
-  // Validate preferred_cuisines array
+  // Validate preferred_cuisines array. A single value returned as a string is
+  // wrapped rather than discarded.
+  if (typeof sanitized.preferred_cuisines === 'string') {
+    sanitized.preferred_cuisines = [sanitized.preferred_cuisines];
+  }
+
   if (!Array.isArray(sanitized.preferred_cuisines) || sanitized.preferred_cuisines.length === 0) {
     sanitized.preferred_cuisines = ['Street Food'];
     warnings.push('preferred_cuisines was empty → defaulted to ["Street Food"]');
@@ -55,6 +60,10 @@ const sanitizePersona = (extracted) => {
   }
 
   // Validate dietary_flags array
+  if (typeof sanitized.dietary_flags === 'string') {
+    sanitized.dietary_flags = [sanitized.dietary_flags];
+  }
+
   if (!Array.isArray(sanitized.dietary_flags) || sanitized.dietary_flags.length === 0) {
     sanitized.dietary_flags = ['none'];
     warnings.push('dietary_flags was empty → defaulted to ["none"]');
@@ -77,10 +86,14 @@ const sanitizePersona = (extracted) => {
     sanitized.budget_level = 'budget';
   }
 
-  // Ensure age is within bounds
-  if (!sanitized.age || sanitized.age < 18 || sanitized.age > 75) {
+  // Ensure age is a real number within bounds. A non-numeric value (or a
+  // numeric string) used to slip through: NaN fails both comparisons.
+  const age = Number(sanitized.age);
+  if (!Number.isFinite(age) || age < 18 || age > 75) {
     sanitized.age = 28;
     warnings.push('age out of bounds → defaulted to 28');
+  } else {
+    sanitized.age = age;
   }
 
   return { sanitized, warnings };
@@ -88,7 +101,9 @@ const sanitizePersona = (extracted) => {
 
 export const extractPersona = async (rawText) => {
   if (!rawText || typeof rawText !== 'string' || rawText.trim().length < MIN_RAW_TEXT) {
-    throw new Error('raw_text must be a non-empty string (min 5 characters)');
+    throw new Error(
+      `raw_text must be a non-empty string (min ${MIN_RAW_TEXT} characters)`
+    );
   }
 
   const startTime = Date.now();
@@ -100,10 +115,11 @@ export const extractPersona = async (rawText) => {
   // Sanitize and validate LLM output
   const { sanitized, warnings } = sanitizePersona(extracted);
 
-  // Stamp server-generated fields — LLM never sets these
+  // Stamp server-generated fields — the model must never set these. They come
+  // after the spread so a model-supplied value cannot overwrite them.
   const persona = {
-    persona_id: uuidv4(),
     ...sanitized,
+    persona_id: uuidv4(),
     preference_history: [],
     created_at: new Date().toISOString()
   };
