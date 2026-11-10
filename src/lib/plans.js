@@ -9,7 +9,8 @@ export const readPlans = () => {
 
 export const writePlans = (plans) => {
   try {
-    localStorage.setItem(PLANS_KEY, JSON.stringify(plans.slice(0, 20)));
+    // Keep the most recent plans: callers append, so the tail is the newest.
+    localStorage.setItem(PLANS_KEY, JSON.stringify(plans.slice(-20)));
   } catch { /* private mode */ }
 };
 
