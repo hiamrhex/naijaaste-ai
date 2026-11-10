@@ -2,6 +2,14 @@
   "name": "naijataste-ai",
   "private": true,
   "version": "0.0.0",
+  "description": "AI-powered restaurant discovery for Nigeria: persona-driven recommendations, map search and a ReAct agent.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiamrhex/naijaaste-ai.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
