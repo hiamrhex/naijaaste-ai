@@ -25,9 +25,9 @@ const BUDGET_HINTS = [
   ['cheap', 'budget'],
   ['budget', 'budget'],
   ['low', 'budget'],
-  ['mid', 'mid_range'],
   ['mid-range', 'mid_range'],
   ['midrange', 'mid_range'],
+  ['mid', 'mid_range'],
   ['average', 'mid_range'],
   ['premium', 'premium'],
   ['expensive', 'premium'],
@@ -35,15 +35,17 @@ const BUDGET_HINTS = [
   ['luxury', 'premium'],
 ];
 
+// Longer phrases must come before the single words they contain: otherwise
+// "very spicy" matches "spicy" and is downgraded to just "hot".
 const SPICE_HINTS = [
   ['no spice', 'mild'],
+  ['very spicy', 'extra_hot'],
+  ['extra hot', 'extra_hot'],
   ['mild', 'mild'],
   ['light', 'mild'],
   ['medium', 'medium'],
   ['spicy', 'hot'],
   ['hot', 'hot'],
-  ['very spicy', 'extra_hot'],
-  ['extra hot', 'extra_hot'],
   ['fire', 'extra_hot'],
 ];
 
@@ -61,21 +63,30 @@ const CONTEXT_HINTS = [
 ];
 
 // Pull what we can out of the user's own words — no model involved.
+//
+// Matches on word boundaries, not raw substrings: "hotel" is not "hot",
+// "slow" is not "low" and "update" is not a "date". A trailing plural "s" is
+// allowed so "romantic dates" still matches "date".
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const hasHint = (text, needle) =>
+  new RegExp(`\\b${escapeRegExp(needle)}s?\\b`).test(text);
+
 export const extractHints = (message = '') => {
   const text = String(message).toLowerCase();
   const hints = {};
 
   for (const [needle, city] of CITY_HINTS) {
-    if (text.includes(needle)) { hints.city = city; break; }
+    if (hasHint(text, needle)) { hints.city = city; break; }
   }
   for (const [needle, level] of BUDGET_HINTS) {
-    if (text.includes(needle)) { hints.budget_level = level; break; }
+    if (hasHint(text, needle)) { hints.budget_level = level; break; }
   }
   for (const [needle, level] of SPICE_HINTS) {
-    if (text.includes(needle)) { hints.spice_tolerance = level; break; }
+    if (hasHint(text, needle)) { hints.spice_tolerance = level; break; }
   }
   for (const [needle, context] of CONTEXT_HINTS) {
-    if (text.includes(needle)) { hints.social_context = context; break; }
+    if (hasHint(text, needle)) { hints.social_context = context; break; }
   }
 
   return hints;
