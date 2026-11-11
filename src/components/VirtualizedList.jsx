@@ -25,6 +25,9 @@ export const VirtualizedList = memo(({
 
   const visibleItems = items.slice(startIndex, endIndex + 1);
   const totalHeight = items.length * itemHeight;
+  const scrollProgress = totalHeight > 0
+    ? Math.min(100, (scrollTop / totalHeight) * 100)
+    : 0;
 
   // Handle scroll events with throttling
   const handleScroll = useCallback(() => {
@@ -38,23 +41,25 @@ export const VirtualizedList = memo(({
       setIsScrolling(true);
       lastScrollTopRef.current = scrollTop;
       
-      // Clear previous timeout
+      // Clear previous timer
       if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
+        clearTimeout(requestRef.current);
       }
-      
-      // Set timeout to stop scrolling detection
-      requestRef.current = requestAnimationFrame(() => {
+
+      // A short timeout, not requestAnimationFrame: rAF fires on the next
+      // frame, so the scrolling indicator disappeared after ~16ms instead of
+      // staying up for the duration of the scroll.
+      requestRef.current = setTimeout(() => {
         setIsScrolling(false);
-      });
+      }, 200);
     }
   }, []);
 
-  // Clean up animation frame
+  // Clean up the scroll-end timer
   useEffect(() => {
     return () => {
       if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
+        clearTimeout(requestRef.current);
       }
     };
   }, []);
@@ -123,7 +128,7 @@ export const VirtualizedList = memo(({
             height: '100%',
             background: 'var(--orange)',
             animation: 'pulse 1s ease-in-out infinite',
-            width: `${(scrollTop / totalHeight) * 100}%`,
+            width: `${scrollProgress}%`,
           }} />
         </div>
       )}
