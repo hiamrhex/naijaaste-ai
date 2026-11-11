@@ -12,8 +12,9 @@ export function useAccessibility(options = {}) {
   const [isKeyboardUser, setIsKeyboardUser] = useState(false);
   const [currentFocus, setCurrentFocus] = useState(null);
   const [announcement, setAnnouncement] = useState('');
+  const liveRegionsRef = useRef(new Set());
   const [reducedMotion, setReducedMotion] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
 
@@ -42,14 +43,26 @@ export function useAccessibility(options = {}) {
 
   // Track reduced motion changes
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const handleChange = (event) => {
       setReducedMotion(event.matches);
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    // Older Safari only implements addListener/removeListener.
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+    if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(handleChange);
+      return () => mediaQuery.removeListener(handleChange);
+    }
+    return undefined;
   }, []);
 
   // Focus management
@@ -82,12 +95,20 @@ export function useAccessibility(options = {}) {
     liveRegion.textContent = message;
 
     document.body.appendChild(liveRegion);
-    
+    liveRegionsRef.current.add(liveRegion);
+
     // Remove after announcement
     setTimeout(() => {
-      document.body.removeChild(liveRegion);
+      liveRegion.remove();
+      liveRegionsRef.current.delete(liveRegion);
     }, 1000);
   }, [enableScreenReader]);
+
+  // Drop any live region still waiting for its timeout when the tree unmounts.
+  useEffect(() => () => {
+    liveRegionsRef.current.forEach((node) => node.remove());
+    liveRegionsRef.current.clear();
+  }, []);
 
   // Skip to content link
   const SkipToContent = memo(({ href = '#main-content' }) => {
