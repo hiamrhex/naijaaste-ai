@@ -32,7 +32,7 @@ NaijaTaste AI is currently in **beta release** with core functionality including
 
 **Key Achievements**:
 - 31 API endpoints implemented
-- 309 tests passing
+- 466 tests passing
 - Full-stack development environment
 - Documentation and guides created
 
