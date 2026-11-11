@@ -12,40 +12,51 @@ export function useWebWorker(workerCode, options = {}) {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState(null);
 
+  // Callers usually pass inline handlers. Keeping them in a ref means the
+  // worker is created once per script instead of being torn down and rebuilt
+  // on every render.
+  const callbacksRef = useRef({ onMessage, onError, onReady });
+  useEffect(() => {
+    callbacksRef.current = { onMessage, onError, onReady };
+  });
+
   useEffect(() => {
     // Create blob from worker code
     const blob = new Blob([workerCode], { type: 'application/javascript' });
     const workerUrl = URL.createObjectURL(blob);
 
     // Create worker
-    workerRef.current = new Worker(workerUrl);
+    const worker = new Worker(workerUrl);
+    workerRef.current = worker;
 
     // Set up event listeners
-    workerRef.current.onmessage = (event) => {
-      onMessage?.(event.data);
+    worker.onmessage = (event) => {
+      callbacksRef.current.onMessage?.(event.data);
     };
 
-    workerRef.current.onerror = (event) => {
+    worker.onerror = (event) => {
       const error = new Error(`Worker error: ${event.message}`);
       setError(error);
-      onError?.(error);
+      callbacksRef.current.onError?.(error);
     };
 
-    workerRef.current.onmessageerror = (event) => {
+    worker.onmessageerror = (event) => {
       const error = new Error(`Worker message error: ${event.data}`);
       setError(error);
-      onError?.(error);
+      callbacksRef.current.onError?.(error);
     };
 
     // Mark worker as ready
     setIsReady(true);
-    onReady?.();
+    callbacksRef.current.onReady?.();
 
     return () => {
-      workerRef.current.terminate();
+      // `terminate()` may already have run; the ref is null in that case.
+      workerRef.current?.terminate();
+      workerRef.current = null;
       URL.revokeObjectURL(workerUrl);
     };
-  }, [workerCode, onMessage, onError, onReady]);
+  }, [workerCode]);
 
   const postMessage = useCallback((message, transferables = []) => {
     if (!workerRef.current) {
@@ -141,78 +152,90 @@ export const HEAVY_COMPUTATION_WORKER = `
 // Worker pool for managing multiple workers
 export function useWorkerPool(workerCode, poolSize = 4) {
   const workersRef = useRef([]);
-  const [availableWorkers, setAvailableWorkers] = useState([]);
+  const availableRef = useRef([]);
+  const busyRef = useRef(new Set());
+  const [availableCount, setAvailableCount] = useState(0);
   const [busyWorkers, setBusyWorkers] = useState(new Set());
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     // Initialize worker pool
+    const urls = [];
     const workers = [];
     for (let i = 0; i < poolSize; i++) {
-      const worker = new Worker(URL.createObjectURL(new Blob([workerCode])));
-      workers.push(worker);
+      const url = URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' }));
+      urls.push(url);
+      workers.push(new Worker(url));
     }
 
     workersRef.current = workers;
-    setAvailableWorkers(workers);
+    availableRef.current = workers.slice();
+    busyRef.current = new Set();
+    setAvailableCount(workers.length);
+    setBusyWorkers(new Set());
     setIsReady(true);
 
     return () => {
-      workers.forEach(worker => worker.terminate());
+      workers.forEach((worker) => worker.terminate());
+      urls.forEach((url) => URL.revokeObjectURL(url));
+      workersRef.current = [];
+      availableRef.current = [];
+      busyRef.current = new Set();
     };
   }, [workerCode, poolSize]);
 
-  const execute = useCallback(async (message, transferables = []) => {
+  const execute = useCallback((message, transferables = []) => {
     return new Promise((resolve, reject) => {
-      if (availableWorkers.length === 0) {
+      // Reserve the worker synchronously. Picking from the `availableWorkers`
+      // state gave concurrent calls (same render) the same worker, so two
+      // jobs were posted to one worker and another sat idle.
+      const worker = availableRef.current.shift();
+      if (!worker) {
         reject(new Error('No available workers'));
         return;
       }
 
-      const worker = availableWorkers[0];
-      setAvailableWorkers(prev => prev.slice(1));
-      setBusyWorkers(prev => new Set(prev).add(worker));
+      busyRef.current.add(worker);
+      setAvailableCount(availableRef.current.length);
+      setBusyWorkers(new Set(busyRef.current));
 
-      const onMessage = (event) => {
+      const release = () => {
         worker.removeEventListener('message', onMessage);
         worker.removeEventListener('error', onError);
-        
-        setAvailableWorkers(prev => [...prev, worker]);
-        setBusyWorkers(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(worker);
-          return newSet;
-        });
 
+        if (!workersRef.current.includes(worker)) return;
+        availableRef.current.push(worker);
+        busyRef.current.delete(worker);
+        setAvailableCount(availableRef.current.length);
+        setBusyWorkers(new Set(busyRef.current));
+      };
+
+      const onMessage = (event) => {
+        release();
         resolve(event.data);
       };
 
       const onError = (event) => {
-        worker.removeEventListener('message', onMessage);
-        worker.removeEventListener('error', onError);
-        
-        setAvailableWorkers(prev => [...prev, worker]);
-        setBusyWorkers(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(worker);
-          return newSet;
-        });
-
-        reject(event.error);
+        release();
+        reject(event.error || new Error('Worker failed'));
       };
 
       worker.addEventListener('message', onMessage);
       worker.addEventListener('error', onError);
       worker.postMessage(message, transferables);
     });
-  }, [availableWorkers]);
+  }, []);
 
-  const getStats = useCallback(() => ({
-    total: workersRef.current.length,
-    available: availableWorkers.length,
-    busy: busyWorkers.size,
-    utilization: (busyWorkers.size / workersRef.current.length) * 100,
-  }), [availableWorkers.length, busyWorkers.size]);
+  const getStats = useCallback(() => {
+    const total = workersRef.current.length;
+    const busy = busyWorkers.size;
+    return {
+      total,
+      available: availableCount,
+      busy,
+      utilization: total === 0 ? 0 : (busy / total) * 100,
+    };
+  }, [availableCount, busyWorkers.size]);
 
   return {
     execute,
