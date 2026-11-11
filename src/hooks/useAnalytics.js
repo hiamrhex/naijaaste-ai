@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+const MAX_POINTS = 100;
+
 // Analytics hook for tracking user interactions and performance
 export function useAnalytics(options = {}) {
   const { 
@@ -12,34 +14,49 @@ export function useAnalytics(options = {}) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [events, setEvents] = useState([]);
   const [pageViews, setPageViews] = useState(0);
-  const [sessionStart, setSessionStart] = useState(null);
 
-  // Initialize analytics
-  useEffect(() => {
-    if (enableTracking) {
-      setSessionStart(new Date());
-      setIsInitialized(true);
-      
-      // Track initial page view
-      trackPageView();
-      
-      // Track page visibility changes
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          trackEvent('page_visible', { timestamp: new Date() });
-        } else {
-          trackEvent('page_hidden', { timestamp: new Date() });
-        }
-      };
-      
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      
-      return () => {
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        flushEvents(); // Send remaining events on unmount
-      };
+  // The queue lives in a ref as well as in state: `trackEvent` used to read
+  // `events.length` from its render closure, so a burst of events (or the
+  // mount effect) never crossed the auto-flush threshold, and a flush cleared
+  // every event - including ones recorded while the request was in flight.
+  const queueRef = useRef([]);
+  const sessionStartRef = useRef(null);
+  const pageViewsRef = useRef(0);
+  const flushingRef = useRef(false);
+
+  const flushEvents = useCallback(async () => {
+    if (!enableTracking || queueRef.current.length === 0) return;
+    if (flushingRef.current) return;
+
+    const batch = queueRef.current.slice();
+    const batchIds = new Set(batch.map((event) => event.id));
+    flushingRef.current = true;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          events: batch,
+          sessionStart: sessionStartRef.current?.toISOString(),
+          pageViews: pageViewsRef.current,
+        }),
+      });
+
+      if (response.ok) {
+        // Only drop the events that were actually sent. Anything tracked
+        // while the request was open stays queued for the next flush.
+        queueRef.current = queueRef.current.filter((event) => !batchIds.has(event.id));
+        setEvents(queueRef.current);
+      }
+    } catch (error) {
+      console.error('Failed to send analytics:', error);
+    } finally {
+      flushingRef.current = false;
     }
-  }, [enableTracking]);
+  }, [endpoint, enableTracking]);
 
   const trackEvent = useCallback((eventName, data = {}) => {
     if (!enableTracking) return;
@@ -56,21 +73,51 @@ export function useAnalytics(options = {}) {
       referrer: document.referrer,
     };
 
-    setEvents(prev => [...prev, event]);
-    
+    queueRef.current = [...queueRef.current, event];
+    setEvents(queueRef.current);
+
     // Auto-flush if event queue gets too large
-    if (events.length > 50) {
+    if (queueRef.current.length > 50) {
       flushEvents();
     }
-  }, [enableTracking, userId, sessionId, events.length]);
+  }, [enableTracking, userId, sessionId, flushEvents]);
 
   const trackPageView = useCallback(() => {
-    setPageViews(prev => prev + 1);
-    trackEvent('page_view', { 
+    pageViewsRef.current += 1;
+    setPageViews(pageViewsRef.current);
+    trackEvent('page_view', {
       title: document.title,
-      path: window.location.pathname 
+      path: window.location.pathname
     });
   }, [trackEvent]);
+
+  // Initialize analytics
+  useEffect(() => {
+    if (enableTracking) {
+      const start = new Date();
+      sessionStartRef.current = start;
+      setIsInitialized(true);
+
+      // Track initial page view
+      trackPageView();
+
+      // Track page visibility changes
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          trackEvent('page_visible', { timestamp: new Date() });
+        } else {
+          trackEvent('page_hidden', { timestamp: new Date() });
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        flushEvents(); // Send remaining events on unmount
+      };
+    }
+  }, [enableTracking, trackPageView, trackEvent, flushEvents]);
 
   const trackInteraction = useCallback((element, action, data = {}) => {
     trackEvent('user_interaction', {
@@ -96,30 +143,6 @@ export function useAnalytics(options = {}) {
       timestamp: new Date().toISOString(),
     });
   }, [trackEvent]);
-
-  const flushEvents = useCallback(async () => {
-    if (events.length === 0 || !enableTracking) return;
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          events: events.slice(),
-          sessionStart: sessionStart?.toISOString(),
-          pageViews,
-        }),
-      });
-
-      if (response.ok) {
-        setEvents([]);
-      }
-    } catch (error) {
-      console.error('Failed to send analytics:', error);
-    }
-  }, [events, endpoint, enableTracking, sessionStart, pageViews]);
 
   // Auto-flush events periodically
   useEffect(() => {
@@ -189,7 +212,7 @@ export function useUserBehavior(options = {}) {
       }
 
       requestRef.current = requestAnimationFrame(() => {
-        setMouseMovements(prev => [...prev.slice(-100), {
+        setMouseMovements(prev => [...prev.slice(-(MAX_POINTS - 1)), {
           x: event.clientX,
           y: event.clientY,
           timestamp: Date.now(),
@@ -212,7 +235,9 @@ export function useUserBehavior(options = {}) {
     if (!enableTracking) return;
 
     const handleClick = (event) => {
-      setClicks(prev => [...prev, {
+      // Cap the buffer: clicks were appended forever and leaked memory for
+      // anyone who left the tab open.
+      setClicks(prev => [...prev.slice(-(MAX_POINTS - 1)), {
         x: event.clientX,
         y: event.clientY,
         target: event.target.tagName,
@@ -232,10 +257,14 @@ export function useUserBehavior(options = {}) {
     if (!enableTracking) return;
 
     const handleScroll = () => {
-      const scrollTop = window.pageYOffset;
+      const scrollTop = window.pageYOffset || 0;
       const scrollHeight = document.documentElement.scrollHeight;
       const clientHeight = document.documentElement.clientHeight;
-      const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
+      const scrollable = scrollHeight - clientHeight;
+      // Pages shorter than the viewport cannot scroll; dividing by zero made
+      // every recorded point NaN.
+      const scrollPercentage =
+        scrollable > 0 ? Math.min(100, (scrollTop / scrollable) * 100) : 0;
 
       setScrolls(prev => [...prev, {
         scrollTop,
