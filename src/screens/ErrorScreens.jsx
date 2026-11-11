@@ -10,8 +10,8 @@ export function NotFound() {
   const navigate = useNavigate();
   return (
     <div style={page}>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 64, color: 'var(--orange)', lineHeight: 1 }}>404</div>
-      <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, margin: 0 }}>This plate is empty.</h1>
+      <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 64, color: 'var(--orange)', lineHeight: 1 }}>404</div>
+      <h1 style={{ fontFamily: "var(--font-display)", fontSize: 20, margin: 0 }}>This plate is empty.</h1>
       <p style={{ fontSize: 13.5, color: 'var(--text-muted)', margin: 0, maxWidth: 320 }}>
         The page you're looking for moved or never existed. Let's get you back to the food.
       </p>
@@ -36,8 +36,8 @@ export function NotFound() {
 export function Forbidden() {
   return (
     <div style={page}>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 64, color: 'var(--amber)', lineHeight: 1 }}>403</div>
-      <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, margin: 0 }}>Staff only.</h1>
+      <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 64, color: 'var(--amber)', lineHeight: 1 }}>403</div>
+      <h1 style={{ fontFamily: "var(--font-display)", fontSize: 20, margin: 0 }}>Staff only.</h1>
       <p style={{ fontSize: 13.5, color: 'var(--text-muted)', margin: 0, maxWidth: 320 }}>
         Your account doesn't have admin access. If you should, ask to be added via <code>ADMIN_EMAILS</code>.
       </p>

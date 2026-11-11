@@ -1,6 +1,6 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { memo } from 'react';
-import { Send, Utensils, Zap, Square, MapPin, Sparkles, ChevronDown } from 'lucide-react';
+import { Send, Zap, Square, ChevronDown } from 'lucide-react';
 import { Header, Footer } from '../components/SiteChrome.jsx';
 import { useAuth } from '../app/useAuth.js';
 import { useConcierge } from '../hooks/useConcierge.js';
@@ -33,8 +33,19 @@ export default memo(function HomeScreen() {
   const lastTrace = useMemo(() => [...c.messages].reverse().find((m) => m.trace?.length)?.trace || [], [c.messages]);
 
   const handleKey = (e) => {
+    // Enter inside an IME composition (common on Android keyboards) must not
+    // send the message.
+    if (e.nativeEvent?.isComposing) return;
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); c.sendMsg(); }
   };
+
+  // Let the composer grow with the message, then stop at 140px.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+  }, [c.inputVal]);
 
   return (
     <div className="home-shell">
@@ -49,13 +60,13 @@ export default memo(function HomeScreen() {
 
       {/* ── SCROLLING AREA: the conversation, then the food below it ── */}
       <div className="home-scroll">
-        <div className="home-column">
+        <div className="home-column home-column--scroll">
 
           {/* ── HERO (fresh conversations only) ── */}
           {fresh && <HeroSection heroIdx={c.heroIdx} heroVisible={c.heroVisible} currentHero={currentHero} />}
 
-          {/* ── STAGE BAR ── */}
-          <StageBar stage={c.stage} stageIdx={c.stageIdx} />
+          {/* ── STAGE BAR (only while the agent is actually working) ── */}
+          {(c.loading || c.stageIdx > 0) && <StageBar stage={c.stage} stageIdx={c.stageIdx} />}
 
           {/* ── QUICK START (fresh conversations only) ── */}
           <QuickStart showQuickPrompts={c.showQuickPrompts} onSendMsg={c.sendMsg} />
@@ -65,26 +76,28 @@ export default memo(function HomeScreen() {
             messages={c.messages} 
             loading={c.loading} 
             generateReview={c.generateReview}
-            stop={c.stop}
           />
 
-          {/* ── AGENT THINKING ── */}
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginTop: 16 }}>
-            <button
-              onClick={() => c.setThinkOpen((v) => !v)}
-              aria-expanded={c.thinkOpen}
-              style={{ width: '100%', background: 'none', border: 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Zap size={13} color="var(--orange)" />
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  How the agent is thinking
-                </span>
-              </div>
-              <ChevronDown size={16} color="var(--text-hint)" style={{ transform: c.thinkOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
-            </button>
-            {c.thinkOpen && <AgentThinking thinkOpen={c.thinkOpen} stage={c.stage} lastTrace={lastTrace} meta={c.meta} />}
-          </div>
+          {/* ── AGENT THINKING (only once there is work to show) ── */}
+          {(c.loading || lastTrace.length > 0 || c.messages.length > 1) && (
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', marginTop: 16 }}>
+              <button
+                type="button"
+                onClick={() => c.setThinkOpen((v) => !v)}
+                aria-expanded={c.thinkOpen}
+                style={{ width: '100%', background: 'none', border: 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Zap size={13} color="var(--orange)" aria-hidden="true" />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    What the agent did
+                  </span>
+                </div>
+                <ChevronDown size={16} color="var(--text-hint)" style={{ transform: c.thinkOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} aria-hidden="true" />
+              </button>
+              {c.thinkOpen && <AgentThinking thinkOpen={c.thinkOpen} stage={c.stage} lastTrace={lastTrace} meta={c.meta} />}
+            </div>
+          )}
 
           {/* ── THE FOOD: below the conversation, full width ── */}
           <ResultsSection
@@ -104,42 +117,16 @@ export default memo(function HomeScreen() {
             reset={c.reset}
           />
 
-          {!c.recs && !c.persona && !c.showNearby && (
-            <div style={{ marginTop: 20, padding: '26px 20px', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: 14 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 13, background: 'var(--orange-light)', border: '1px solid rgba(249,115,22,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                <Utensils size={21} color="var(--orange)" />
-              </div>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: '0 0 12px' }}>
-                Tell me your city, budget and cravings, and the picks will land right below.
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center' }}>
-                {[
-                  [MapPin, '8 cities covered'],
-                  [Utensils, '60 curated restaurants'],
-                  [Sparkles, 'AI-ranked by taste match'],
-                ].map(([Icon, label]) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Icon size={13} color="var(--orange)" />
-                    <span style={{ fontSize: 12, color: 'var(--text-hint)' }}>{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <Footer />
+          <div className="home-foot">
+            <Footer />
+          </div>
         </div>
       </div>
 
       {/* ── THE COMPOSER: always on screen, like every modern AI chat ── */}
       <div className="composer-dock">
         <div className="home-column">
-          <div style={{
-            background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: 22,
-            display: 'flex', alignItems: 'flex-end', gap: 8, padding: '8px 10px 8px 16px',
-            transition: 'border-color 0.2s, box-shadow 0.2s',
-            boxShadow: '0 6px 24px rgba(0,0,0,0.18)',
-          }}>
+          <div className="composer-box">
             <label htmlFor="chat-input" className="sr-only">Describe yourself — city, budget, what you're craving</label>
             <textarea
               id="chat-input"
@@ -152,12 +139,14 @@ export default memo(function HomeScreen() {
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none', resize: 'none',
                 fontSize: 14, color: 'var(--text-primary)', fontFamily: 'inherit', lineHeight: 1.5,
-                maxHeight: 140, minHeight: 30, padding: '5px 0',
+                maxHeight: 140, minHeight: 44, padding: '4px 0',
               }}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingBottom: 2 }}>
-              {c.loading && (
-                <span style={{ fontSize: 10, color: 'var(--text-hint)', alignSelf: 'flex-end', marginRight: 2 }} aria-hidden="true">{c.inputVal.length}/500</span>
+              {c.inputVal.length > 0 && (
+                <span style={{ fontSize: 10, color: 'var(--text-hint)', alignSelf: 'flex-end', marginRight: 2 }} aria-hidden="true">
+                  {c.inputVal.length}/500
+                </span>
               )}
               <VoiceButton
                 onTranscript={(text) => {
@@ -169,32 +158,25 @@ export default memo(function HomeScreen() {
               />
               {c.loading ? (
                 <button
+                  type="button"
+                  className="send-btn"
+                  data-stop="true"
                   onClick={() => c.stop()}
                   aria-label={t('stop')}
                   title={t('stop')}
-                  style={{
-                    width: 34, height: 34, borderRadius: 17,
-                    background: 'rgba(239,68,68,0.12)',
-                    border: '1px solid rgba(239,68,68,0.4)', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
                 >
-                  <Square size={13} color="#F87171" fill="#F87171" />
+                  <Square size={13} fill="currentColor" aria-hidden="true" />
                 </button>
               ) : (
                 <button
+                  type="button"
+                  className="send-btn"
+                  data-ready={c.inputVal.trim() ? 'true' : 'false'}
                   onClick={() => c.sendMsg()}
                   disabled={!c.inputVal.trim()}
                   aria-label="Send message"
-                  style={{
-                    width: 34, height: 34, borderRadius: 17,
-                    background: c.inputVal.trim() ? 'var(--orange)' : 'var(--bg-card-hover)',
-                    border: 'none', cursor: c.inputVal.trim() ? 'pointer' : 'default',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 0.2s, transform 0.1s',
-                  }}
                 >
-                  <Send size={14} color={c.inputVal.trim() ? '#ffffff' : 'var(--text-hint)'} />
+                  <Send size={15} aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -204,8 +186,8 @@ export default memo(function HomeScreen() {
               {voiceError}
             </p>
           )}
-          <p style={{ fontSize: 11, color: 'var(--text-hint)', margin: '6px 0 0', paddingLeft: 2, textAlign: 'center' }}>
-            Enter to send · Shift+Enter for new line
+          <p className="composer-hint">
+            Enter to send · Shift+Enter for a new line
           </p>
         </div>
       </div>
@@ -215,7 +197,6 @@ export default memo(function HomeScreen() {
           review={c.review}
           restaurant={c.reviewRestaurant}
           onClose={() => c.setShowReview(false)}
-          isDark
         />
       )}
     </div>

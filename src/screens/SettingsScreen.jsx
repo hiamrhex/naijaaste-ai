@@ -143,12 +143,12 @@ export default memo(function SettingsScreen() {
       <ScreenHead title="Settings" subtitle={user?.email || ''} />
       <div style={{ padding: '0 16px 24px', maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {notice && (
-          <div role="status" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: '#10B981' }}>
+          <div role="status" style={{ background: 'var(--green-08)', border: '1px solid var(--green-25)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: 'var(--green)' }}>
             {notice}
           </div>
         )}
         {error && (
-          <div role="alert" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: '#F87171' }}>
+          <div role="alert" style={{ background: 'var(--red-08)', border: '1px solid var(--red-25)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: 'var(--red)' }}>
             {error}
           </div>
         )}
@@ -156,7 +156,7 @@ export default memo(function SettingsScreen() {
         <div style={row}>
           <div style={{
             width: 44, height: 44, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-            background: 'linear-gradient(135deg, #F97316, #FB923C)', display: 'flex',
+            background: 'linear-gradient(135deg, var(--orange), var(--orange-bright))', display: 'flex',
             alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: '#fff',
           }}>
             {user?.picture
@@ -234,8 +234,8 @@ export default memo(function SettingsScreen() {
                 onClick={() => chooseAutonomy(o.v)}
                 aria-pressed={autonomy === o.v}
                 style={{
-                  flex: 1, border: `1px solid ${autonomy === o.v ? 'rgba(249,115,22,0.5)' : 'var(--border)'}`,
-                  background: autonomy === o.v ? 'rgba(249,115,22,0.1)' : 'transparent',
+                  flex: 1, border: `1px solid ${autonomy === o.v ? 'var(--orange-50)' : 'var(--border)'}`,
+                  background: autonomy === o.v ? 'var(--orange-10)' : 'transparent',
                   color: autonomy === o.v ? 'var(--orange)' : 'var(--text-muted)',
                   borderRadius: 10, padding: '10px 8px', fontSize: 12.5, fontWeight: 600,
                   cursor: 'pointer', fontFamily: 'inherit', minHeight: 44,
@@ -264,7 +264,7 @@ export default memo(function SettingsScreen() {
             <button
               onClick={enablePush}
               style={{
-                background: 'linear-gradient(120deg, #F97316, #FB923C)', border: 'none', borderRadius: 10,
+                background: 'linear-gradient(120deg, var(--orange), var(--orange-bright))', border: 'none', borderRadius: 10,
                 padding: '12px 14px', fontSize: 13.5, fontWeight: 700, color: '#fff',
                 cursor: 'pointer', fontFamily: 'inherit', minHeight: 48,
               }}
@@ -313,17 +313,17 @@ export default memo(function SettingsScreen() {
 
         <FeedbackForm />
 
-        <div style={{ border: '1px solid rgba(239,68,68,0.35)', borderRadius: 12, padding: 14, background: 'rgba(239,68,68,0.04)' }}>
+        <div style={{ border: '1px solid var(--red-25)', borderRadius: 12, padding: 14, background: 'var(--red-08)' }}>
           {!confirmDelete ? (
             <button
               onClick={() => setConfirmDelete(true)}
-              style={{ background: 'none', border: 'none', color: '#F87171', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 8, minHeight: 44 }}
+              style={{ background: 'none', border: 'none', color: 'var(--red)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 8, minHeight: 44 }}
             >
               {t('deleteAccount')}
             </button>
           ) : (
             <div>
-              <p style={{ fontSize: 12.5, color: '#F87171', margin: '0 0 10px', lineHeight: 1.6 }}>{t('deleteAccountConfirm')}</p>
+              <p style={{ fontSize: 12.5, color: 'var(--red)', margin: '0 0 10px', lineHeight: 1.6 }}>{t('deleteAccountConfirm')}</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={doDelete}

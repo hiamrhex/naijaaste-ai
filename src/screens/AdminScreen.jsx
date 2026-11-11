@@ -70,7 +70,7 @@ export default function AdminScreen() {
         )}
 
         {error && (
-          <div role="alert" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: '#F87171' }}>
+          <div role="alert" style={{ background: 'var(--red-08)', border: '1px solid var(--red-25)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: 'var(--red)' }}>
             {error}
           </div>
         )}
@@ -85,7 +85,7 @@ export default function AdminScreen() {
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 12px', textAlign: 'center' }}>
                 <Icon size={15} color="var(--orange)" style={{ marginBottom: 4 }} />
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 22 }}>{value ?? '–'}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 22 }}>{value ?? '–'}</div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</div>
               </div>
             ))}
@@ -102,8 +102,8 @@ export default function AdminScreen() {
               onClick={() => { setLoading(true); setError(''); setFilter(s); }}
               aria-pressed={filter === s}
               style={{
-                flex: 1, border: `1px solid ${filter === s ? 'rgba(249,115,22,0.5)' : 'var(--border)'}`,
-                background: filter === s ? 'rgba(249,115,22,0.1)' : 'var(--bg-card)',
+                flex: 1, border: `1px solid ${filter === s ? 'var(--orange-50)' : 'var(--border)'}`,
+                background: filter === s ? 'var(--orange-10)' : 'var(--bg-card)',
                 color: filter === s ? 'var(--orange)' : 'var(--text-muted)',
                 borderRadius: 10, padding: '9px 0', fontSize: 12.5, fontWeight: 600,
                 cursor: 'pointer', fontFamily: 'inherit', minHeight: 44,

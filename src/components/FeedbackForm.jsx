@@ -47,8 +47,8 @@ export function FeedbackForm() {
 
   if (ticket) {
     return (
-      <div role="status" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        <CheckCircle size={16} color="#10B981" style={{ flexShrink: 0, marginTop: 2 }} />
+      <div role="status" style={{ background: 'var(--green-08)', border: '1px solid var(--green-25)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <CheckCircle size={16} color="var(--green)" style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)' }}>
             Thank you — we got it. Ticket {ticket}.
@@ -86,8 +86,8 @@ export function FeedbackForm() {
             onClick={() => setType(t.value)}
             aria-pressed={type === t.value}
             style={{
-              border: `1px solid ${type === t.value ? 'rgba(249,115,22,0.5)' : 'var(--border)'}`,
-              background: type === t.value ? 'rgba(249,115,22,0.1)' : 'transparent',
+              border: `1px solid ${type === t.value ? 'var(--orange-50)' : 'var(--border)'}`,
+              background: type === t.value ? 'var(--orange-10)' : 'transparent',
               color: type === t.value ? 'var(--orange)' : 'var(--text-muted)',
               borderRadius: 20, padding: '8px 13px', fontSize: 12, fontWeight: 600,
               cursor: 'pointer', fontFamily: 'inherit', minHeight: 38,
@@ -108,12 +108,12 @@ export function FeedbackForm() {
         minLength={3}
         style={{ background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '11px 12px', fontSize: 13.5, color: 'var(--text-primary)', fontFamily: 'inherit', outline: 'none', resize: 'vertical' }}
       />
-      {error && <div role="alert" style={{ fontSize: 12.5, color: '#F87171' }}>{error}</div>}
+      {error && <div role="alert" style={{ fontSize: 12.5, color: 'var(--red)' }}>{error}</div>}
       <button
         type="submit"
         disabled={busy || message.trim().length < 3}
         style={{
-          background: 'linear-gradient(120deg, #F97316, #FB923C)', border: 'none', borderRadius: 10,
+          background: 'linear-gradient(120deg, var(--orange), var(--orange-bright))', border: 'none', borderRadius: 10,
           padding: '12px 14px', fontSize: 13.5, fontWeight: 700, color: '#fff',
           cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
           alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 48,

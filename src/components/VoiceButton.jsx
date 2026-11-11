@@ -62,13 +62,13 @@ export function VoiceButton({ onTranscript, onError }) {
       aria-pressed={state === 'listening'}
       style={{
         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-        background: state === 'listening' ? 'rgba(239,68,68,0.12)' : 'var(--bg-card-hover)',
-        border: state === 'listening' ? '1px solid rgba(239,68,68,0.4)' : '1px solid transparent',
+        background: state === 'listening' ? 'var(--red-light)' : 'var(--bg-card-hover)',
+        border: state === 'listening' ? '1px solid var(--red-25)' : '1px solid transparent',
         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
     >
       {state === 'listening'
-        ? <MicOff size={15} color="#F87171" />
+        ? <MicOff size={15} color="var(--red)" />
         : <Mic size={15} color="var(--text-hint)" />}
     </button>
   );

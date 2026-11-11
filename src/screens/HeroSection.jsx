@@ -1,54 +1,38 @@
 import { memo } from 'react';
-import { Globe } from 'lucide-react';
 
-export const HeroSection = memo(({ heroIdx, heroVisible, currentHero }) => {
+/**
+ * The opening line of a Nigerian home: "have you eaten?"
+ * The phrase rotates through Yoruba, Hausa, Igbo, Pidgin and English, but the
+ * type does the talking — no gradient text, no badge, no decoration.
+ */
+export const HeroSection = memo(({ heroVisible, currentHero }) => {
   return (
-    <div style={{ textAlign: 'center', padding: '22px 20px 10px', position: 'relative', overflow: 'hidden' }}>
-      <div style={{
-        position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)',
-        width: 400, height: 200,
-        background: 'radial-gradient(ellipse, rgba(249,115,22,0.06) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
-        borderRadius: 20, padding: '4px 12px', marginBottom: 12,
-      }}>
-        <Globe size={11} color="var(--green)" />
-        <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600, letterSpacing: '0.05em' }}>
-          Powered by Nigerian Cultural Intelligence
+    <section className="hero hero-center" aria-label="Welcome">
+      <span className="hero-rule" aria-hidden="true" />
+      <p className="hero-eyebrow">Your dining concierge for 60 kitchens across 8 cities</p>
+      <div style={{ minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <h1
+          className="hero-title"
+          style={{
+            opacity: heroVisible ? 1 : 0,
+            transform: heroVisible ? 'translateY(0)' : 'translateY(8px)',
+            transition: 'opacity 0.35s ease, transform 0.35s ease',
+          }}
+        >
+          {currentHero.text}
+        </h1>
+        <span
+          className="hero-lang"
+          style={{ opacity: heroVisible ? 0.75 : 0, transition: 'opacity 0.3s ease' }}
+        >
+          {currentHero.lang}
         </span>
       </div>
-      <div style={{ minHeight: 56, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <h1 style={{
-          fontFamily: "'Syne', sans-serif", fontWeight: 800,
-          fontSize: 'clamp(24px, 4.4vw, 38px)', lineHeight: 1.1,
-          letterSpacing: '-1px', margin: '0 0 4px',
-          opacity: heroVisible ? 1 : 0,
-          transform: heroVisible ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.97)',
-          transition: 'opacity 0.4s ease, transform 0.4s ease',
-        }}>
-          <span className={
-            heroIdx === 5 ? 'gradient-hero-english' :
-            heroIdx === 4 ? 'gradient-hero-pidgin2' :
-            'gradient-hero-main'
-          }>
-            {currentHero.text}
-          </span>
-        </h1>
-        <div style={{
-          fontSize: 11, color: 'var(--text-muted)',
-          opacity: heroVisible ? 0.7 : 0, transition: 'opacity 0.35s ease',
-          marginBottom: 2,
-        }}>
-          {currentHero.lang}
-        </div>
-      </div>
-      <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '4px 0 0' }}>
-        AI-powered recommendations · 60 Nigerian restaurants · 8 cities
+      <p className="hero-sub">
+        Tell me your city, your budget and what you're craving — I'll bring back
+        the shortlist, the reasons and the directions.
       </p>
-    </div>
+    </section>
   );
 });
 

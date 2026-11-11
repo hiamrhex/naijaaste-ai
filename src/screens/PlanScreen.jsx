@@ -22,8 +22,8 @@ const OccasionButton = memo(({ occasion, selected, onClick }) => (
     onClick={onClick}
     aria-pressed={selected}
     style={{
-      border: `1px solid ${selected ? 'rgba(249,115,22,0.5)' : 'var(--border)'}`,
-      background: selected ? 'rgba(249,115,22,0.12)' : 'var(--bg-card)',
+      border: `1px solid ${selected ? 'var(--orange-50)' : 'var(--border)'}`,
+      background: selected ? 'var(--orange-10)' : 'var(--bg-card)',
       color: selected ? 'var(--orange)' : 'var(--text-muted)',
       borderRadius: 20, padding: '8px 14px', fontSize: 12.5, fontWeight: 600,
       cursor: 'pointer', fontFamily: 'inherit', minHeight: 40,
@@ -41,8 +41,8 @@ const DietaryButton = memo(({ dietary, selected, onClick }) => (
     onClick={onClick}
     aria-pressed={selected}
     style={{
-      border: `1px solid ${selected ? 'rgba(16,185,129,0.5)' : 'var(--border)'}`,
-      background: selected ? 'rgba(16,185,129,0.1)' : 'var(--bg-card)',
+      border: `1px solid ${selected ? 'var(--green-32)' : 'var(--border)'}`,
+      background: selected ? 'var(--green-light)' : 'var(--bg-card)',
       color: selected ? 'var(--green)' : 'var(--text-muted)',
       borderRadius: 20, padding: '8px 14px', fontSize: 12.5, fontWeight: 600,
       cursor: 'pointer', fontFamily: 'inherit', minHeight: 40,
@@ -220,7 +220,7 @@ export default memo(function PlanScreen() {
           </div>
 
           {error && (
-            <div role="alert" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: '#F87171' }}>
+            <div role="alert" style={{ background: 'var(--red-08)', border: '1px solid var(--red-25)', borderRadius: 10, padding: '9px 12px', fontSize: 12.5, color: 'var(--red)' }}>
               {error}
             </div>
           )}
@@ -230,7 +230,7 @@ export default memo(function PlanScreen() {
             disabled={status === 'loading'}
             className="pressable"
             style={{
-              background: 'linear-gradient(120deg, #F97316, #FB923C)', border: 'none', borderRadius: 11,
+              background: 'linear-gradient(120deg, var(--orange), var(--orange-bright))', border: 'none', borderRadius: 11,
               padding: '13px 14px', fontSize: 14.5, fontWeight: 700, color: '#fff',
               cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
               alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48,
@@ -244,7 +244,7 @@ export default memo(function PlanScreen() {
         {status === 'ready' && (
           <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, margin: 0 }}>{t('planReady')}</h2>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, margin: 0 }}>{t('planReady')}</h2>
               <button
                 onClick={share}
                 style={{
@@ -264,7 +264,7 @@ export default memo(function PlanScreen() {
         )}
 
         {showReview && (
-          <ReviewModal review={review} restaurant={reviewRestaurant} onClose={() => setShowReview(false)} isDark />
+          <ReviewModal review={review} restaurant={reviewRestaurant} onClose={() => setShowReview(false)} />
         )}
       </div>
     </div>

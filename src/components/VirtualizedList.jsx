@@ -118,7 +118,7 @@ export const VirtualizedList = memo(({
           left: 0,
           right: 0,
           height: 4,
-          background: 'rgba(249, 115, 22, 0.2)',
+          background: 'var(--orange-20)',
           zIndex: 10,
         }}>
           <div style={{

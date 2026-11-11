@@ -26,14 +26,12 @@ export const ResultsSection = memo(({ recs, persona, showNearby, nearbyLoading, 
 
       {recs && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Utensils size={15} color="var(--orange)" />
-              {recs.length} Spot{recs.length === 1 ? '' : 's'} Found
+          <div className="results-head">
+            <h2 className="results-title">
+              <Utensils size={15} color="var(--orange)" aria-hidden="true" />
+              {recs.length} spot{recs.length === 1 ? '' : 's'} worth eating at
             </h2>
-            <span style={{ fontSize: 11, background: 'rgba(16,185,129,0.12)', color: 'var(--green)', border: '1px solid rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
-              Ready
-            </span>
+            <span className="results-ready">Ready</span>
           </div>
 
           <div className="results-grid">
@@ -48,7 +46,6 @@ export const ResultsSection = memo(({ recs, persona, showNearby, nearbyLoading, 
                   rec={r}
                   index={i}
                   onReview={generateReview}
-                  persona={persona}
                   distanceKm={distanceKm}
                   directionsUrl={geo?.directions_url}
                   isFavorite={favorites.includes(r.restaurant_id)}
@@ -59,19 +56,19 @@ export const ResultsSection = memo(({ recs, persona, showNearby, nearbyLoading, 
           </div>
 
           {recs.meta && (
-            <div style={{ marginTop: 12, padding: '10px 14px', background: 'var(--bg-card-hover)', borderRadius: 10, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            <div className="results-meta">
               {recs.meta.after_hard_filter != null && (
-                <span style={{ fontSize: 11, color: 'var(--text-hint)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <BarChart3 size={11} />{recs.meta.after_hard_filter} restaurants filtered
+                <span>
+                  <BarChart3 size={11} aria-hidden="true" />{recs.meta.after_hard_filter} restaurants filtered
                 </span>
               )}
               {recs.meta.candidates_sent_to_llm != null && (
-                <span style={{ fontSize: 11, color: 'var(--text-hint)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <MessageSquare size={11} />{recs.meta.candidates_sent_to_llm} ranked by AI
+                <span>
+                  <MessageSquare size={11} aria-hidden="true" />{recs.meta.candidates_sent_to_llm} ranked by AI
                 </span>
               )}
-              <span style={{ fontSize: 11, color: 'var(--text-hint)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Clock size={11} />{recs.meta.latency_ms}ms
+              <span>
+                <Clock size={11} aria-hidden="true" />{recs.meta.latency_ms}ms
               </span>
             </div>
           )}

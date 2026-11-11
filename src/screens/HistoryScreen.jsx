@@ -56,7 +56,7 @@ export default memo(function HistoryScreen() {
   }), []);
 
   const sectionTitle = useMemo(() => ({
-    fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 14,
+    fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14,
     color: 'var(--text-primary)', margin: '18px 0 8px', display: 'flex', alignItems: 'center', gap: 7,
   }), []);
 

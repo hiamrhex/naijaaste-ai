@@ -1,10 +1,10 @@
 export function Tag({ children, variant = "default" }) {
   const styles = {
     default: { bg: "var(--bg-card-hover)", color: "var(--text-secondary)", border: "var(--border)" },
-    orange: { bg: "rgba(249,115,22,0.12)", color: "var(--orange)", border: "rgba(249,115,22,0.3)" },
-    green: { bg: "rgba(16,185,129,0.12)", color: "var(--green)", border: "rgba(16,185,129,0.3)" },
-    amber: { bg: "rgba(245,158,11,0.12)", color: "var(--amber)", border: "rgba(245,158,11,0.3)" },
-    blue: { bg: "rgba(59,130,246,0.12)", color: "#60a5fa", border: "rgba(59,130,246,0.3)" },
+    orange: { bg: "var(--orange-10)", color: "var(--orange)", border: "var(--orange-30)" },
+    green: { bg: "var(--green-light)", color: "var(--green)", border: "var(--green-25)" },
+    amber: { bg: "var(--amber-light)", color: "var(--amber)", border: "rgba(224,169,59,0.3)" },
+    blue: { bg: "var(--amber-light)", color: "var(--amber)", border: "rgba(224,169,59,0.3)" },
   };
   const s = styles[variant] || styles.default;
   return (

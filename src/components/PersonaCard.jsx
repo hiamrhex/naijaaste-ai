@@ -10,21 +10,23 @@ export function PersonaCard({ persona }) {
 
   return (
     <div className="slide-in-right" style={{
-      background: "var(--bg-card)", border: "1px solid var(--border)",
+      background: "var(--bg-card)", border: "1px solid var(--rim, var(--border))",
       borderRadius: 16, padding: "16px 18px", marginBottom: 12,
+      boxShadow: "var(--shadow-card)",
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{
-            width: 32, height: 32, borderRadius: 10, background: "rgba(249,115,22,0.15)",
+            width: 32, height: 32, borderRadius: 10, background: "var(--orange-15)",
+            border: "1px solid var(--orange-25)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <Users size={16} color="var(--orange)" />
+            <Users size={16} color="var(--orange)" aria-hidden="true" />
           </div>
-          <span style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>Your Taste Profile</span>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>Your Taste Profile</span>
         </div>
-        <Tag variant={persona.user_state === "warm" ? "green" : "blue"}>
-          {persona.user_state === "warm" ? <ShieldCheck size={10} /> : <Sparkles size={10} />}
+        <Tag variant={persona.user_state === "warm" ? "green" : "amber"}>
+          {persona.user_state === "warm" ? <ShieldCheck size={10} aria-hidden="true" /> : <Sparkles size={10} aria-hidden="true" />}
           {persona.user_state === "warm" ? "Warm User" : "Cold Start"}
         </Tag>
       </div>
@@ -66,7 +68,7 @@ export function PersonaCard({ persona }) {
         )}
         {persona.social_context && (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Users size={13} color="#60a5fa" />
+            <Users size={13} color="var(--amber)" />
             <div>
               <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Occasion</div>
               <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-primary)", textTransform: "capitalize" }}>

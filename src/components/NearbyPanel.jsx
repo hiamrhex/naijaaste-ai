@@ -10,13 +10,13 @@ export function NearbyPanel({ loading, error, nearby, onRetry, onClose, favorite
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 34, height: 34, borderRadius: 10,
-            background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
+            background: 'var(--green-light)', border: '1px solid var(--green-25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <Crosshair size={16} color="var(--green)" />
           </div>
           <div>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
               Near You
             </span>
             {nearby && (
@@ -53,8 +53,8 @@ export function NearbyPanel({ loading, error, nearby, onRetry, onClose, favorite
       {error && (
         <div style={{ padding: '0 16px 14px' }}>
           <div style={{
-            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-            borderRadius: 9, padding: '9px 12px', fontSize: 12.5, color: '#F87171',
+            background: 'var(--red-08)', border: '1px solid var(--red-25)',
+            borderRadius: 9, padding: '9px 12px', fontSize: 12.5, color: 'var(--red)',
           }} role="alert">
             {error}
           </div>
@@ -93,15 +93,15 @@ export function NearbyPanel({ loading, error, nearby, onRetry, onClose, favorite
             >
               <div style={{
                 width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
+                background: 'var(--green-light)', border: '1px solid var(--green-25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 11, color: 'var(--green)',
+                fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 11, color: 'var(--green)',
               }}>
                 {fmtKm(r.distance_km)}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{
-                  fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13,
+                  fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13,
                   color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {r.name}
@@ -121,12 +121,12 @@ export function NearbyPanel({ loading, error, nearby, onRetry, onClose, favorite
                   title={isFav ? 'Remove from saved' : 'Save spot'}
                   aria-label={isFav ? 'Remove from saved' : 'Save spot'}
                   style={{
-                    background: isFav ? 'rgba(239,68,68,0.1)' : 'var(--bg-card)',
-                    border: `1px solid ${isFav ? 'rgba(239,68,68,0.4)' : 'var(--border)'}`,
+                    background: isFav ? 'var(--red-light)' : 'var(--bg-card)',
+                    border: `1px solid ${isFav ? 'var(--red-25)' : 'var(--border)'}`,
                     borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex',
                   }}
                 >
-                  <Heart size={13} color={isFav ? '#F87171' : 'var(--text-muted)'} fill={isFav ? '#F87171' : 'none'} />
+                  <Heart size={13} color={isFav ? 'var(--red)' : 'var(--text-muted)'} fill={isFav ? 'var(--red)' : 'none'} />
                 </button>
                 <a
                   href={r.directions_url}

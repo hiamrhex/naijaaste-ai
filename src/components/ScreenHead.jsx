@@ -20,7 +20,7 @@ export function ScreenHead({ title, subtitle, backTo = '/' }) {
           <ArrowLeft size={16} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, margin: 0, color: 'var(--text-primary)' }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 20, margin: 0, color: 'var(--text-primary)' }}>
             {title}
           </h1>
           {subtitle && (

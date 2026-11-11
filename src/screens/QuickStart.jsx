@@ -1,35 +1,25 @@
 import { memo } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { QUICK_PROMPTS } from '../constants/index.js';
 
 export const QuickStart = memo(({ showQuickPrompts, onSendMsg }) => {
   if (!showQuickPrompts) return null;
 
   return (
-    <div className="fade-in" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px', marginBottom: 16 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
-        Quick Start
+    <section className="quick-menu fade-in" aria-labelledby="quick-menu-title">
+      <div className="quick-menu-head">
+        <span className="quick-menu-title" id="quick-menu-title">Start with a craving</span>
+        <span className="quick-menu-note">Tap one, then edit it</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div className="quick-menu-list">
         {QUICK_PROMPTS.map((q) => (
-          <button
-            key={q}
-            onClick={() => onSendMsg(q)}
-            style={{
-              background: 'var(--bg-card-hover)', border: '1px solid var(--border)',
-              borderRadius: 9, padding: '8px 12px', textAlign: 'left',
-              fontSize: 12.5, color: 'var(--text-secondary)',
-              cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.4,
-              transition: 'all 0.15s', display: 'flex', alignItems: 'center',
-              justifyContent: 'space-between', gap: 8, minHeight: 44,
-            }}
-          >
+          <button key={q} type="button" className="quick-item" onClick={() => onSendMsg(q)}>
             <span>{q}</span>
-            <ArrowRight size={12} style={{ flexShrink: 0, opacity: 0.4 }} />
+            <ArrowUpRight size={13} aria-hidden="true" />
           </button>
         ))}
       </div>
-    </div>
+    </section>
   );
 });
 

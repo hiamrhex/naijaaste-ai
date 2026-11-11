@@ -1,15 +1,16 @@
 import { memo } from 'react';
-import { ChefHat, RefreshCw, Square, Zap } from 'lucide-react';
+import { ChefHat, RefreshCw, Zap } from 'lucide-react';
 import { Markdown } from '../components/Markdown.jsx';
 import { ThinkingDots } from '../components/ThinkingDots.jsx';
 
-export const ConversationStream = memo(({ messages, loading, generateReview, stop }) => {
+export const ConversationStream = memo(({ messages, loading, generateReview }) => {
   return (
     <div
       className="chat-stream"
       role="log"
       aria-label="Chat messages"
       aria-live="polite"
+      aria-busy={loading || undefined}
     >
       {messages.map((m, i) => (
         <div
@@ -23,16 +24,16 @@ export const ConversationStream = memo(({ messages, loading, generateReview, sto
         >
           {m.role === 'assistant' && (
             <div style={{ maxWidth: '100%', minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <div style={{ width: 20, height: 20, borderRadius: 6, background: 'var(--orange-light)', border: '1px solid rgba(249,115,22,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <ChefHat size={10} color="var(--orange)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--orange-light)', border: '1px solid var(--orange-30)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ChefHat size={11} color="var(--orange)" aria-hidden="true" />
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--orange)', letterSpacing: '0.08em' }}>NAIJATASTE</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--orange)', letterSpacing: '0.09em' }}>NAIJATASTE</span>
               </div>
               <div
                 style={{
-                  fontSize: 14, lineHeight: 1.65,
-                  color: m.error ? '#F87171' : 'var(--text-primary)',
+                  fontSize: 14.5, lineHeight: 1.7,
+                  color: m.error ? 'var(--red)' : 'var(--text-primary)',
                 }}
               >
                 <Markdown text={m.content} />
@@ -53,16 +54,10 @@ export const ConversationStream = memo(({ messages, loading, generateReview, sto
                 </button>
               )}
               {m.trace && m.trace.some((s) => s.tool) && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
                   {m.trace.filter((s) => s.tool).map((s, ti) => (
-                    <span key={ti} style={{
-                      fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4,
-                      background: s.ok ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
-                      border: `1px solid ${s.ok ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
-                      color: s.ok ? 'var(--green)' : '#F87171',
-                      padding: '2px 8px', borderRadius: 20, fontWeight: 600,
-                    }}>
-                      <Zap size={9} />{s.tool}
+                    <span key={ti} className="trace-chip" data-ok={String(!!s.ok)}>
+                      <Zap size={9} aria-hidden="true" />{s.tool}
                     </span>
                   ))}
                 </div>
@@ -84,30 +79,12 @@ export const ConversationStream = memo(({ messages, loading, generateReview, sto
       ))}
       {loading && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: 6, background: 'var(--orange-light)', border: '1px solid rgba(249,115,22,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ChefHat size={10} color="var(--orange)" />
+          <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--orange-light)', border: '1px solid var(--orange-30)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ChefHat size={11} color="var(--orange)" aria-hidden="true" />
           </div>
-          <div style={{ background: 'var(--chat-bot-bg)', border: '1px solid var(--border)', borderRadius: '4px 14px 14px 14px', padding: '8px 12px' }}>
+          <div style={{ background: 'var(--chat-bot-bg)', border: '1px solid var(--border)', borderRadius: '4px 14px 14px 14px', padding: '9px 13px' }}>
             <ThinkingDots />
           </div>
-          {stop && (
-            <button
-              type="button"
-              onClick={() => stop()}
-              aria-label="Stop generating"
-              title="Stop generating"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                background: 'transparent', border: '1px solid var(--border)',
-                borderRadius: 20, padding: '3px 10px', cursor: 'pointer',
-                color: 'var(--text-muted)', fontSize: 11, fontWeight: 600,
-                fontFamily: 'inherit', minHeight: 44, marginTop: 4,
-              }}
-            >
-              <Square size={9} fill="currentColor" aria-hidden="true" />
-              Stop
-            </button>
-          )}
         </div>
       )}
     </div>

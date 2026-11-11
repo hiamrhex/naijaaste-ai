@@ -47,7 +47,7 @@ const ResultItem = memo(({ result, index, isFavorite, onToggleFavorite, fmtKm })
     >
       <div style={{
         width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-        background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
+        background: 'var(--green-light)', border: '1px solid var(--green-25)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 11, fontWeight: 800, color: 'var(--green)',
       }}>
@@ -65,13 +65,13 @@ const ResultItem = memo(({ result, index, isFavorite, onToggleFavorite, fmtKm })
         aria-label={isFavorite ? 'Remove from saved' : 'Save spot'}
         aria-pressed={!!isFavorite}
         style={{
-          background: isFavorite ? 'rgba(239,68,68,0.1)' : 'var(--bg-card)',
-          border: `1px solid ${isFavorite ? 'rgba(239,68,68,0.4)' : 'var(--border)'}`,
+          background: isFavorite ? 'var(--red-light)' : 'var(--bg-card)',
+          border: `1px solid ${isFavorite ? 'var(--red-25)' : 'var(--border)'}`,
           borderRadius: 8, padding: 6, cursor: 'pointer', display: 'flex', minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center',
         }}
       >
         <span key={String(!!isFavorite)} className={isFavorite ? 'heart-pop' : undefined} style={{ display: 'flex' }}>
-          <Heart size={13} color={isFavorite ? '#F87171' : 'var(--text-muted)'} fill={isFavorite ? '#F87171' : 'none'} />
+          <Heart size={13} color={isFavorite ? 'var(--red)' : 'var(--text-muted)'} fill={isFavorite ? 'var(--red)' : 'none'} />
         </span>
       </button>
       {result.directions_url && (
@@ -214,8 +214,8 @@ const locate = () => {
 
         {error && (
           <div role="alert" style={{
-            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-            borderRadius: 10, padding: '10px 12px', fontSize: 13, color: '#F87171',
+            background: 'var(--red-08)', border: '1px solid var(--red-25)',
+            borderRadius: 10, padding: '10px 12px', fontSize: 13, color: 'var(--red)',
           }}>
             {error}
           </div>
