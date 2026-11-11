@@ -27,7 +27,9 @@ describe('deterministic fallback when the model fails', () => {
     const hints = extractHints('I need cheap jollof in Lagos, very spicy');
     expect(hints.city).toBe('Lagos');
     expect(hints.budget_level).toBe('budget');
-    expect(hints.spice_tolerance).toBe('hot');
+    // "very spicy" is intentionally stronger than plain "spicy".
+    expect(hints.spice_tolerance).toBe('extra_hot');
+    expect(extractHints('cheap jollof in Lagos, spicy').spice_tolerance).toBe('hot');
   });
 
   it('produces real catalogue picks for a city-scoped request', async () => {
