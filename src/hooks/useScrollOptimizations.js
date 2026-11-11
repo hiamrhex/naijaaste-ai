@@ -18,53 +18,67 @@ export function useInfiniteScroll({
   const [page, setPage] = useState(1);
   
   const observer = useRef();
+  const loadingRef = useRef(false);
+  const initialLoadDone = useRef(false);
+
+  // `threshold` is the pixel distance the caller wants to preload (it is
+  // paired with rootMargin). IntersectionObserver only accepts a 0–1 ratio,
+  // and passing 200 throws before the observer is ever created.
+  const observerThreshold = threshold > 0 && threshold <= 1 ? threshold : 0;
+
+  const loadMore = useCallback(async () => {
+    if (loadingRef.current || !hasMore) return;
+
+    loadingRef.current = true;
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const newData = await fetchCallback(page);
+      const rows = Array.isArray(newData) ? newData : [];
+      setData(prev => [...prev, ...rows]);
+      setHasMore(rows.length > 0);
+      setPage(prev => prev + 1);
+    } catch (err) {
+      setError(err);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  }, [fetchCallback, page, hasMore]);
+
   const lastElementRef = useCallback((node) => {
     if (loading) return;
     
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore && !loading) {
+      if (entries[0].isIntersecting && hasMore && !loadingRef.current) {
         loadMore();
       }
     }, {
       rootMargin,
-      threshold,
+      threshold: observerThreshold,
     });
     
     if (node) observer.current.observe(node);
-  }, [loading, hasMore, rootMargin, threshold]);
-
-  const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const newData = await fetchCallback(page);
-      setData(prev => [...prev, ...newData]);
-      setHasMore(newData.length > 0);
-      setPage(prev => prev + 1);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCallback, page, loading, hasMore]);
+  }, [loading, hasMore, rootMargin, observerThreshold, loadMore]);
 
   const reset = useCallback(() => {
     setData([]);
     setPage(1);
     setHasMore(true);
     setError(null);
+    initialLoadDone.current = false;
   }, []);
 
-  // Initial load
+  // Initial load: exactly once. Depending on `loadMore` re-ran the effect
+  // every time `page` changed, so mount auto-paginated the whole dataset
+  // (235 requests before the guard was added).
   useEffect(() => {
-    if (initialLoad) {
-      loadMore();
-    }
+    if (!initialLoad || initialLoadDone.current) return;
+    initialLoadDone.current = true;
+    loadMore();
   }, [initialLoad, loadMore]);
 
   return {
@@ -109,37 +123,44 @@ export function useThrottledScroll(callback, delay = 100) {
 // Hook for detecting scroll direction
 export function useScrollDirection() {
   const [scrollDirection, setScrollDirection] = useState('down');
-  const [lastScrollTop, setLastScrollTop] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
-  
+  const lastScrollTopRef = useRef(0);
+  const directionRef = useRef('down');
+
   const handleScroll = useCallback((event) => {
-    const scrollTop = event.target.scrollTop;
-    const windowHeight = event.target.clientHeight;
-    const scrollHeight = event.target.scrollHeight;
-    
-    // Determine scroll direction
-    if (scrollTop > lastScrollTop) {
-      setScrollDirection('down');
-    } else if (scrollTop < lastScrollTop) {
-      setScrollDirection('up');
+    const target = event?.target ?? {};
+    const scrollTop = Number(target.scrollTop) || 0;
+    const windowHeight = Number(target.clientHeight) || 0;
+    const scrollHeight = Number(target.scrollHeight) || 0;
+
+    // Work out the direction from the event being handled right now. Reading
+    // it from state returned the direction of the *previous* event, so callers
+    // were always one scroll behind.
+    const previous = lastScrollTopRef.current;
+    let direction = directionRef.current;
+    if (scrollTop > previous) {
+      direction = 'down';
+    } else if (scrollTop < previous) {
+      direction = 'up';
     }
-    
-    // Check if scrolling
+
+    lastScrollTopRef.current = scrollTop;
+    directionRef.current = direction;
     setIsScrolling(true);
-    setLastScrollTop(scrollTop);
-    
+    setScrollDirection(direction);
+
     // Check if at bottom
     const isAtBottom = scrollHeight - scrollTop <= windowHeight + 50;
-    
+
     return {
-      direction: scrollDirection,
+      direction,
       isAtBottom,
       scrollTop,
       scrollHeight,
       windowHeight,
     };
-  }, [lastScrollTop, scrollDirection]);
-  
+  }, []);
+
   return { scrollDirection, isScrolling, handleScroll };
 }
 
@@ -149,10 +170,18 @@ export function useScrollPosition() {
   const [scrollProgress, setScrollProgress] = useState(0);
   
   const handleScroll = useCallback(() => {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const progress = (scrollTop / scrollHeight) * 100;
-    
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+    const scrollable =
+      document.documentElement.scrollHeight - document.documentElement.clientHeight;
+
+    // A page that fits inside the viewport cannot scroll. Dividing by zero
+    // produced NaN, which then propagated into every consumer of
+    // scrollProgress.
+    const progress =
+      scrollable > 0
+        ? Math.min(100, Math.max(0, (scrollTop / scrollable) * 100))
+        : 0;
+
     setScrollPosition(scrollTop);
     setScrollProgress(progress);
   }, []);
