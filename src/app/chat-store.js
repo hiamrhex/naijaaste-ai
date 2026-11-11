@@ -20,12 +20,19 @@ const readStored = () => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...EMPTY };
     const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.messages) || !parsed.messages.length) return { ...EMPTY };
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { ...EMPTY };
+    if (!Array.isArray(parsed.messages) || !parsed.messages.length) return { ...EMPTY };
     // Restore messages; never restore a half-finished request or stale error bubble.
+    const messages = parsed.messages.filter(
+      (m) => m && typeof m === 'object' && typeof m.content === 'string'
+    );
+    // Filtering can empty the list (e.g. every row was written without
+    // content); that would hydrate a chat with no greeting at all.
+    if (!messages.length) return { ...EMPTY };
     return {
       ...EMPTY,
       ...parsed,
-      messages: parsed.messages.filter(m => m && typeof m.content === 'string'),
+      messages,
     };
   } catch { return { ...EMPTY }; }
 };
