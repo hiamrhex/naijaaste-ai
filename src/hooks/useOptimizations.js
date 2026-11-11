@@ -65,16 +65,32 @@ export function useImageLoading(src, placeholder = null) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // An empty source used to be assigned to `img.src`, which makes the
+    // browser fetch the current page as if it were an image.
+    if (!src) {
+      setImageSrc(placeholder);
+      setIsLoading(false);
+      setError(null);
+      return undefined;
+    }
+
+    let cancelled = false;
     const img = new globalThis.Image();
+
+    // Drop the previous picture while the next one downloads so the UI does
+    // not show the wrong dish.
+    setImageSrc(placeholder);
     setIsLoading(true);
     setError(null);
 
     img.onload = () => {
+      if (cancelled) return;
       setImageSrc(src);
       setIsLoading(false);
     };
 
     img.onerror = () => {
+      if (cancelled) return;
       setError('Failed to load image');
       setIsLoading(false);
     };
@@ -82,10 +98,11 @@ export function useImageLoading(src, placeholder = null) {
     img.src = src;
 
     return () => {
+      cancelled = true;
       img.onload = null;
       img.onerror = null;
     };
-  }, [src]);
+  }, [src, placeholder]);
 
   return { imageSrc, isLoading, error };
 }
