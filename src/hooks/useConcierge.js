@@ -9,7 +9,16 @@ const HISTORY_KEY = 'nt.history.v1';
 const HISTORY_CAP = 30;
 
 const readHistory = () => {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    // Anything that is not an array of objects (older schema, hand-edited
+    // storage, a partial write) used to reach HistoryScreen and crash on
+    // `.filter`. Hand back only usable rows.
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (entry) => entry && typeof entry === 'object' && !Array.isArray(entry)
+    );
+  } catch { return []; }
 };
 
 const logHistory = (entry) => {
@@ -112,6 +121,7 @@ export function useConcierge({ chatEndRef }) {
     if (nearbyLoading) return;
     setShowNearby(true);
     setNearbyError('');
+    setNearby(null); // never show results from a previous search
     setNearbyLoading(true);
     if (!navigator.geolocation) {
       setNearbyLoading(false);
@@ -146,14 +156,20 @@ export function useConcierge({ chatEndRef }) {
 
   /* Hero phrase rotation */
   useEffect(() => {
+    let swapTimer;
     const interval = setInterval(() => {
       setHeroVisible(false);
-      setTimeout(() => {
+      swapTimer = setTimeout(() => {
         setHeroIdx((i) => (i + 1) % HERO_PHRASES.length);
         setHeroVisible(true);
       }, 400);
     }, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // The 400ms swap timer was left running on unmount and could set state
+      // on a screen the user had already left.
+      clearTimeout(swapTimer);
+    };
   }, []);
 
   /* Auto-scroll */
