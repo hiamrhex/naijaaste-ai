@@ -9,60 +9,90 @@ export function useOptimizedState(initialValue, options = {}) {
     onOptimizedUpdate 
   } = options;
 
-  const [value, setValue] = useState(initialValue);
+  const [value, setValueState] = useState(initialValue);
   const [pendingValue, setPendingValue] = useState(null);
+  const valueRef = useRef(initialValue);
   const updateCountRef = useRef(0);
-  const timeoutRef = useRef();
-  const lastUpdateRef = useRef(0);
+  const debounceTimerRef = useRef(null);
+  const throttleTimerRef = useRef(null);
+  const lastAppliedRef = useRef(0);
+  const onUpdateRef = useRef(onOptimizedUpdate);
 
-  // Debounced update
   useEffect(() => {
-    if (debounceMs > 0 && pendingValue !== null) {
-      timeoutRef.current = setTimeout(() => {
-        setValue(pendingValue);
-        setPendingValue(null);
-        updateCountRef.current++;
-        onOptimizedUpdate?.(pendingValue, updateCountRef.current);
-      }, debounceMs);
+    onUpdateRef.current = onOptimizedUpdate;
+  }, [onOptimizedUpdate]);
+
+  const clearTimers = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
     }
+    if (throttleTimerRef.current) {
+      clearTimeout(throttleTimerRef.current);
+      throttleTimerRef.current = null;
+    }
+  }, []);
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [pendingValue, debounceMs, onOptimizedUpdate]);
+  useEffect(() => clearTimers, [clearTimers]);
 
-  // Throttled update
-  const throttledSetValue = useCallback((newValue) => {
-    const now = Date.now();
-    
-    if (throttleMs > 0 && now - lastUpdateRef.current < throttleMs) {
-      setPendingValue(newValue);
+  const apply = useCallback((next) => {
+    valueRef.current = next;
+    setValueState(next);
+    setPendingValue(null);
+    updateCountRef.current += 1;
+    if (updateCountRef.current >= maxUpdates) updateCountRef.current = 0;
+    onUpdateRef.current?.(next, updateCountRef.current);
+  }, [maxUpdates]);
+
+  const resolve = (next) =>
+    typeof next === 'function' ? next(valueRef.current) : next;
+
+  // Debounce: wait for a quiet period, then apply the latest value.
+  // Throttle: apply the leading value now, then hold at most one trailing
+  // value until the window closes. Previously the debounce option was inert
+  // and a throttled value sat in `pendingValue` forever.
+  const setValue = useCallback((next) => {
+    const resolved = resolve(next);
+
+    if (debounceMs > 0) {
+      setPendingValue(resolved);
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(() => {
+        debounceTimerRef.current = null;
+        apply(resolved);
+      }, debounceMs);
       return;
     }
 
-    setValue(newValue);
-    lastUpdateRef.current = now;
-    updateCountRef.current++;
-    onOptimizedUpdate?.(newValue, updateCountRef.current);
+    if (throttleMs > 0) {
+      const now = Date.now();
+      const remaining = throttleMs - (now - lastAppliedRef.current);
 
-    // Reset counter if max updates reached
-    if (updateCountRef.current >= maxUpdates) {
-      updateCountRef.current = 0;
+      if (remaining > 0) {
+        setPendingValue(resolved);
+        if (throttleTimerRef.current) clearTimeout(throttleTimerRef.current);
+        throttleTimerRef.current = setTimeout(() => {
+          throttleTimerRef.current = null;
+          lastAppliedRef.current = Date.now();
+          apply(resolved);
+        }, remaining);
+        return;
+      }
+
+      lastAppliedRef.current = now;
     }
-  }, [throttleMs, maxUpdates, onOptimizedUpdate]);
 
-  const immediateSetValue = useCallback((newValue) => {
-    setValue(newValue);
-    setPendingValue(null);
-    updateCountRef.current++;
-    onOptimizedUpdate?.(newValue, updateCountRef.current);
-  }, [onOptimizedUpdate]);
+    apply(resolved);
+  }, [debounceMs, throttleMs, apply]);
+
+  const immediateSetValue = useCallback((next) => {
+    clearTimers();
+    apply(resolve(next));
+  }, [apply, clearTimers]);
 
   return {
     value,
-    setValue: throttledSetValue,
+    setValue,
     immediateSetValue,
     pendingValue,
     updateCount: updateCountRef.current,
@@ -252,65 +282,73 @@ export function useOptimizedCounter(initialValue = 0, options = {}) {
   const requestRef = useRef();
   const lastUpdateRef = useRef(0);
   const updateCountRef = useRef(0);
-
-  const start = useCallback(() => {
-    if (isRunning) return;
-    
-    setIsRunning(true);
-    lastUpdateRef.current = performance.now();
-    updateCountRef.current = 0;
-    
-    const update = (currentTime) => {
-      const elapsed = currentTime - lastUpdateRef.current;
-      
-      if (elapsed >= interval) {
-        setCount(prev => {
-          const newCount = prev + 1;
-          updateCountRef.current++;
-          onCountUpdate?.(newCount, updateCountRef.current);
-          
-          if (updateCountRef.current >= maxUpdates) {
-            stop();
-            return newCount;
-          }
-          
-          return newCount;
-        });
-        
-        lastUpdateRef.current = currentTime;
-      }
-      
-      if (isRunning) {
-        requestRef.current = requestAnimationFrame(update);
-      }
-    };
-    
-    requestRef.current = requestAnimationFrame(update);
-  }, [isRunning, interval, maxUpdates, onCountUpdate]);
+  const countRef = useRef(initialValue);
+  // The frame callback needs the live running flag. Reading React state from
+  // the closure froze it at `false`, so the loop scheduled one frame and quit.
+  const runningRef = useRef(false);
 
   const stop = useCallback(() => {
+    runningRef.current = false;
     setIsRunning(false);
     if (requestRef.current) {
       cancelAnimationFrame(requestRef.current);
+      requestRef.current = undefined;
     }
   }, []);
 
+  const start = useCallback(() => {
+    if (runningRef.current) return;
+
+    runningRef.current = true;
+    setIsRunning(true);
+    lastUpdateRef.current = performance.now();
+    updateCountRef.current = 0;
+
+    const update = (currentTime) => {
+      if (!runningRef.current) return;
+
+      const elapsed = currentTime - lastUpdateRef.current;
+
+      if (elapsed >= interval) {
+        lastUpdateRef.current = currentTime;
+        updateCountRef.current += 1;
+        const next = countRef.current + 1;
+        countRef.current = next;
+        setCount(next);
+        onCountUpdate?.(next, updateCountRef.current);
+
+        if (updateCountRef.current >= maxUpdates) {
+          stop();
+          return;
+        }
+      }
+
+      requestRef.current = requestAnimationFrame(update);
+    };
+
+    requestRef.current = requestAnimationFrame(update);
+  }, [interval, maxUpdates, onCountUpdate, stop]);
+
   const reset = useCallback(() => {
     stop();
+    countRef.current = initialValue;
     setCount(initialValue);
     updateCountRef.current = 0;
   }, [initialValue, stop]);
 
   const increment = useCallback(() => {
-    setCount(prev => prev + 1);
+    countRef.current += 1;
+    setCount(countRef.current);
   }, []);
 
   const decrement = useCallback(() => {
-    setCount(prev => prev - 1);
+    countRef.current -= 1;
+    setCount(countRef.current);
   }, []);
 
   useEffect(() => {
     return () => {
+      runningRef.current = false;
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
       }
