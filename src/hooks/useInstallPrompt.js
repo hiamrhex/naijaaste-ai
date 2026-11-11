@@ -57,12 +57,31 @@ export function useInstallPrompt() {
   }, []);
 
   const install = useCallback(async () => {
-    if (!deferred) return;
-    deferred.prompt();
-    try { await deferred.userChoice; } catch { /* noop */ }
+    if (!deferred) return false;
+
+    let outcome = 'dismissed';
+    try {
+      deferred.prompt();
+      const choice = await deferred.userChoice;
+      outcome = choice?.outcome || 'dismissed';
+    } catch {
+      outcome = 'dismissed';
+    }
+
+    // The captured event can only be used once.
     setDeferred(null);
-    setDone(true);
     setVisible(false);
+
+    if (outcome === 'accepted') {
+      setDone(true);
+      return true;
+    }
+
+    // The user declined (or the prompt failed). Snooze for a while but do not
+    // pretend the app is installed - that permanently disabled the sheet even
+    // though nothing was added to the home screen.
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* noop */ }
+    return false;
   }, [deferred]);
 
   return { visible, ios, installed: done, install, dismiss };
