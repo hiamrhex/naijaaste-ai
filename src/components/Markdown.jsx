@@ -12,17 +12,30 @@ import { Fragment } from 'react';
  * and numbered lists ("1. ").
  */
 
-const INLINE = /(\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`)/g;
+const INLINE = /(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`)/g;
 
 const renderInline = (text, keyPrefix) => {
   const parts = String(text).split(INLINE).filter((p) => p !== '' && p !== undefined);
   return parts.map((part, i) => {
     const key = `${keyPrefix}-${i}`;
+    if (part.startsWith('***') && part.endsWith('***') && part.length > 6) {
+      return (
+        <strong key={key} style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
+          <em>{part.slice(3, -3)}</em>
+        </strong>
+      );
+    }
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
       return <strong key={key} style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
-      return <em key={key}>{part.slice(1, -1)}</em>;
+      const inner = part.slice(1, -1);
+      // `2 * 3 * 4` is not emphasis: a marker touching whitespace on the
+      // inside is literal text.
+      if (inner.trim() === inner) {
+        return <em key={key}>{inner}</em>;
+      }
+      return <Fragment key={key}>{part}</Fragment>;
     }
     if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
       return (
