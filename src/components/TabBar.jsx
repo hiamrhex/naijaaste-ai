@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Map, ClipboardList, History, Settings, ShieldCheck, Heart, ChevronUp, ChevronDown } from 'lucide-react';
+import { Home, Map, ClipboardList, History, Settings, ShieldCheck, Heart } from 'lucide-react';
 import { useAuth } from '../app/useAuth.js';
 
 const TABS = [
@@ -13,16 +12,15 @@ const TABS = [
 ];
 
 export function TabBar() {
-  const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
-  
+
   return (
-    <nav className={`tabbar ${collapsed ? 'tabbar-collapsed' : ''}`} aria-label="Main sections">
+    <nav className="tabbar" aria-label="Main sections">
       <div className="tabbar-brand" aria-hidden="true">
         <span className="tabbar-brand-mark">N</span>
         <span className="tabbar-brand-name">NaijaTaste <em>AI</em></span>
       </div>
-      
+
       <div className="tabbar-content">
         {TABS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
@@ -43,15 +41,6 @@ export function TabBar() {
           </NavLink>
         )}
       </div>
-
-      <button
-        className="tabbar-toggle"
-        onClick={() => setCollapsed(!collapsed)}
-        aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}
-        aria-expanded={!collapsed}
-      >
-        {collapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
-      </button>
     </nav>
   );
 }

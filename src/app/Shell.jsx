@@ -12,7 +12,7 @@ export function Shell({ children }) {
   return (
     <div style={{
       ...t,
-      fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+      fontFamily: 'var(--font-body)',
       background: 'var(--bg-primary)',
       minHeight: '100vh',
       color: 'var(--text-primary)',
