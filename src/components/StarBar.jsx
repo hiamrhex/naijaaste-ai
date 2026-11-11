@@ -2,7 +2,11 @@ import { Star } from 'lucide-react';
 import { starsFilled } from '../utils/helpers';
 
 export function StarBar({ rating = 0 }) {
-  const filled = starsFilled(rating);
+  // API payloads can carry null or a numeric string; both used to throw from
+  // `rating.toFixed` and take the whole card down.
+  const value = Number(rating);
+  const safeRating = Number.isFinite(value) ? value : 0;
+  const filled = starsFilled(safeRating);
   return (
     <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
       {Array.from({ length: 5 }).map((_, i) => (
@@ -15,7 +19,7 @@ export function StarBar({ rating = 0 }) {
           }}
         />
       ))}
-      <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 4 }}>{rating.toFixed(1)}</span>
+      <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 4 }}>{safeRating.toFixed(1)}</span>
     </div>
   );
 }
