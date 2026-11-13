@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    exclude: ['node_modules', 'dist', 'tests/e2e/**'],
+    exclude: ['node_modules', 'dist', 'tests/e2e/**', 'tests/visual/**'],
     // Keep Vitest's default per-file isolation. A single shared module graph
     // (isolate: false) leaks one pg-mem database across all test files, so
     // rows and schema changes from one file break the next.
