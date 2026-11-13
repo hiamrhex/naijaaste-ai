@@ -73,4 +73,16 @@ describe('CORS allowlist (production config)', () => {
       .expect(200);
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
+
+  it('allows every method the API actually exposes, including PATCH', async () => {
+    // PATCH /api/v1/admin/reports/:ticket is a real route. A cross-origin
+    // admin client was blocked by the preflight because the allow-list only
+    // named GET/POST/DELETE.
+    const res = await request(app)
+      .options('/api/v1/admin/reports/T-1')
+      .set('Origin', 'https://allowed.example')
+      .set('Access-Control-Request-Method', 'PATCH')
+      .expect(204);
+    expect(res.headers['access-control-allow-methods']).toContain('PATCH');
+  });
 });

@@ -94,7 +94,7 @@ app.use(
   cors({
     origin: allowedOrigins.length === 0 ? true : allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "DELETE"],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
     exposedHeaders: ["X-Request-Id", "RateLimit"],
   })
