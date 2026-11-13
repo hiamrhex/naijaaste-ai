@@ -30,6 +30,14 @@ export const errorHandler = (err, req, res, _next) => {
     status = 503;
     code = 'AI_UNAVAILABLE';
     message = 'The AI service is unavailable right now. Please try again in a moment.';
+  } else if (err?.code === 'LLM_QUOTA_EXCEEDED') {
+    // Quota exhaustion is deliberate backpressure, not an upstream failure.
+    // Without this branch the generic `err.status` mapping below turned the
+    // 429 into a 502 UPSTREAM_FAILURE.
+    status = 429;
+    code = 'LLM_QUOTA_EXCEEDED';
+    message = err.message;
+    retryAfterSec = err.retryAfterSec;
   } else if (err?.type === 'entity.too.large') {
     // Body-parser limit (10kb global, 350kb on /reports): a client payload
     // problem, never an upstream failure. Surfaced honestly as 413.

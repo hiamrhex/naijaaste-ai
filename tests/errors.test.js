@@ -72,7 +72,9 @@ describe('error contract (layers 19/20/26/27)', () => {
     const makeRes = () => ({
       statusCode: 0,
       body: null,
+      headers: {},
       status(c) { this.statusCode = c; return this; },
+      set(k, v) { this.headers[k] = v; return this; },
       json(b) { this.body = b; return this; },
     });
     const noop = () => {};
@@ -108,5 +110,16 @@ describe('error contract (layers 19/20/26/27)', () => {
     errorHandler(Object.assign(new Error('bad json'), { type: 'entity.parse.failed' }), { id: 'x' }, r6, noop);
     expect(r6.statusCode).toBe(400);
     expect(r6.body.error.code).toBe('VALIDATION_ERROR');
+
+    const r7 = makeRes();
+    const quota = Object.assign(new Error('Monthly LLM quota exceeded'), {
+      code: 'LLM_QUOTA_EXCEEDED',
+      status: 429,
+      retryAfterSec: 900,
+    });
+    errorHandler(quota, { id: 'x' }, r7, noop);
+    expect(r7.statusCode).toBe(429);
+    expect(r7.body.error.code).toBe('LLM_QUOTA_EXCEEDED');
+    expect(r7.body.error.message).toMatch(/quota exceeded/i);
   });
 });
