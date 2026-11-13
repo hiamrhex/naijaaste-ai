@@ -27,24 +27,63 @@ const TRANSIENT = new Set([
   '08000', '08001', '08003', '08006', '08004', // connection exceptions
 ]);
 
-// pg-pool does not retry a statement whose connection died. On a pooled
-// deployment that turns a routine server-side close into a 500 for the user.
-// One retry on a fresh connection turns it back into a normal request.
-const withRetry = (pool) => {
-  const rawQuery = pool.query.bind(pool);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Two failure modes, one guard:
+//
+//   1. pg-pool does not retry a statement whose connection died. On a pooled
+//      deployment that turns a routine server-side close into a 500 for the
+//      user. One retry on a fresh connection turns it back into a normal
+//      request.
+//   2. pg emits a connection-level 'error' on a *checked-out* client. With no
+//      listener, Node turns that into an uncaughtException and kills the
+//      process (observed live: Neon dropped an idle socket mid-query and the
+//      API exited). A listener keeps the failure on the query promise, where
+//      the route can answer it.
+//
+// Exported for tests: the real pool is only wrapped when DATABASE_URL is set,
+// so the retry/listener contract is verified against a fake pool.
+export const resilientPool = (pool, { retries = 1, delayMs = 25, log = logger } = {}) => {
+  const connect = pool.connect.bind(pool);
+
   pool.query = async (text, values) => {
-    try {
-      return await rawQuery(text, values);
-    } catch (err) {
-      if (!TRANSIENT.has(err.code)) throw err;
-      const client = await pool.connect();
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      let client;
+      try {
+        client = await connect();
+      } catch (err) {
+        if (!TRANSIENT.has(err?.code) || attempt === retries) throw err;
+        log.warn({ code: err.code, attempt }, 'retrying database connect after transient error');
+        await sleep(delayMs);
+        continue;
+      }
+
+      // See (2) above: the listener must exist before the query starts.
+      const onError = () => {};
+      client.on?.('error', onError);
+      let released = false;
+
       try {
         return await client.query(text, values);
+      } catch (err) {
+        const transient = TRANSIENT.has(err?.code);
+        if (transient) {
+          // A dead socket must be destroyed, not handed back to the pool.
+          released = true;
+          client.release?.(err);
+        }
+        if (!transient || attempt === retries) throw err;
+        log.warn({ code: err.code, attempt }, 'retrying database query after transient error');
+        await sleep(delayMs * (attempt + 1));
       } finally {
-        client.release();
+        client.off?.('error', onError);
+        if (!released) client.release?.();
       }
     }
+    // The loop either returns or throws; this keeps the contract explicit.
+    throw new Error('database query failed');
   };
+
   return pool;
 };
 
@@ -52,7 +91,7 @@ export const getPool = async () => {
   if (!pool) {
     const createStart = Date.now();
     if (env.DATABASE_URL && env.DATABASE_URL.length > 0) {
-      pool = withRetry(new pg.Pool({
+      pool = resilientPool(new pg.Pool({
         connectionString: env.DATABASE_URL,
         max: 3,
         idleTimeoutMillis: 30_000,
