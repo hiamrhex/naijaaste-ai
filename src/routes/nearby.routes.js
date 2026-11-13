@@ -1,16 +1,22 @@
 import { Router } from 'express';
 import { haversineKm, parseCoord, directionsUrl } from '../utils/geo.js';
 import { getRestaurantsInBox, getRestaurantsByCodes } from '../db/catalogue.js';
+import { fail } from '../lib/respond.js';
 
 const router = Router();
 
 // GET /nearby?lat=6.52&lng=3.38&limit=10&radius_km=25
 // Public endpoint — location discovery does not require auth.
-router.get('/nearby', async (req, res) => {
+router.get('/nearby', async (req, res, next) => {
   const lat = parseCoord(req.query.lat, -90, 90);
   const lng = parseCoord(req.query.lng, -180, 180);
   if (lat === null || lng === null) {
-    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'lat (-90..90) and lng (-180..180) are required' } });
+    return fail(res, {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+      message: 'lat (-90..90) and lng (-180..180) are required',
+      requestId: req.id,
+    });
   }
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
   const radiusKm = Math.min(Math.max(Number(req.query.radius_km) || 50, 1), 500);
@@ -19,9 +25,16 @@ router.get('/nearby', async (req, res) => {
   // precise haversine + sort stays in JS.
   const latDelta = radiusKm / 111;
   const lngDelta = radiusKm / (111 * Math.cos((lat * Math.PI) / 180) || 1);
-  const candidates = await getRestaurantsInBox(
-    lat - latDelta, lat + latDelta, lng - lngDelta, lng + lngDelta
-  );
+  let candidates;
+  try {
+    candidates = await getRestaurantsInBox(
+      lat - latDelta, lat + latDelta, lng - lngDelta, lng + lngDelta
+    );
+  } catch (err) {
+    // Express 4 does not catch async rejections: without this the failure
+    // bypasses errorHandler and becomes an unhandledRejection.
+    return next(err);
+  }
 
   const withDistance = [];
   for (const r of candidates) {
@@ -59,13 +72,23 @@ router.get('/nearby', async (req, res) => {
 
 // GET /restaurants/geo?ids=r001,r002 — geo lookup for recommendation cards
 // (LLM recommendation payloads do not carry lat/lng).
-router.get('/restaurants/geo', async (req, res) => {
+router.get('/restaurants/geo', async (req, res, next) => {
   const raw = String(req.query.ids || '');
   const ids = raw.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 50);
   if (ids.length === 0) {
-    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'ids query param required' } });
+    return fail(res, {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+      message: 'ids query param required',
+      requestId: req.id,
+    });
   }
-  const found = await getRestaurantsByCodes(ids);
+  let found;
+  try {
+    found = await getRestaurantsByCodes(ids);
+  } catch (err) {
+    return next(err);
+  }
   const geo = {};
   for (const r of found) {
     if (typeof r.lat === 'number' && typeof r.lng === 'number') {
