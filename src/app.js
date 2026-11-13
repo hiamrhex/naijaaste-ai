@@ -26,6 +26,7 @@ import { googleAuthEnabled } from "./auth/google.js";
 import { readinessProbe } from "./lib/readiness.js";
 import { clientIp } from "./lib/clientIp.js";
 import { requireAuth } from "./auth/middleware.js";
+import { recordRequest, renderMetrics } from "./lib/metrics.js";
 
 export const app = express();
 
@@ -63,6 +64,15 @@ app.use(cookieParser());
 // still answer with the request id, and the parser must not run before the
 // id exists.
 app.use(requestId);
+// Count every response, including the ones the limiters reject, so /metrics
+// reflects real traffic rather than only successful requests.
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    recordRequest(req.method, res.statusCode, Number(process.hrtime.bigint() - start) / 1e6);
+  });
+  next();
+});
 // Our own JSON parser instead of express.json(): body-parser assumes the
 // request is a readable stream, which is not true on the Vercel runtime, and
 // the resulting TypeError turned every POST-with-a-body into a 500 with no
@@ -210,33 +220,11 @@ app.use((req, res, next) => {
   return globalLimiter(req, res, next);
 });
 
-// Metrics endpoint for SLO aggregation - requires authentication
-app.get('/metrics', requireAuth, async (req, res) => {
-  // Mock Prometheus metrics for now - in production this would query actual metrics
-  const metrics = `# HELP http_requests_total Total HTTP requests
-# TYPE http_requests_total counter
-http_requests_total{method="GET",status=200} 42
-http_requests_total{method="POST",status=200} 28
-http_requests_total{method="GET",status=404} 5
-
-# HELP http_request_duration_ms HTTP request duration in milliseconds
-# TYPE http_request_duration_ms histogram
-http_request_duration_ms_bucket{le="100"} 65
-http_request_duration_ms_bucket{le="1000"} 70
-http_request_duration_ms_bucket{le="10000"} 70
-http_request_duration_ms_bucket{le="+Inf"} 70
-http_request_duration_ms_sum 5432
-http_request_duration_ms_count 70
-
-# HELP llm_calls_total Total LLM API calls
-# TYPE llm_calls_total counter
-llm_calls_total{model="gemini-3.5-flash-lite"} 156
-llm_calls_total{model="gemini-3.5-flash"} 89
-llm_calls_total{model="gemini-3.6-flash"} 67
-`;
-
-  res.set('Content-Type', 'text/plain');
-  res.send(metrics);
+// Metrics endpoint for SLO aggregation - requires authentication.
+// Process-local counters (see src/lib/metrics.js); aggregate with sum().
+app.get('/metrics', requireAuth, (_req, res) => {
+  res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+  res.send(renderMetrics());
 });
 
 // ─── Health Check ─────────────────────────────────────────────────────────────

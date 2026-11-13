@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { logger } from "../lib/logger.js";
 import { env } from "../env.js";
 import { checkAndIncrementQuota } from "./llm-quota.service.js";
+import { recordLlmCall, recordLlmFailure } from "../lib/metrics.js";
 
 const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
@@ -219,6 +220,7 @@ export const generateContentWithFallback = async (
     try {
       const response = await callOnce(model, { contents, config }, attemptMs);
       degraded.delete(model); // success → clear degraded
+      recordLlmCall(model);
       return { response, model };
     } catch (err) {
       lastError = err;
@@ -265,53 +267,58 @@ export const callLLM = async (
   const budget = Math.max(1, Math.min(budgetMs, LLM_TOTAL_TIMEOUT_MS));
   const deadline = Date.now() + budget;
 
-  return llmBreaker.exec(async () => {
-    let lastError;
-    let attempt = 0;
-    while (Date.now() < deadline) {
-      try {
-        const { response } = await generateContentWithFallback(
-          {
-            contents: prompt,
-            config: {
-              maxOutputTokens: tokenLimit,
-              systemInstruction:
-                "You are an elite AI assistant. You ALWAYS return valid JSON only. No markdown. No explanation. No preamble. Raw JSON only."
-            }
-          },
-          { deadline }
-        );
+  try {
+    return await llmBreaker.exec(async () => {
+      let lastError;
+      let attempt = 0;
+      while (Date.now() < deadline) {
+        try {
+          const { response } = await generateContentWithFallback(
+            {
+              contents: prompt,
+              config: {
+                maxOutputTokens: tokenLimit,
+                systemInstruction:
+                  "You are an elite AI assistant. You ALWAYS return valid JSON only. No markdown. No explanation. No preamble. Raw JSON only."
+              }
+            },
+            { deadline }
+          );
 
-        const text = response.text;
-        if (!text) {
-          const reason = response.candidates?.[0]?.finishReason ?? "unknown";
-          throw new Error(`Gemini returned no text (finishReason=${reason})`);
+          const text = response.text;
+          if (!text) {
+            const reason = response.candidates?.[0]?.finishReason ?? "unknown";
+            throw new Error(`Gemini returned no text (finishReason=${reason})`);
+          }
+          return text.trim();
+        } catch (err) {
+          lastError = err;
+          const status = typeof err?.status === 'number' ? err.status : 0;
+          const isRateLimit = status === 429 || /resource[_ ]exhausted|rate limit|429/i.test(String(err?.message || ""));
+          const isServerError = status >= 500;
+
+          if (!isRateLimit && !isServerError) {
+            // Non-retryable error (auth, 404, etc.) — chain already tried other models
+            break;
+          }
+
+          // Retry with exponential backoff + jitter on rate limit or server errors
+          attempt += 1;
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1) + Math.random() * 500, 8000);
+          if (Date.now() + delay >= deadline) break;
+          logger.warn({ attempt, delay_ms: delay, status, budget_left_ms: deadline - Date.now() }, 'llm retry');
+          await sleep(delay);
         }
-        return text.trim();
-      } catch (err) {
-        lastError = err;
-        const status = typeof err?.status === 'number' ? err.status : 0;
-        const isRateLimit = status === 429 || /resource[_ ]exhausted|rate limit|429/i.test(String(err?.message || ""));
-        const isServerError = status >= 500;
-        
-        if (!isRateLimit && !isServerError) {
-          // Non-retryable error (auth, 404, etc.) — chain already tried other models
-          break;
-        }
-        
-        // Retry with exponential backoff + jitter on rate limit or server errors
-        attempt += 1;
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1) + Math.random() * 500, 8000);
-        if (Date.now() + delay >= deadline) break;
-        logger.warn({ attempt, delay_ms: delay, status, budget_left_ms: deadline - Date.now() }, 'llm retry');
-        await sleep(delay);
       }
-    }
 
-    if (lastError?.code === 'LLM_TIMEOUT') throw lastError;
-    // Provider answered with an error: AI_UNAVAILABLE (503), not AI_TIMEOUT.
-    throw normaliseProviderError(lastError);
-  });
+      if (lastError?.code === 'LLM_TIMEOUT') throw lastError;
+      // Provider answered with an error: AI_UNAVAILABLE (503), not AI_TIMEOUT.
+      throw normaliseProviderError(lastError);
+    });
+  } catch (err) {
+    recordLlmFailure(err?.code || 'LLM_UNAVAILABLE');
+    throw err;
+  }
 };
 
 /**
