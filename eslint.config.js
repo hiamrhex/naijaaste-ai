@@ -80,7 +80,7 @@ export default defineConfig([
   {
     // Browser specs: the assertions run inside the page, so the DOM globals
     // are legitimately referenced from the test file itself.
-    files: ['tests/e2e/**/*.spec.js'],
+    files: ['tests/e2e/**/*.spec.js', 'tests/visual/**/*.spec.js'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
