@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import request from 'supertest';
 import { app } from '../src/app.js';
 
 // Route inventory gate.
@@ -178,5 +179,19 @@ describe('route inventory (item 2)', () => {
         `${route.method} ${route.path} has no requireAuth/requireAdmin middleware`
       ).toBe(true);
     }
+  });
+
+  it('GET /health advertises exactly the routes the app mounts', async () => {
+    // The advertised list is the public contract probes and docs rely on.
+    // It drifted twice (saved-places and /metrics were mounted but missing),
+    // so derive the expectation from the router tree instead of a fixture.
+    const res = await request(app).get('/health').expect(200);
+    const advertised = res.body.endpoints.map((e) => e.replace(/\s+/g, ' ')).sort();
+    const expected = inventory.map((key) => {
+      const [method, path] = key.split(' ');
+      const publicPath = ['/health', '/health/ready', '/metrics'].includes(path);
+      return `${method} ${publicPath ? path : `/api/v1${path}`}`;
+    }).sort();
+    expect(advertised).toEqual(expected);
   });
 });

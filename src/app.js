@@ -94,6 +94,7 @@ app.use(
 const ENDPOINTS = [
   "GET  /health",
   "GET  /health/ready",
+  "GET  /metrics",
   "POST /api/v1/auth/signup",
   "POST /api/v1/auth/signin",
   "POST /api/v1/auth/refresh",
@@ -106,6 +107,7 @@ const ENDPOINTS = [
   "GET  /api/v1/auth/favorites",
   "POST /api/v1/auth/favorites",
   "DELETE /api/v1/auth/favorites/:restaurant_id",
+  "GET  /api/v1/auth/saved-places",
   "POST /api/v1/auth/saved-places",
   "DELETE /api/v1/auth/saved-places/:id",
   "GET  /api/v1/nearby",
