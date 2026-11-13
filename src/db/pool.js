@@ -7,6 +7,7 @@ import { getDbTiming, resetDbTiming, setDbTiming } from '../lib/dbTiming.js';
 
 let pool = null;
 let initDone = false;
+let initPromise = null;
 
 // Cold-start evidence: how long Neon took to wake and how long the whole
 // first-request init took. Surfaced on the next request log line alongside
@@ -117,39 +118,56 @@ export const getPool = async () => {
     setDbTiming({ createMs: Date.now() - createStart });
   }
   if (!initDone) {
-    initDone = true;
-    const initStart = Date.now();
-    try {
-      // First real query pays the Neon wake-up; measure it separately from
-      // migrations/seed so the log says which part was cold.
-      const wakeStart = Date.now();
-      await pool.query('SELECT 1');
-      setDbTiming({ wakeMs: Date.now() - wakeStart });
-
-      await runMigrations(pool);
-      await seedCatalogue(pool);
-      const dbTiming = { initMs: Date.now() - initStart, readyAt: new Date().toISOString() };
-      setDbTiming(dbTiming);
-      logger.info(
-        {
-          db_create_ms: getDbTiming().createMs,
-          db_wake_ms: getDbTiming().wakeMs,
-          db_init_ms: dbTiming.initMs,
-          cold_start_ms: Math.round(process.uptime() * 1000),
-        },
-        'database ready'
-      );
-    } catch (err) {
-      const initMs = Date.now() - initStart;
-      setDbTiming({ initMs });
-      logger.error(
-        { err: err?.message, db_wake_ms: getDbTiming().wakeMs, db_init_ms: initMs },
-        'database initialisation failed'
-      );
-      throw err;
+    // Single-flight initialisation. A serverless instance can serve concurrent
+    // requests (Vercel Fluid compute), and previously initDone was set before
+    // the work began, so a second request queried a database whose migrations
+    // were still running. It also means a transient failure during cold start
+    // is retried by the next request instead of leaving the instance
+    // permanently schema-less.
+    if (!initPromise) {
+      initPromise = initialise().finally(() => {
+        // Success keeps initDone true; failure releases the promise so the
+        // next caller retries.
+        if (!initDone) initPromise = null;
+      });
     }
+    await initPromise;
   }
   return pool;
+};
+
+const initialise = async () => {
+  const initStart = Date.now();
+  try {
+    // First real query pays the Neon wake-up; measure it separately from
+    // migrations/seed so the log says which part was cold.
+    const wakeStart = Date.now();
+    await pool.query('SELECT 1');
+    setDbTiming({ wakeMs: Date.now() - wakeStart });
+
+    await runMigrations(pool);
+    await seedCatalogue(pool);
+    const dbTiming = { initMs: Date.now() - initStart, readyAt: new Date().toISOString() };
+    setDbTiming(dbTiming);
+    initDone = true;
+    logger.info(
+      {
+        db_create_ms: getDbTiming().createMs,
+        db_wake_ms: getDbTiming().wakeMs,
+        db_init_ms: dbTiming.initMs,
+        cold_start_ms: Math.round(process.uptime() * 1000),
+      },
+      'database ready'
+    );
+  } catch (err) {
+    const initMs = Date.now() - initStart;
+    setDbTiming({ initMs });
+    logger.error(
+      { err: err?.message, db_wake_ms: getDbTiming().wakeMs, db_init_ms: initMs },
+      'database initialisation failed'
+    );
+    throw err;
+  }
 };
 
 export const dbEnabled = () => !!env.DATABASE_URL || process.env.NODE_ENV === 'test';
@@ -159,6 +177,7 @@ export const closePool = async () => {
     await pool.end().catch(() => {});
     pool = null;
     initDone = false;
+    initPromise = null;
     resetDbTiming();
   }
 };
