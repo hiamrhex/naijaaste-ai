@@ -88,35 +88,38 @@ export default memo(function SavedScreen() {
     contentVisibility: 'auto', containIntrinsicSize: 'auto 64px',
   }), []);
 
-  const spotCard = memo((p, hot) => (
-    <div key={p.id} style={card}>
-      <Heart size={13} color={hot ? 'var(--orange)' : 'var(--text-hint)'} aria-hidden="true" />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div>
-        {hot ? (
-          <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{p.status}</div>
-        ) : (
-          <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>
-            Needs check: {(p.unknowns || []).join(', ')}
-          </div>
-        )}
+  // memo() returns a component: it must be *rendered* as <SpotCard … />, not
+  // called as a function. Calling it threw "spotCard is not a function" and
+  // crashed the Saved screen on first paint.
+  const SpotCard = memo(function SpotCard({ place, hot }) {
+    return (
+      <div style={card}>
+        <Heart size={13} color={hot ? 'var(--orange)' : 'var(--text-hint)'} aria-hidden="true" />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{place.name}</div>
+          {hot ? (
+            <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{place.status}</div>
+          ) : (
+            <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>
+              Needs check: {(place.unknowns || []).join(', ')}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => removeSpot(place.id, place.name)}
+          disabled={removing === place.id}
+          aria-label={`Remove ${place.name} from saved spots`}
+          style={{
+            border: 'none', background: 'transparent', cursor: removing === place.id ? 'wait' : 'pointer',
+            padding: 6, borderRadius: 8, color: 'var(--text-hint)', display: 'flex',
+          }}
+        >
+          <Trash2 size={14} aria-hidden="true" />
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={() => removeSpot(p.id, p.name)}
-        disabled={removing === p.id}
-        aria-label={`Remove ${p.name} from saved spots`}
-        style={{
-          border: 'none', background: 'transparent', cursor: removing === p.id ? 'wait' : 'pointer',
-          padding: 6, borderRadius: 8, color: 'var(--text-hint)', display: 'flex',
-        }}
-      >
-        <Trash2 size={14} aria-hidden="true" />
-      </button>
-    </div>
-  ));
-
-  spotCard.displayName = 'spotCard';
+    );
+  });
 
   return (
     <div>
@@ -208,7 +211,7 @@ export default memo(function SavedScreen() {
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Nothing fits all filters yet.</p>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {fits.map((p) => spotCard(p, true))}
+              {fits.map((p) => <SpotCard key={p.id} place={p} hot />)}
             </div>
 
             <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: '16px 0 8px' }}>
@@ -218,7 +221,7 @@ export default memo(function SavedScreen() {
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Nothing on the “might” list yet.</p>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {might.map((p) => spotCard(p, false))}
+              {might.map((p) => <SpotCard key={p.id} place={p} hot={false} />)}
             </div>
           </>
         )}

@@ -75,7 +75,7 @@ export default memo(function HomeScreen() {
           <ConversationStream 
             messages={c.messages} 
             loading={c.loading} 
-            generateReview={c.generateReview}
+            onRetry={c.sendMsg}
           />
 
           {/* ── AGENT THINKING (only once there is work to show) ── */}

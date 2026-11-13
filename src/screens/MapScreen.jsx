@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, memo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Crosshair, Loader2, Navigation, Heart, MapPin } from 'lucide-react';
-import { API } from '../constants/index.js';
 import { getFavorites, addFavorite, removeFavorite, authFetch } from '../lib/auth.js';
 import { errorMessage, readJson } from '../lib/api.js';
 import { recordCheckInEvent } from '../hooks/useCheckIn.js';
@@ -153,7 +152,10 @@ const locate = () => {
             setOrigin({ lat: latitude, lng: longitude });
             setStatus('loading');
             try {
-              const res = await authFetch(`${API}/nearby?lat=${latitude}&lng=${longitude}&limit=12&radius_km=25`);
+              // authFetch prefixes API itself — passing `${API}/nearby` here
+              // built an invalid `http://localhost:3001http://...` URL, so the
+              // Map's "Near me" always failed as a network error.
+              const res = await authFetch(`/nearby?lat=${latitude}&lng=${longitude}&limit=12&radius_km=25`);
               const data = await readJson(res, { fallbackMessage: t('genericError') });
               setResults(data.results || []);
               setStatus('ready');

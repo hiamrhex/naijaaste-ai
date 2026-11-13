@@ -3,7 +3,7 @@ import { ChefHat, RefreshCw, Zap } from 'lucide-react';
 import { Markdown } from '../components/Markdown.jsx';
 import { ThinkingDots } from '../components/ThinkingDots.jsx';
 
-export const ConversationStream = memo(({ messages, loading, generateReview }) => {
+export const ConversationStream = memo(({ messages, loading, onRetry }) => {
   return (
     <div
       className="chat-stream"
@@ -40,7 +40,7 @@ export const ConversationStream = memo(({ messages, loading, generateReview }) =
               </div>
               {m.error && m.retryText && (
                 <button
-                  onClick={() => generateReview(m.retryText)}
+                  onClick={() => onRetry(m.retryText)}
                   disabled={loading}
                   style={{
                     marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
