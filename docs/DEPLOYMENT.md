@@ -113,6 +113,11 @@ RATE_LIMIT_LLM_MAX=10
 ### Health Endpoints
 - `GET /health` - Returns API inventory and status
 - `GET /health/ready` - Database connectivity check
+- `GET /metrics` - Prometheus-format metrics (requires a bearer token)
+
+`vercel.json` rewrites these unversioned paths to the serverless function; a
+new endpoint advertised on `/health` needs a matching rewrite or it answers
+404 in production (`tests/deployment-config.test.js` enforces this).
 
 ### Uptime Monitoring
 Configure monitoring on:

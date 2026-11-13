@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { ENDPOINTS } from '../src/app.js';
+import { normalizeApiPath } from '../src/lib/apiPath.js';
+import { loadApiRewrites, rewriteApiTarget } from '../scripts/vercel-routing.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const vercel = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'));
@@ -10,6 +13,12 @@ const headerValue = (rule, key) =>
   rule.headers.find((h) => h.key.toLowerCase() === key.toLowerCase())?.value;
 
 const ruleFor = (source) => vercel.headers.find((h) => h.source === source);
+
+// Every unversioned endpoint the API advertises on /health must also be routed
+// by Vercel, otherwise the contract points clients and probes at a 404.
+const unversionedPaths = ENDPOINTS.map((line) => line.split(/\s+/)[1]).filter(
+  (path) => path && !path.startsWith('/api/')
+);
 
 describe('deployment config (vercel.json)', () => {
   it('keeps the function duration above our own LLM budget', () => {
@@ -61,13 +70,27 @@ describe('deployment config (vercel.json)', () => {
     expect(sources).toContain('/health');
   });
 
-  it('preserves the health path through the /api rewrite', () => {
-    // api/index.js strips the "/api" prefix and normalizes "/api" to "/".
-    // Rewriting /health -> /api therefore lands on "/", which Express does
-    // not serve (it only has /health and /health/ready), so probes 404'd.
-    const rewrite = (source) => vercel.rewrites.find((r) => r.source === source);
-    expect(rewrite('/health').destination).toBe('/api/health');
-    expect(rewrite('/health/:path*').destination).toBe('/api/health/:path*');
+  it('routes every unversioned /health endpoint to the API function', () => {
+    // The advertised contract is what probes and clients follow. /metrics was
+    // mounted and advertised but had no rewrite, so it answered 404 live.
+    const rewrites = loadApiRewrites();
+    expect(unversionedPaths).toContain('/health');
+    expect(unversionedPaths).toContain('/health/ready');
+    expect(unversionedPaths).toContain('/metrics');
+    for (const path of unversionedPaths) {
+      const destination = rewriteApiTarget(path, rewrites);
+      expect(destination, `${path} is advertised by /health but Vercel has no rewrite`).toBeTruthy();
+      // api/index.js must land on exactly the path Express serves.
+      expect(normalizeApiPath(destination)).toBe(path);
+    }
+  });
+
+  it('normalizes each documented API prefix onto a mounted router', () => {
+    expect(normalizeApiPath('/api/v1/auth/me')).toBe('/api/v1/auth/me');
+    expect(normalizeApiPath('/api/auth/me')).toBe('/auth/me');
+    expect(normalizeApiPath('/v1/auth/me')).toBe('/api/v1/auth/me');
+    expect(normalizeApiPath('/api')).toBe('/');
+    expect(normalizeApiPath('/api/auth/me?x=1')).toBe('/auth/me?x=1');
   });
 });
 

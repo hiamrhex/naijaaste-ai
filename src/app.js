@@ -91,7 +91,7 @@ app.use(
 );
 // Layer 25 — canonical base path is /api/v1. Health stays unversioned
 // (probes must not break across versions).
-const ENDPOINTS = [
+export const ENDPOINTS = [
   "GET  /health",
   "GET  /health/ready",
   "GET  /metrics",

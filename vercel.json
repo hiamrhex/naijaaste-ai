@@ -34,6 +34,7 @@
   "rewrites": [
     { "source": "/health", "destination": "/api/health" },
     { "source": "/health/:path*", "destination": "/api/health/:path*" },
+    { "source": "/metrics", "destination": "/api/metrics" },
     { "source": "/app", "destination": "/app/index.html" },
     { "source": "/app/:path*", "destination": "/app/index.html" },
     { "source": "/api/:path*", "destination": "/api" }
