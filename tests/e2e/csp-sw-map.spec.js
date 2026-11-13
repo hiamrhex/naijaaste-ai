@@ -10,9 +10,11 @@ import { test, expect } from '@playwright/test';
 // https: images — and the map must actually paint tiles.
 //
 // The service worker only exists in the production build, so the SW checks
-// run against the dist preview (port 4173) rather than the Vite dev server.
-
-const DIST = 'http://localhost:4173';
+// run against the dist preview (port 4173 by default) rather than the Vite
+// dev server. PW_DIST_PORT keeps this in sync with playwright.config.js when
+// another project already owns the default port.
+const DIST_PORT = process.env.PW_DIST_PORT || '4173';
+const DIST = `http://localhost:${DIST_PORT}`;
 
 test.use({
   geolocation: { latitude: 6.5095, longitude: 3.3711 },
@@ -39,7 +41,7 @@ test('the service worker registers and the offline page is reachable', async ({ 
   });
   expect(registrations.length).toBeGreaterThan(0);
   // registerSW.js registers /sw.js with the root scope.
-  expect(registrations[0].scope).toContain('4173/');
+  expect(registrations[0].scope).toContain(`${DIST_PORT}/`);
 
   // The offline page is served and its script is an external file (a strict
   // script-src forbids an inline script).

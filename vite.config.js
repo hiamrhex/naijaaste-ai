@@ -45,8 +45,8 @@ export default defineConfig({
         name: 'NaijaTaste AI',
         short_name: 'NaijaTaste',
         description: 'Autonomous Nigerian dining concierge — one chat to your perfect spot.',
-        theme_color: '#080810',
-        background_color: '#080810',
+        theme_color: '#0C0E0A',
+        background_color: '#0C0E0A',
         display: 'standalone',
         scope: '/app/',
         start_url: '/app/',
@@ -90,11 +90,12 @@ export default defineConfig({
     include: ['lucide-react', 'leaflet'],
   },
   // Dev only: mirror the Vercel /api rewrite so same-origin frontend calls
-  // reach the local API during `vite dev`.
+  // reach the local API during `vite dev`. VITE_API_PROXY lets the e2e suite
+  // move the API off the default port (see playwright.config.js).
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.VITE_API_PROXY || 'http://localhost:3000',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api/, '') || '/',
       },

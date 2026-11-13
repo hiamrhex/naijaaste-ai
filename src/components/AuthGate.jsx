@@ -220,7 +220,7 @@ export default function AuthGate({ onAuth, initialMode = 'signin' }) {
     <div style={S.wrap}>
       <style>{KEYFRAMES}</style>
 
-      <div style={S.card}>
+      <div style={S.card} data-testid="auth-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
           <div className="brand-mark" aria-hidden="true">
             <ChefHat size={18} color="var(--orange)" />
