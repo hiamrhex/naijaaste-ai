@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [master]
 
+# Every job only reads the checkout. Declaring it keeps the workflow from
+# inheriting a repository default that may allow writes.
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
