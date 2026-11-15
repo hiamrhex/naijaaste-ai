@@ -63,6 +63,20 @@ describe('GitHub Actions workflows', () => {
     }
   });
 
+  it('a scheduled workflow that touches the database can be re-run on demand', () => {
+    // A failure at 03:17 must be reproducible without waiting another day.
+    for (const workflow of workflows) {
+      if (!/^\s*-\s*cron:/m.test(workflow.text)) continue;
+      if (!/db:migrate|import-osm/.test(workflow.text)) continue;
+      expect(workflow.text, `${workflow.file} needs workflow_dispatch`).toMatch(
+        /^\s*workflow_dispatch:/m
+      );
+      // And it should verify itself when its own inputs change, so the first
+      // scheduled run is not also the first real test.
+      expect(workflow.text, `${workflow.file} needs a push trigger`).toMatch(/^\s*push:/m);
+    }
+  });
+
   it('the database migration job works with a single configured secret', () => {
     // The refresh job used to read only `secrets.DATABASE_URL_DIRECT`, which is
     // not documented anywhere, so the job failed before it could touch the

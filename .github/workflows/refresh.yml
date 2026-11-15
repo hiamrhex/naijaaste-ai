@@ -4,6 +4,16 @@ on:
   schedule:
     - cron: '17 3 * * *'
   workflow_dispatch:
+  # Run when anything the job depends on changes. A schedule that only fires at
+  # 03:17 cannot tell you whether the secret and the importer still work at the
+  # moment you change them; this does, and it keeps the daily run boring.
+  push:
+    branches: [master]
+    paths:
+      - 'src/data/**'
+      - 'src/db/**'
+      - 'migrations/**'
+      - '.github/workflows/refresh.yml'
 
 # Least privilege: this job reads the repo and talks to Postgres/Overpass.
 # It never needs to write anything back to GitHub.
