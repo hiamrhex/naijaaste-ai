@@ -524,3 +524,43 @@ supersedes Unverified #1 (live API) and #2 (prod DB present in `.env`).
 
 **Added to eval harness:** Cases documented above; can be codified as automated probes in `scripts/agent-safety.mjs` (future work).
 
+---
+
+## 2026-11-15 — Deployment audit: the scheduled refresh was never able to run
+
+**Mode:** RAISE (deployment). **Host checked:** `https://naijataste-ai.vercel.app`.
+
+### What the evidence showed
+
+| ID | Claim | Method | Result |
+|----|-------|--------|--------|
+| DEP-15-01 | The daily OSM refresh has never succeeded | `GET /repos/hiamrhex/naijaaste-ai/actions/workflows/383616282/runs?status=success` | `total_count: 0`; the last 30 scheduled runs all `failure` |
+| DEP-15-02 | The failing step is migrate, not the import | `GET /actions/runs/43707666279/jobs` | `Migrate` = `failure`; `Import 4 cities from Overpass` = `skipped` |
+| DEP-15-03 | The migration script itself works | replayed the workflow env locally (no `.env`, `DATABASE_URL` unset, `DATABASE_URL_DIRECT` set) then `node src/db/migrate.js` | `{"ran":[],"seeded":60}`, exit 0 |
+| DEP-15-04 | The job depended on an undocumented secret name | workflow diff plus a search of `docs/` | the job read only `secrets.DATABASE_URL_DIRECT`; no doc named any Actions secret |
+| DEP-15-05 | `ci.yml` had no explicit token permissions | `npx vitest run tests/workflows.test.js` | failed until `permissions: contents: read` was added |
+| DEP-15-06 | Full suite stays green after the change | `npx vitest run --maxWorkers=3` | 80 files / 503 tests passed; eslint, check:docs, scan-secrets, check:ng-data clean |
+
+### Fixes shipped
+
+- `eab9b4d` `fix(ci)`: fall back to `secrets.DATABASE_URL`, a preflight that fails
+  in seconds with `::error::`, least-privilege `permissions`, a `concurrency`
+  group, per-step timeouts, and `tests/workflows.test.js` as the class-level
+  guard (pinned actions, no secrets in shell commands, permissions,
+  concurrency, DB env wiring).
+- `123606d` `docs(deploy)`: the Actions secret table and how to confirm the
+  schedule is green.
+
+### Unverified (this phase)
+
+1. **The `DATABASE_URL` repository secret exists.** The fix removes the
+   dependency on the undocumented name, but only the next scheduled run
+   (03:17 UTC) or a manual `workflow_dispatch` can prove the secret resolves.
+   If neither secret is set, the job now fails in seconds with an explicit
+   message instead of an opaque exit code.
+2. **The original job log.** The Actions logs endpoint returns 403 without a
+   token, so the failure message was inferred from the failing step plus a
+   local replay, not read directly.
+3. **The Overpass import on a real schedule.** It has never executed because
+   the migrate step always failed first.
+
