@@ -540,6 +540,7 @@ supersedes Unverified #1 (live API) and #2 (prod DB present in `.env`).
 | DEP-15-04 | The job depended on an undocumented secret name | workflow diff plus a search of `docs/` | the job read only `secrets.DATABASE_URL_DIRECT`; no doc named any Actions secret |
 | DEP-15-05 | `ci.yml` had no explicit token permissions | `npx vitest run tests/workflows.test.js` | failed until `permissions: contents: read` was added |
 | DEP-15-06 | Full suite stays green after the change | `npx vitest run --maxWorkers=3` | 80 files / 503 tests passed; eslint, check:docs, scan-secrets, check:ng-data clean |
+| DEP-15-07 | **No database secret is configured at all** | a temporary push trigger (since removed) ran run `43744297402`; `GET /actions/runs/43744297402/jobs` | `Preflight — a database URL must be configured` = `failure`; migrate and import `skipped`. The secret was absent, not merely misnamed |
 
 ### Fixes shipped
 
@@ -553,14 +554,25 @@ supersedes Unverified #1 (live API) and #2 (prod DB present in `.env`).
 
 ### Unverified (this phase)
 
-1. **The `DATABASE_URL` repository secret exists.** The fix removes the
-   dependency on the undocumented name, but only the next scheduled run
-   (03:17 UTC) or a manual `workflow_dispatch` can prove the secret resolves.
-   If neither secret is set, the job now fails in seconds with an explicit
-   message instead of an opaque exit code.
+1. **Adding the repository secret is an owner action.** DEP-15-07 proves no
+   secret exists, so the schedule cannot go green until someone with repository
+   admin rights adds `DATABASE_URL` (or `DATABASE_URL_DIRECT`) under
+   **Settings → Secrets and variables → Actions**. This agent has no
+   authenticated GitHub access and must not invent a credential. The job now
+   fails in seconds with an explicit `::error::` naming the missing secret, and
+   can be re-run from **Actions → Daily OSM refresh → Run workflow**.
 2. **The original job log.** The Actions logs endpoint returns 403 without a
    token, so the failure message was inferred from the failing step plus a
    local replay, not read directly.
 3. **The Overpass import on a real schedule.** It has never executed because
    the migrate step always failed first.
+
+### Decision: no push trigger on the refresh job
+
+A push trigger was tried to make the job self-verifying and then removed: it
+would run `runMigrations` at the same moment Vercel deploys the same commit,
+and two concurrent migration runners can collide on DDL. The scheduled run plus
+`workflow_dispatch` keeps one writer. The remaining gap (the first scheduled
+run is also the first real test) is closed by the preflight, which now fails in
+seconds with the exact remedy.
 

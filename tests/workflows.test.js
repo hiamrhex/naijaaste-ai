@@ -71,9 +71,6 @@ describe('GitHub Actions workflows', () => {
       expect(workflow.text, `${workflow.file} needs workflow_dispatch`).toMatch(
         /^\s*workflow_dispatch:/m
       );
-      // And it should verify itself when its own inputs change, so the first
-      // scheduled run is not also the first real test.
-      expect(workflow.text, `${workflow.file} needs a push trigger`).toMatch(/^\s*push:/m);
     }
   });
 
