@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { generateReview } from '../services/review.service.js';
 import { notFound } from '../lib/errors.js';
 import { validate } from '../middleware/validate.js';
 import { extractReviewSchema } from '../schemas/index.js';
 
-const router = Router();
+const router = asyncRouter();
 
 router.post('/generate-review', validate(extractReviewSchema), async (req, res, next) => {
   try {

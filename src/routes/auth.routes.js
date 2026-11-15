@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import bcrypt from 'bcrypt';
 import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
@@ -14,7 +14,7 @@ import { getRestaurantsByCodes, findRestaurantByCode } from '../db/catalogue.js'
 import { createSavedPlace, listSavedPlaces, deleteSavedPlace } from '../saved_places/store.js';
 import { fail } from '../lib/respond.js';
 
-const router = Router();
+const router = asyncRouter();
 
 // Auth endpoints use the standard error envelope via fail().
 // The SPA reads error.code, error.message, error.requestId from body.error.

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { processChat, getSession, clearSession, sessionAccess } from '../services/chat.service.js';
 import { verifyAccessToken } from '../auth/tokens.js';
 import { badRequest, notFound } from '../lib/errors.js';
@@ -6,7 +6,7 @@ import { validate } from '../middleware/validate.js';
 import { chatBodySchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
-const router = Router();
+const router = asyncRouter();
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

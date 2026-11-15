@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { requireAuth, requireAdmin } from '../auth/middleware.js';
 import { ok, fail } from '../lib/respond.js';
 import { countUsers, countFavorites } from '../auth/store.js';
 import { listReports, setReportStatus, countReportsByStatus, REPORT_STATUSES } from '../reports/store.js';
 import { countRatings } from '../ratings/store.js';
 
-const router = Router();
+const router = asyncRouter();
 
 router.use('/admin', requireAuth, requireAdmin);
 

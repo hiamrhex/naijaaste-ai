@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { requireAuth } from '../auth/middleware.js';
 import { ok, fail } from '../lib/respond.js';
 import { createRating, listRatingsByUser } from '../ratings/store.js';
 
-const router = Router();
+const router = asyncRouter();
 const CONTEXTS = ['saved', 'planned', 'shared'];
 
 router.post('/ratings', requireAuth, async (req, res) => {

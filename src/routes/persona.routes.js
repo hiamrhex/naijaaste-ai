@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { extractPersona } from '../services/persona.service.js';
 import { validate } from '../middleware/validate.js';
 import { extractPersonaSchema, updatePreferenceSchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
-const router = Router();
+const router = asyncRouter();
 
 // ─── Extract Persona ──────────────────────────────────────────────────────────
 router.post('/extract-persona', validate(extractPersonaSchema), async (req, res, next) => {

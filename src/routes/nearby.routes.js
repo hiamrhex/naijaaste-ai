@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { haversineKm, parseCoord, directionsUrl } from '../utils/geo.js';
 import { getRestaurantsInBox, getRestaurantsByCodes } from '../db/catalogue.js';
 import { fail } from '../lib/respond.js';
 
-const router = Router();
+const router = asyncRouter();
 
 // GET /nearby?lat=6.52&lng=3.38&limit=10&radius_km=25
 // Public endpoint — location discovery does not require auth.

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { runAgent } from '../agent/agent.js';
 import { requireAuth } from '../auth/middleware.js';
 import { getSession, saveSession } from '../services/chat.service.js';
@@ -10,7 +10,7 @@ import { validate } from '../middleware/validate.js';
 import { chatBodySchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
-const router = Router();
+const router = asyncRouter();
 
 // A model failure must not end the conversation: when Gemini times out, is
 // unavailable or the circuit is open, we answer with deterministic catalogue

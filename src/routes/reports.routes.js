@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { requireAuth } from '../auth/middleware.js';
 import { ok, fail } from '../lib/respond.js';
 import { createReport, REPORT_TYPES } from '../reports/store.js';
 
-const router = Router();
+const router = asyncRouter();
 const MAX_SCREENSHOT_BYTES = 300 * 1024;
 
 router.post('/reports', requireAuth, async (req, res) => {

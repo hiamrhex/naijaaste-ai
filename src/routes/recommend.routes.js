@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { asyncRouter } from '../lib/async-router.js';
 import { getRecommendations } from '../services/recommend.service.js';
 import { ApiError, notFound } from '../lib/errors.js';
 import { validate } from '../middleware/validate.js';
 import { recommendSchema } from '../schemas/index.js';
 
-const router = Router();
+const router = asyncRouter();
 
 // Optional auth: if user is signed in, attach user to req; if not, continue anonymously
 const optionalAuth = async (req, res, next) => {
