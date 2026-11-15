@@ -88,8 +88,7 @@ export const resilientPool = (pool, { retries = 1, delayMs = 25, log = logger } 
   return pool;
 };
 
-export const getPool = async () => {
-  if (!pool) {
+export const getPool = async () => {  if (!pool) {
     const createStart = Date.now();
     if (env.DATABASE_URL && env.DATABASE_URL.length > 0) {
       pool = resilientPool(new pg.Pool({
@@ -134,6 +133,27 @@ export const getPool = async () => {
     await initPromise;
   }
   return pool;
+};
+
+// A transaction must run on ONE connection. `pool.query` checks out a
+// different client per call, so `BEGIN`/`COMMIT` sent through it are not a
+// transaction at all: each statement autocommits on its own session and the
+// ROLLBACK usually lands on an idle connection. Every multi-statement write
+// goes through here instead.
+export const withTransaction = async (fn) => {
+  const pool = await getPool();
+  const db = await pool.connect();
+  try {
+    await db.query('BEGIN');
+    const result = await fn(db);
+    await db.query('COMMIT');
+    return result;
+  } catch (err) {
+    await db.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    db.release?.();
+  }
 };
 
 const initialise = async () => {
