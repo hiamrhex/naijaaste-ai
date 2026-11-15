@@ -120,6 +120,19 @@ export const hasRefreshToken = async (userId, jti) => {
   return rows.length > 0;
 };
 
+// Rotation must be atomic. Checking hasRefreshToken and then deleting lets two
+// concurrent refreshes with the same cookie both pass the check, so one stolen
+// or replayed token mints two independent token families. The DELETE is the
+// claim: exactly one caller can see the row.
+export const consumeRefreshToken = async (userId, jti) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    'DELETE FROM refresh_tokens WHERE user_id = $1 AND jti = $2 AND expires_at > now() RETURNING jti',
+    [userId, jti]
+  );
+  return rows.length > 0;
+};
+
 export const revokeAllRefreshTokens = async (userId) => {
   const pool = await getPool();
   await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);

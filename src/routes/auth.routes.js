@@ -1,6 +1,6 @@
 import { asyncRouter } from '../lib/async-router.js';
 import bcrypt from 'bcrypt';
-import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, hasRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
+import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, consumeRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
 import { clientIp } from '../lib/clientIp.js';
@@ -133,14 +133,18 @@ router.post('/auth/refresh', noStore, refreshLimiter, async (req, res) => {
       return fail(res, { status: 401, code: 'NO_REFRESH_TOKEN', message: 'Refresh token required', requestId: req.id });
     }
     const payload = verifyRefreshToken(token);
-    if (payload.type !== 'refresh' || !(await hasRefreshToken(payload.sub, payload.jti))) {
+    if (payload.type !== 'refresh') {
       return fail(res, { status: 401, code: 'INVALID_REFRESH', message: 'Invalid refresh token', requestId: req.id });
     }
     const user = await findUserById(payload.sub);
     if (!user) {
       return fail(res, { status: 401, code: 'UNAUTHENTICATED', message: 'User no longer exists', requestId: req.id });
     }
-    await revokeRefreshToken(user.id, payload.jti);
+    // Consume before issuing: two concurrent refreshes with the same cookie
+    // must not both mint a new token family.
+    if (!(await consumeRefreshToken(user.id, payload.jti))) {
+      return fail(res, { status: 401, code: 'INVALID_REFRESH', message: 'Invalid refresh token', requestId: req.id });
+    }
     return await issueTokens(sanitize(user), res);
   } catch (err) {
     if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
