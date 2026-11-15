@@ -159,22 +159,25 @@ export const getFavorites = async (userId) => {
 };
 
 export const addFavorite = async (userId, restaurantId) => {
-  const pool = await getPool();
-  const { rows: u } = await pool.query('SELECT 1 FROM users WHERE id = $1', [userId]);
-  if (!u.length) return { ok: false, error: 'USER_NOT_FOUND' };
-  const current = await getFavorites(userId);
-  if (current.includes(restaurantId)) return { ok: true, favorites: current, added: false };
-  if (current.length >= MAX_FAVORITES) return { ok: false, error: 'FAVORITES_FULL' };
-  try {
-    await pool.query(
+  // Count-then-insert is a race: two adds at 49 both read 49 and both insert,
+  // taking the list to 51. The row lock on the user serialises concurrent adds
+  // for the same account (the cap is per user, so the user row is the right
+  // lock target).
+  return withTransaction(async (db) => {
+    const { rows: u } = await db.query('SELECT id FROM users WHERE id = $1 FOR UPDATE', [userId]);
+    if (!u.length) return { ok: false, error: 'USER_NOT_FOUND' };
+    const { rows } = await db.query(
+      'SELECT restaurant_id FROM favorites WHERE user_id = $1 ORDER BY created_at', [userId]
+    );
+    const current = rows.map((r) => r.restaurant_id);
+    if (current.includes(restaurantId)) return { ok: true, favorites: current, added: false };
+    if (current.length >= MAX_FAVORITES) return { ok: false, error: 'FAVORITES_FULL' };
+    await db.query(
       'INSERT INTO favorites (user_id, restaurant_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [userId, restaurantId]
     );
-  } catch (err) {
-    if (err.code === '23505') return { ok: true, favorites: await getFavorites(userId), added: false };
-    throw err;
-  }
-  return { ok: true, favorites: await getFavorites(userId), added: true };
+    return { ok: true, favorites: [...current, restaurantId], added: true };
+  });
 };
 
 export const removeFavorite = async (userId, restaurantId) => {
