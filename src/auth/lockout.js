@@ -58,7 +58,17 @@ export const recordFailure = async (email, ip) => {
     `INSERT INTO auth_attempts (email, ip, failures, updated_at)
      VALUES ($1, $2, 1, $3)
      ON CONFLICT (email, ip) DO UPDATE SET
-       failures = auth_attempts.failures + 1,
+       -- A lock that has expired starts a fresh count. Without this the counter
+       -- stays at MAX, so the next single typo re-locks the pair for another
+       -- 15 minutes and the user can never sign in again.
+       failures = CASE
+         WHEN auth_attempts.locked_until IS NOT NULL AND auth_attempts.locked_until < $3 THEN 1
+         ELSE auth_attempts.failures + 1
+       END,
+       locked_until = CASE
+         WHEN auth_attempts.locked_until IS NOT NULL AND auth_attempts.locked_until < $3 THEN NULL
+         ELSE auth_attempts.locked_until
+       END,
        updated_at = $3`,
     [key(email), ip, new Date(now).toISOString()]
   );
