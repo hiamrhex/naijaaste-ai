@@ -216,3 +216,24 @@ Neon provides:
 - Use Vercel environment variables
 - Rotate secrets periodically
 - Monitor for unauthorized access
+
+### GitHub Actions secrets
+
+The daily OSM refresh (`.github/workflows/refresh.yml`) is the only workflow
+that needs database credentials. Add these under
+**Settings → Secrets and variables → Actions**:
+
+| Secret | Required | Used by | Notes |
+|--------|----------|---------|-------|
+| `DATABASE_URL` | Yes | Refresh job, import step | Pooled Neon URL (same value as the Vercel runtime variable) |
+| `DATABASE_URL_DIRECT` | Recommended | Refresh job, migrate step | Direct Neon URL; migrations must not run through the pooler |
+
+The job falls back to `DATABASE_URL` when `DATABASE_URL_DIRECT` is absent, so a
+single secret is enough to keep the schedule green. A missing pair fails the
+job in seconds with an actionable error instead of after a full install.
+
+To confirm the schedule is healthy, open **Actions → Daily OSM refresh** and
+check that the latest run is green. `tests/workflows.test.js` enforces the
+wiring (fallback expression, preflight guard, least-privilege `permissions`,
+pinned actions, concurrency), so a broken workflow is caught in the normal test
+run rather than a month later.
