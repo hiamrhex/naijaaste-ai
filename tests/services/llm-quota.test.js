@@ -29,6 +29,27 @@ beforeEach(() => {
 const call = () => checkAndIncrementQuota(subject, 'user');
 
 describe('checkAndIncrementQuota', () => {
+  it('does not fail when two callers create the row at the same moment', async () => {
+    // FOR UPDATE locks nothing on a missing row, so both callers used to see
+    // zero rows and both INSERT; the loser got a unique violation and the
+    // request answered 500. The row is now created with ON CONFLICT first.
+    const fresh = `race-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const results = await Promise.all([
+      checkAndIncrementQuota(fresh, 'user'),
+      checkAndIncrementQuota(fresh, 'user'),
+    ]);
+
+    expect(results.every((r) => r.allowed)).toBe(true);
+
+    const pool = await getPool();
+    const { rows } = await pool.query(
+      'SELECT calls FROM llm_quota WHERE subject_id = $1 AND subject_type = $2',
+      [fresh, 'user']
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].calls).toBeGreaterThanOrEqual(1);
+  });
+
   it('starts at zero and counts up per subject', async () => {
     const first = await call();
     expect(first).toMatchObject({ allowed: true, remaining: LIMIT - 1, limit: LIMIT });

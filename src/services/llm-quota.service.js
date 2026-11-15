@@ -26,6 +26,16 @@ export const checkAndIncrementQuota = async (subjectId, subjectType) => {
   try {
     await db.query('BEGIN');
 
+    // Create the row before locking it. FOR UPDATE locks nothing when the row
+    // is absent, so two first-of-month callers both saw zero rows and both
+    // INSERTed; the loser hit a unique violation and the request answered 500.
+    await db.query(
+      `INSERT INTO llm_quota (subject_id, subject_type, year, month, calls, warned_at_70)
+       VALUES ($1, $2, $3, $4, 0, false)
+       ON CONFLICT DO NOTHING`,
+      [subjectId, subjectType, year, month]
+    );
+
     const { rows } = await db.query(
       `SELECT calls, warned_at_70
        FROM llm_quota
@@ -34,13 +44,8 @@ export const checkAndIncrementQuota = async (subjectId, subjectType) => {
       [subjectId, subjectType, year, month]
     );
 
-    let calls = 0;
-    let warnedAt70 = false;
-
-    if (rows.length > 0) {
-      calls = rows[0].calls;
-      warnedAt70 = rows[0].warned_at_70;
-    }
+    const calls = rows[0]?.calls ?? 0;
+    const warnedAt70 = rows[0]?.warned_at_70 ?? false;
 
     if (calls >= MAX_CALLS) {
       await db.query('ROLLBACK');
@@ -60,20 +65,13 @@ export const checkAndIncrementQuota = async (subjectId, subjectType) => {
     // warning fired again every other call from then on.
     const warnedAt70Next = warnedAt70 || newlyWarned;
 
-    if (rows.length === 0) {
-      await db.query(
-        `INSERT INTO llm_quota (subject_id, subject_type, year, month, calls, warned_at_70)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [subjectId, subjectType, year, month, newCalls, warnedAt70Next]
-      );
-    } else {
-      await db.query(
-        `UPDATE llm_quota
-         SET calls = $5, warned_at_70 = $6, updated_at = now()
-         WHERE subject_id = $1 AND subject_type = $2 AND year = $3 AND month = $4`,
-        [subjectId, subjectType, year, month, newCalls, warnedAt70Next]
-      );
-    }
+    // The row exists by now, so this is always an update.
+    await db.query(
+      `UPDATE llm_quota
+       SET calls = $5, warned_at_70 = $6, updated_at = now()
+       WHERE subject_id = $1 AND subject_type = $2 AND year = $3 AND month = $4`,
+      [subjectId, subjectType, year, month, newCalls, warnedAt70Next]
+    );
 
     await db.query('COMMIT');
 
