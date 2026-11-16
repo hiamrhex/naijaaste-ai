@@ -31,6 +31,13 @@ const prune = async (pool, now) => {
   await pool.query('DELETE FROM otps WHERE expires_at < $1', [new Date(now - RESEND_COOLDOWN_MS).toISOString()]);
 };
 
+const resendError = (retryAfterMs) => {
+  const err = new Error('A new code was just sent — wait before requesting another');
+  err.code = 'RESEND_COOLDOWN';
+  err.retryAfterMs = Math.max(0, retryAfterMs);
+  return err;
+};
+
 /**
  * Issue a new OTP for an email. Throws { code: 'RESEND_COOLDOWN', retryAfterMs }
  * if one was issued within the cooldown window.
@@ -47,27 +54,53 @@ export const issueOtp = async (email, { force = false } = {}) => {
   const now = Date.now();
   await prune(pool, now);
   const key = email.toLowerCase().trim();
-  if (!force) {
-    const { rows } = await pool.query('SELECT created_at FROM otps WHERE email = $1', [key]);
-    if (rows[0]) {
-      const createdAt = new Date(rows[0].created_at).getTime();
-      if (now - createdAt < RESEND_COOLDOWN_MS) {
-        const err = new Error('A new code was just sent — wait before requesting another');
-        err.code = 'RESEND_COOLDOWN';
-        err.retryAfterMs = RESEND_COOLDOWN_MS - (now - createdAt);
-        throw err;
-      }
-    }
-  }
   const code = String(randomInt(0, 1000000)).padStart(6, '0');
-  await pool.query(
-    `INSERT INTO otps (email, code_hash, expires_at, attempts, created_at)
-     VALUES ($1, $2, $3, 0, $4)
-     ON CONFLICT (email) DO UPDATE SET
-       code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at,
-       attempts = 0, created_at = EXCLUDED.created_at`,
-    [key, hashCode(key, code), new Date(now + OTP_TTL_MS).toISOString(), new Date(now).toISOString()]
+  const codeHash = hashCode(key, code);
+  const createdAt = new Date(now).toISOString();
+  const expiresAt = new Date(now + OTP_TTL_MS).toISOString();
+
+  if (force) {
+    await pool.query(
+      `INSERT INTO otps (email, code_hash, expires_at, attempts, created_at)
+       VALUES ($1, $2, $3, 0, $4)
+       ON CONFLICT (email) DO UPDATE SET
+         code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at,
+         attempts = 0, created_at = EXCLUDED.created_at`,
+      [key, codeHash, expiresAt, createdAt]
+    );
+    return code;
+  }
+
+  // Claim the cooldown window inside the write. A read-then-write check let two
+  // concurrent requests both see no recent row and both mail a code; the second
+  // overwrote the first, so the code in the earlier email was already dead.
+  const cutoff = new Date(now - RESEND_COOLDOWN_MS).toISOString();
+  const { rows: replaced } = await pool.query(
+    `UPDATE otps SET code_hash = $2, expires_at = $3, attempts = 0, created_at = $4
+     WHERE email = $1 AND created_at <= $5
+     RETURNING email`,
+    [key, codeHash, expiresAt, createdAt, cutoff]
   );
+  if (replaced.length) return code;
+
+  const { rows } = await pool.query('SELECT created_at FROM otps WHERE email = $1', [key]);
+  if (rows[0]) {
+    const elapsed = now - new Date(rows[0].created_at).getTime();
+    throw resendError(RESEND_COOLDOWN_MS - elapsed);
+  }
+
+  // First code for this address. The unique email column is the claim: if a
+  // concurrent request inserted first, this one must not send a second email.
+  try {
+    await pool.query(
+      `INSERT INTO otps (email, code_hash, expires_at, attempts, created_at)
+       VALUES ($1, $2, $3, 0, $4)`,
+      [key, codeHash, expiresAt, createdAt]
+    );
+  } catch (err) {
+    if (err.code === '23505') throw resendError(RESEND_COOLDOWN_MS);
+    throw err;
+  }
   return code;
 };
 
