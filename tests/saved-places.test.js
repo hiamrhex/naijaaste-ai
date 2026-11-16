@@ -70,6 +70,31 @@ describe('saved_places save-anything (RED)', () => {
   });
 });
 
+describe('saved_places name fidelity', () => {
+  it('stores names exactly as typed, including apostrophes and markup characters', async () => {
+    // The old "sanitizer" mapped &, <, > and " to themselves and turned ' into
+    // a literal &apos;, so "Mama's Kitchen" came back mangled while markup was
+    // stored verbatim anyway.
+    const names = ["Mama's Kitchen", 'A & B <Suya> "Spot"'];
+
+    for (const name of names) {
+      const created = await request(app)
+        .post('/auth/saved-places')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name })
+        .expect(201);
+      expect(created.body.place.name).toBe(name);
+    }
+
+    const list = await request(app)
+      .get('/auth/saved-places')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const stored = list.body.places.map((p) => p.name);
+    for (const name of names) expect(stored).toContain(name);
+  });
+});
+
 describe('saved_places delete (owner-only)', () => {
   it('removes my own row — 200, gone from the list', async () => {
     const made = await request(app)

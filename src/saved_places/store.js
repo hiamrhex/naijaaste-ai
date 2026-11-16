@@ -80,13 +80,11 @@ export const createSavedPlace = async (userId, { name }) => {
     err.code = 'VALIDATION_ERROR';
     throw err;
   }
-  // Sanitize: escape HTML entities to prevent XSS in any downstream HTML surface
-  const clean = raw
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/'/g, '&apos;');
+  // No HTML escaping here. This is a JSON API: React escapes on render and the
+  // email templates escape explicitly. The previous "sanitizer" mapped every
+  // character to itself (only ' changed, to a literal &apos;), so it protected
+  // nothing while corrupting names like "Mama's Kitchen".
+  const clean = raw;
   return withCapLock(userId, async () => {
     const pool = await getPool();
     const db = await pool.connect();
