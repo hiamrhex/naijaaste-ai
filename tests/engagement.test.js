@@ -38,6 +38,16 @@ describe('ratings (C)', () => {
     await request(app).post('/ratings').set(auth(userToken)).send({ stars: 4 }).expect(400);
   });
 
+  it('404 for a restaurant that does not exist', async () => {
+    // restaurant_id has no foreign key (it may be a code or an osm_id), so
+    // nothing but this check stopped invented ids entering the data.
+    const res = await request(app).post('/ratings')
+      .set(auth(userToken))
+      .send({ restaurant_id: 'not-a-real-restaurant', stars: 5 })
+      .expect(404);
+    expect(res.body.error.code).toBe('NOT_FOUND');
+  });
+
   it('201 stores a rating; GET returns only your own', async () => {
     const res = await request(app).post('/ratings')
       .set(auth(userToken))
