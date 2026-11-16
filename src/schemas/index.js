@@ -14,26 +14,18 @@ export const personaSchema = z.object({
   dietary_flags: z.array(z.any()),
 }).passthrough();
 
-// generate-review persona — four required keys only (exact route parity)
+// generate-review persona — the chat only knows what the user has said so far.
+// review.service fills the remaining profile fields with documented defaults, so
+// the route requires the one thing a review cannot invent: where the persona is.
 export const reviewPersonaSchema = z.object({
-  persona_id: z.string().min(1),
   city: z.string().min(1),
-  budget_level: z.string().min(1),
-  spice_tolerance: z.string().min(1),
-  preferred_cuisines: z.array(z.any()),
-  dietary_flags: z.array(z.any()),
 }).passthrough();
 
+// The app sends the recommendation card it is showing (restaurant_id plus
+// display fields, no catalogue detail). review.service resolves the canonical
+// row from restaurant_id, so an id is all the route can honestly require.
 export const restaurantSchema = z.object({
   restaurant_id: z.string().min(1),
-  name: z.string().min(1),
-  city: z.string().min(1),
-  ambience: z.string().min(1),
-  spice_profile: z.string().min(1),
-  cuisine_tags: z.array(z.any()),
-  signature_dishes: z.array(z.any()),
-  social_tags: z.array(z.any()),
-  price_range_naira: z.object({ min: z.number(), max: z.number() }),
   // Our record links to Google by place_id ONLY (policy: place_id is exempt
   // from caching restrictions and may be stored indefinitely; all other
   // Google content lives exclusively in the ephemeral memory cache).

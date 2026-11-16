@@ -20,7 +20,9 @@ RESTAURANT VISITED:
 - Location: ${restaurant.area}, ${restaurant.city}
 - Cuisine: ${restaurant.cuisine_tags.join(', ')}
 - Ambience: ${restaurant.ambience}
-- Price tier: ${restaurant.price_tier} (₦${restaurant.price_range_naira.min}–₦${restaurant.price_range_naira.max})
+- Price tier: ${restaurant.price_tier}${restaurant.price_range_naira?.min != null && restaurant.price_range_naira?.max != null
+  ? ` (₦${restaurant.price_range_naira.min}–₦${restaurant.price_range_naira.max})`
+  : ' (price range not published)'}
 - Spice level: ${restaurant.spice_profile}
 - Signature dishes: ${restaurant.signature_dishes.join(', ')}
 - Social fit: ${restaurant.social_tags.join(', ')}

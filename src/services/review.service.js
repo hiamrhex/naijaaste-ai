@@ -1,6 +1,57 @@
 import { buildReviewPrompt } from '../prompts/review.prompt.js';
 import { callReviewLLM } from './llm.service.js';
 import { findRestaurantByCode } from '../db/catalogue.js';
+import { randomUUID } from 'crypto';
+
+// The route accepts the persona the chat has extracted so far and the
+// recommendation card the UI is showing. Both are partial: the persona may lack
+// a name, budget or cuisine list, and the card is not a catalogue row. Filling
+// documented defaults here keeps the prompt (which calls .join() on several
+// fields) from throwing a 500 on a valid request.
+const PERSONA_DEFAULTS = {
+  full_name: 'A NaijaTaste diner',
+  age: 30,
+  occupation: 'Not specified',
+  income_level: 'middle',
+  budget_level: 'mid_range',
+  spice_tolerance: 'medium',
+  ambience_preference: 'casual_dining',
+  social_context: 'solo',
+  preferred_cuisines: [],
+  dietary_flags: ['none'],
+};
+
+const asArray = (value, fallback) => (Array.isArray(value) ? value : fallback);
+
+const normalizePersona = (persona) => {
+  const p = { ...PERSONA_DEFAULTS, ...(persona || {}) };
+  return {
+    ...p,
+    persona_id: p.persona_id || randomUUID(),
+    preferred_cuisines: asArray(p.preferred_cuisines, []),
+    dietary_flags: asArray(p.dietary_flags, ['none']),
+  };
+};
+
+// Rows imported from OSM have no meta, so mapRow gives them a null price range
+// and empty tag lists. The prompt reads price_range_naira.min and joins the tag
+// arrays, which threw on exactly those rows.
+const normalizeRestaurant = (restaurant) => ({
+  ...restaurant,
+  area: restaurant.area || restaurant.city || '',
+  city: restaurant.city || '',
+  cuisine_tags: asArray(restaurant.cuisine_tags, []),
+  signature_dishes: asArray(restaurant.signature_dishes, []),
+  social_tags: asArray(restaurant.social_tags, []),
+  dietary_options: asArray(restaurant.dietary_options, []),
+  price_tier: restaurant.price_tier || 'mid',
+  spice_profile: restaurant.spice_profile || 'medium',
+  ambience: restaurant.ambience || 'casual',
+  price_range_naira:
+    restaurant.price_range_naira && typeof restaurant.price_range_naira === 'object'
+      ? restaurant.price_range_naira
+      : { min: null, max: null },
+});
 
 // Validate persona-restaurant compatibility before calling LLM
 // Catches dietary violations and city mismatches early
@@ -60,26 +111,34 @@ const computePreMatchScore = (persona, restaurant) => {
 export const generateReview = async (persona, restaurant) => {
   const startTime = Date.now();
 
-  // Step 1 — Resolve restaurant from catalogue if only id provided
+  // Step 1 — Resolve restaurant from catalogue when only an id was provided.
+  // The UI sends the recommendation card (restaurant_id + display fields), and
+  // the canonical row is what the prompt and the response identity must use.
   let resolvedRestaurant = restaurant;
-  if (!restaurant.name && restaurant.restaurant_id) {
-    resolvedRestaurant = await findRestaurantByCode(restaurant.restaurant_id);
-    if (!resolvedRestaurant) {
+  if (restaurant?.restaurant_id) {
+    const found = await findRestaurantByCode(restaurant.restaurant_id);
+    if (!found) {
       return {
         success: false,
         error: `Restaurant with id ${restaurant.restaurant_id} not found in catalogue`
       };
     }
+    resolvedRestaurant = found;
   }
+  if (!resolvedRestaurant?.name) {
+    return { success: false, error: 'Restaurant not found in catalogue' };
+  }
+  resolvedRestaurant = normalizeRestaurant(resolvedRestaurant);
+  const resolvedPersona = normalizePersona(persona);
 
   // Step 2 — Validate compatibility
-  const issues = validateCompatibility(persona, resolvedRestaurant);
+  const issues = validateCompatibility(resolvedPersona, resolvedRestaurant);
 
   // Step 3 — Pre-compute match score
-  const preMatchScore = computePreMatchScore(persona, resolvedRestaurant);
+  const preMatchScore = computePreMatchScore(resolvedPersona, resolvedRestaurant);
 
   // Step 4 — Build prompt and call LLM
-  const prompt = buildReviewPrompt(persona, resolvedRestaurant);
+  const prompt = buildReviewPrompt(resolvedPersona, resolvedRestaurant);
   const llmResult = await callReviewLLM(prompt);
 
   // Step 5 — Return with full metadata. Model output is spread first so it
@@ -90,7 +149,7 @@ export const generateReview = async (persona, restaurant) => {
   return {
     ...llmResult,
     success: true,
-    persona_id: persona.persona_id,
+    persona_id: resolvedPersona.persona_id,
     restaurant_id: resolvedRestaurant.restaurant_id,
     restaurant_name: resolvedRestaurant.name,
     meta: {

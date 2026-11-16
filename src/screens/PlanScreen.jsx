@@ -130,7 +130,9 @@ export default memo(function PlanScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           persona: { persona_id: 'plan', city: area.trim() || 'Lagos', budget_level: 'mid_range', spice_tolerance: 'medium', preferred_cuisines: ['Street Food'], dietary_flags: dietary.length ? dietary : ['none'] },
-          restaurant,
+          // The plan card is a ranked pick, not a catalogue row: the server
+          // resolves the canonical record from the id.
+          restaurant: { restaurant_id: restaurant.restaurant_id },
         }),
       });
       const data = await readJson(res, { fallbackMessage: 'Could not generate a review.' });

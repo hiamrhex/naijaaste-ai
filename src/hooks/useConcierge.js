@@ -240,24 +240,37 @@ export function useConcierge({ chatEndRef }) {
   }, [inputVal, loading, sessionId]);
 
   const generateReview = useCallback(async (restaurant) => {
-    if (!persona || reviewLoading) return;
+    if (!restaurant?.restaurant_id || reviewLoading) return;
     setReviewLoading(true);
     setReviewRestaurant(restaurant);
     try {
+      // The card is a ranked pick, not a catalogue row. Send its id and let the
+      // server resolve the canonical record; the persona is whatever the chat
+      // has extracted so far and the server fills the documented defaults.
       const res = await fetch(`${API}/generate-review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ persona, restaurant }),
+        body: JSON.stringify({
+          persona: { ...(persona || {}), city: persona?.city || 'Lagos' },
+          restaurant: { restaurant_id: restaurant.restaurant_id },
+        }),
       });
       const data = await readJson(res, { fallbackMessage: 'Could not generate a review.' });
       setReview(data);
       setShowReview(true);
-    } catch {
-      /* silent fail */
+    } catch (err) {
+      // This used to fail silently: no modal, no message, nothing. Report it in
+      // the conversation, where every other request failure is reported.
+      setMessages((prev) => [...prev, {
+        role: 'assistant',
+        content: errorMessage(err, 'Could not generate a review. Please try again.'),
+        error: true,
+        requestId: err?.requestId || null,
+      }]);
     } finally {
       setReviewLoading(false);
     }
-  }, [persona, reviewLoading]);
+  }, [persona, reviewLoading, setMessages]);
 
   const reset = useCallback(() => {
     // Start a genuinely new conversation: the server session is dropped too,
