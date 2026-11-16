@@ -50,8 +50,12 @@ export const getRestaurantsByCodes = async (codes) => {
   const pool = await getPool();
   // Dynamic IN-list (not = ANY): identical on real Postgres and pg-mem.
   const placeholders = codes.map((_, i) => `$${i + 1}`).join(',');
+  // A favourite can be saved by code (curated rows) or by osm_id (rows imported
+  // from OSM, which have no code). Matching only `code` returned the id in the
+  // list but no item to render for every OSM-sourced favourite.
   const { rows } = await pool.query(
-    `SELECT * FROM restaurants WHERE code IN (${placeholders})`, codes
+    `SELECT * FROM restaurants WHERE code IN (${placeholders}) OR osm_id IN (${placeholders})`,
+    [...codes, ...codes]
   );
   return rows.map(mapRow);
 };
