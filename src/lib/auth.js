@@ -28,6 +28,10 @@ export const setAuth = (auth) => {
 export const dropAuth = () => {
   current = null;
   try { localStorage.removeItem(KEY); } catch { /* noop */ }
+  // The React layer holds its own copy of the user. Without this event it
+  // stayed signed in after the token was gone: /login redirects a "signed-in"
+  // ghost back into the app, where every request fails with 401.
+  try { window.dispatchEvent(new Event('auth:cleared')); } catch { /* no window */ }
 };
 
 // Last X-Request-Id seen from the API — auto-attached to feedback reports (D).
@@ -77,6 +81,9 @@ export const googleSignIn = async (credential) => {
 export const signout = async () => {
   try {
     track(await fetch(`${API}/auth/signout`, { method: 'POST', credentials: 'include' }));
+  } catch {
+    // Offline or the API is down. The local session still has to end: the
+    // refresh cookie cannot be reached, but leaving the UI signed in is worse.
   } finally {
     dropAuth();
   }

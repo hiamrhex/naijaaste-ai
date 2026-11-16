@@ -25,9 +25,16 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const onExpired = () => setUser(null);
-    window.addEventListener('auth:expired', onExpired);
-    return () => window.removeEventListener('auth:expired', onExpired);
+    const onCleared = () => setUser(null);
+    // 'auth:expired' comes from a rejected refresh; 'auth:cleared' from an
+    // explicit sign-out or account deletion. Both must drop the React copy of
+    // the user, not just the stored token.
+    window.addEventListener('auth:expired', onCleared);
+    window.addEventListener('auth:cleared', onCleared);
+    return () => {
+      window.removeEventListener('auth:expired', onCleared);
+      window.removeEventListener('auth:cleared', onCleared);
+    };
   }, []);
 
   const handleSignOut = useCallback(async () => {
