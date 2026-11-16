@@ -1,6 +1,15 @@
+import { timingSafeEqual } from 'crypto';
 import { verifyAccessToken } from './tokens.js';
 import { findUserById, sanitize } from './store.js';
 import { fail } from '../lib/respond.js';
+import { env } from '../env.js';
+
+// Compare secrets without leaking their length or content through timing.
+const safeEqual = (given, expected) => {
+  const a = Buffer.from(String(given));
+  const b = Buffer.from(String(expected));
+  return a.length === b.length && timingSafeEqual(a, b);
+};
 
 // Every rejection here uses the canonical failure envelope (error.code,
 // error.message, error.requestId) so a 401/403 can be joined to the request
@@ -46,4 +55,19 @@ export const requireAdmin = (req, res, next) => {
     return fail(res, { status: 403, code: 'FORBIDDEN', message: 'Admin access required', requestId: req.id });
   }
   next();
+};
+
+// /metrics is operational data (traffic shape, model names, failure codes), not
+// user data. Any free signup used to be able to scrape it. A scrape token lets
+// Prometheus read it without a 15-minute user JWT; otherwise only an admin may.
+export const requireMetricsAccess = async (req, res, next) => {
+  if (env.METRICS_TOKEN) {
+    const header = req.headers.authorization || '';
+    const given = header.startsWith('Bearer ') ? header.slice(7) : '';
+    if (given && safeEqual(given, env.METRICS_TOKEN)) return next();
+  }
+  return requireAuth(req, res, (err) => {
+    if (err) return next(err);
+    return requireAdmin(req, res, next);
+  });
 };

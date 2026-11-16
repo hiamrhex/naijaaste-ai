@@ -50,6 +50,10 @@ const EnvSchema = z.object({
   DEV_OTP_ENABLED: z.enum(['true', 'false']).default('false'),
   // Error tracking: set to enable; unset = monitoring is a quiet no-op.
   SENTRY_DSN: z.string().optional(),
+  // Optional scrape credential for /metrics. When set, a scraper can read the
+  // endpoint with `Authorization: Bearer <token>` instead of holding a user JWT.
+  // Unset means only an admin account can read it.
+  METRICS_TOKEN: z.string().min(1).optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

@@ -56,19 +56,13 @@ describe('GET /metrics', () => {
     expect(res.body.error.code).toBe('UNAUTHENTICATED');
   });
 
-  it('serves counters recorded from real requests, not fixtures', async () => {
-    await request(app).get('/health').expect(200);
-
+  it('refuses a regular account', async () => {
+    // /metrics is operational data, not user data. A free signup used to be
+    // able to scrape traffic shape, model names and failure codes.
     const res = await request(app)
       .get('/metrics')
       .set('Authorization', `Bearer ${token}`)
-      .expect(200);
-
-    expect(res.headers['content-type']).toMatch(/^text\/plain/);
-    expect(res.text).toContain('http_requests_total{method="GET",status="200"}');
-    expect(res.text).toContain('http_request_duration_ms_count');
-    // The previous implementation returned hardcoded sample data.
-    expect(res.text).toContain('# HELP llm_calls_total Successful LLM responses by model (per instance).');
-    expect(res.text).not.toContain('gemini-3.5-flash-lite"} 156');
+      .expect(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 });

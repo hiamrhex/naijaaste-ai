@@ -111,9 +111,14 @@ RATE_LIMIT_LLM_MAX=10
 ## Monitoring & Health Checks
 
 ### Health Endpoints
+
 - `GET /health` - Returns API inventory and status
 - `GET /health/ready` - Database connectivity check
-- `GET /metrics` - Prometheus-format metrics (requires a bearer token)
+- `GET /metrics` - Prometheus-format metrics (admin session or scrape token)
+
+`/metrics` is operational data, so it is not readable by ordinary accounts. A
+scraper should send `Authorization: Bearer $METRICS_TOKEN`; without that
+variable only an admin account can read it.
 
 `vercel.json` rewrites these unversioned paths to the serverless function; a
 new endpoint advertised on `/health` needs a matching rewrite or it answers

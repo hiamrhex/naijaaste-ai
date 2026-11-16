@@ -25,7 +25,7 @@ import { logger } from "./lib/logger.js";
 import { googleAuthEnabled } from "./auth/google.js";
 import { readinessProbe } from "./lib/readiness.js";
 import { clientIp } from "./lib/clientIp.js";
-import { requireAuth } from "./auth/middleware.js";
+import { requireMetricsAccess } from "./auth/middleware.js";
 import { recordRequest, renderMetrics } from "./lib/metrics.js";
 
 export const app = express();
@@ -222,7 +222,7 @@ app.use((req, res, next) => {
 
 // Metrics endpoint for SLO aggregation - requires authentication.
 // Process-local counters (see src/lib/metrics.js); aggregate with sum().
-app.get('/metrics', requireAuth, (_req, res) => {
+app.get('/metrics', requireMetricsAccess, (_req, res) => {
   res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
   res.send(renderMetrics());
 });
