@@ -69,6 +69,52 @@ describe('reports (D)', () => {
     expect(res.body.data.screen).toBe('Map');
     expect(res.body.data).not.toHaveProperty('screenshot');
   });
+
+  it('accepts a screenshot larger than the global 10KB body limit', async () => {
+    // The route allows a 300KB data URL, but the global parser rejected
+    // anything over 10KB first, so every screenshot report answered 413 and the
+    // documented 350KB budget for /reports was unreachable.
+    const screenshot = `data:image/png;base64,${'A'.repeat(120 * 1024)}`;
+
+    const res = await request(app).post('/reports')
+      .set(auth(userToken))
+      .send({ type: 'bug', message: 'Screenshot attached', screenshot })
+      .expect(201);
+
+    expect(res.body.data.has_screenshot).toBe(true);
+  });
+
+  it('answers 400 (not 413) for a screenshot over the route cap', async () => {
+    const screenshot = `data:image/png;base64,${'A'.repeat(301 * 1024)}`;
+
+    const res = await request(app).post('/reports')
+      .set(auth(userToken))
+      .send({ type: 'bug', message: 'Too big', screenshot })
+      .expect(400);
+
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.message).toMatch(/too large/);
+  });
+
+  it('still rejects a report body beyond its own budget with 413', async () => {
+    const screenshot = `data:image/png;base64,${'A'.repeat(400 * 1024)}`;
+
+    const res = await request(app).post('/reports')
+      .set(auth(userToken))
+      .send({ type: 'bug', message: 'Way too big', screenshot })
+      .expect(413);
+
+    expect(res.body.error.code).toBe('PAYLOAD_TOO_LARGE');
+  });
+
+  it('keeps the 10KB limit on routes that do not carry screenshots', async () => {
+    const res = await request(app).post('/ratings')
+      .set(auth(userToken))
+      .send({ restaurant_id: 'r001', stars: 5, note: 'x'.repeat(20 * 1024) })
+      .expect(413);
+
+    expect(res.body.error.code).toBe('PAYLOAD_TOO_LARGE');
+  });
 });
 
 describe('admin (role-scoped)', () => {

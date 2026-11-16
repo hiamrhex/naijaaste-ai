@@ -17,7 +17,7 @@ import { authRoutes } from "./routes/auth.routes.js";
 import { agentRoutes } from "./routes/agent.routes.js";
 import { nearbyRoutes } from "./routes/nearby.routes.js";
 import { requestId } from "./middleware/requestId.js";
-import { jsonBody, JSON_BODY_LIMIT_BYTES } from "./middleware/jsonBody.js";
+import { jsonBody, JSON_BODY_LIMIT_BYTES, REPORT_BODY_LIMIT_BYTES } from "./middleware/jsonBody.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { fail } from "./lib/respond.js";
 import { env } from "./env.js";
@@ -77,6 +77,14 @@ app.use((req, res, next) => {
 // request is a readable stream, which is not true on the Vercel runtime, and
 // the resulting TypeError turned every POST-with-a-body into a 500 with no
 // request id. See src/middleware/jsonBody.js.
+//
+// Reports get their own budget first: a screenshot data URL is capped at 300KB
+// by the route, so the global 10KB parser used to answer 413 before that check
+// could run. jsonBody short-circuits on req._body, so the global parser below
+// leaves an already-parsed report body alone.
+for (const base of ["/api/v1", ""]) {
+  app.use(`${base}/reports`, jsonBody({ limit: REPORT_BODY_LIMIT_BYTES }));
+}
 app.use(jsonBody({ limit: JSON_BODY_LIMIT_BYTES }));
 
 // CORS allowlist — unset = open (reflect any origin), loudly logged (parity

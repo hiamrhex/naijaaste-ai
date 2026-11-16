@@ -146,3 +146,8 @@ export const jsonBody = ({ limit = DEFAULT_LIMIT_BYTES } = {}) => async (req, re
 };
 
 export const JSON_BODY_LIMIT_BYTES = DEFAULT_LIMIT_BYTES;
+
+// Reports may carry a screenshot data URL, which the route caps at 300KB. The
+// parser budget must be larger than that cap or the route never sees the body:
+// the global 10KB parser answered 413 before the screenshot check could run.
+export const REPORT_BODY_LIMIT_BYTES = 350 * 1024;
