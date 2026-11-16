@@ -3,7 +3,7 @@ import { callLLMJson } from './llm.service.js';
 import { getRecommendations } from './recommend.service.js';
 import { getPool } from '../db/pool.js';
 import { logger } from '../lib/logger.js';
-import { AiTimeoutError, AiUnavailableError } from '../lib/errors.js';
+import { AiTimeoutError, AiUnavailableError, ConflictError } from '../lib/errors.js';
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -60,10 +60,17 @@ const rowToSession = (row) => {
 
 const loadSession = async (sessionId) => {
   const pool = await getPool();
-  const { rows } = await pool.query('SELECT data, updated_at FROM sessions WHERE id = $1', [sessionId]);
+  const { rows } = await pool.query('SELECT data, updated_at, rev FROM sessions WHERE id = $1', [sessionId]);
   const session = rowToSession(rows[0]);
   if (rows[0] && !session) {
     await pool.query('DELETE FROM sessions WHERE id = $1', [sessionId]).catch(() => {});
+  }
+  if (session) {
+    // Non-enumerable: it is bookkeeping for the next write, never part of the
+    // session body the API returns or stores.
+    Object.defineProperty(session, '_rev', {
+      value: rows[0].rev, writable: true, enumerable: false, configurable: true,
+    });
   }
   return session;
 };
@@ -93,21 +100,50 @@ const blankSession = (sessionId) => ({
 });
 
 // Persist one session; resolves true/false (keeps the honest flag).
+//
+// The write is conditional on the revision that was loaded. Two turns for the
+// same session both read rev N and both append to their own copy; without the
+// check the later write silently replaced the earlier turn's message. The
+// loser now gets a typed 409 so the client can retry instead of losing a turn.
 const persistSession = async (session, capabilityHash) => {
   try {
     const pool = await getPool();
-    await pool.query(
-      `INSERT INTO sessions (id, user_id, data, capability_hash, updated_at)
-       VALUES ($1, $2, $3, $4, now())
-       ON CONFLICT (id) DO UPDATE SET
-         user_id = EXCLUDED.user_id,
-         data = EXCLUDED.data,
-         capability_hash = COALESCE(EXCLUDED.capability_hash, sessions.capability_hash),
-         updated_at = now()`,
-      [session.session_id, session.user_id || null, JSON.stringify(session), capabilityHash || null]
-    );
+    const rev = session._rev;
+    const data = JSON.stringify(session);
+
+    if (rev === undefined || rev === null) {
+      // First write for this id. The primary key settles a creation race: the
+      // caller that did not insert is the one that must retry.
+      try {
+        await pool.query(
+          `INSERT INTO sessions (id, user_id, data, capability_hash, updated_at, rev)
+           VALUES ($1, $2, $3, $4, now(), 0)`,
+          [session.session_id, session.user_id || null, data, capabilityHash || null]
+        );
+      } catch (err) {
+        if (err.code === '23505') {
+          throw new ConflictError('SESSION_CONFLICT', 'Another message is already being processed for this session. Retry in a moment.');
+        }
+        throw err;
+      }
+    } else {
+      const { rows } = await pool.query(
+        `UPDATE sessions
+         SET user_id = $2, data = $3,
+             capability_hash = COALESCE($4, capability_hash),
+             updated_at = now(), rev = rev + 1
+         WHERE id = $1 AND rev = $5
+         RETURNING rev`,
+        [session.session_id, session.user_id || null, data, capabilityHash || null, rev]
+      );
+      if (!rows.length) {
+        throw new ConflictError('SESSION_CONFLICT', 'Another message is already being processed for this session. Retry in a moment.');
+      }
+      session._rev = rows[0].rev;
+    }
     return true;
   } catch (err) {
+    if (err instanceof ConflictError) throw err;
     logger.error({ err }, 'session persist failed');
     return false;
   }
