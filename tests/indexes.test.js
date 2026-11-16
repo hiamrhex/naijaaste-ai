@@ -62,4 +62,15 @@ describe('hot-path indexes', () => {
     );
     expect(rows).toHaveLength(1);
   });
+
+  it('indexes the expression the city lookup actually uses', () => {
+    // getCatalogueByCity filters with lower(city); a plain (city) index cannot
+    // serve that, so the catalogue was scanned on every recommendation.
+    const sql = readdirSync(migrationsDir)
+      .filter((f) => f.endsWith('.sql'))
+      .map((f) => readFileSync(join(migrationsDir, f), 'utf8'))
+      .join('\n');
+
+    expect(sql).toMatch(/CREATE INDEX[^;]*ON\s+restaurants\s*\(\s*lower\(city\)\s*\)/i);
+  });
 });
