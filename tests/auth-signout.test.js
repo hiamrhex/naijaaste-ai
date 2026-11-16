@@ -67,4 +67,34 @@ describe('dropping the local session', () => {
     expect(memStore['naijataste.auth']).toBeUndefined();
     off();
   });
+
+  it('purges the previous account\'s activity from this device', async () => {
+    // A second account signing in on the same device used to open the first
+    // account's chat, persona, history, plans and check-in prompts.
+    for (const k of [
+      'nt.chat.v1', 'nt.history.v1', 'nt.plans.v1',
+      'nt.checkin.queue.v1', 'nt.checkin.answered.v1', 'nt.checkin.dismissed.v1',
+    ]) {
+      memStore[k] = JSON.stringify({ previous: 'account' });
+    }
+
+    auth.dropAuth();
+
+    for (const k of [
+      'nt.chat.v1', 'nt.history.v1', 'nt.plans.v1',
+      'nt.checkin.queue.v1', 'nt.checkin.answered.v1', 'nt.checkin.dismissed.v1',
+    ]) {
+      expect(memStore[k]).toBeUndefined();
+    }
+  });
+
+  it('resets the in-memory chat so the next account does not see it', async () => {
+    const { chatStore } = await import('../src/app/chat-store.js');
+    chatStore.set({ sessionId: 'session-of-user-a', persona: { full_name: 'User A' } });
+
+    auth.dropAuth();
+
+    expect(chatStore.get().sessionId).toBeNull();
+    expect(chatStore.get().persona).toBeNull();
+  });
 });

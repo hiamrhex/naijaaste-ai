@@ -25,9 +25,24 @@ export const setAuth = (auth) => {
   try { localStorage.setItem(KEY, JSON.stringify({ user: auth?.user ?? null })); } catch { /* private mode */ }
 };
 
+// Activity that belongs to the person who was signed in on this device. It is
+// removed when the session ends: the next account must never open the previous
+// account's conversation, persona, history or check-in prompts.
+const USER_SCOPED_KEYS = [
+  'nt.chat.v1',
+  'nt.history.v1',
+  'nt.plans.v1',
+  'nt.checkin.queue.v1',
+  'nt.checkin.answered.v1',
+  'nt.checkin.dismissed.v1',
+];
+
 export const dropAuth = () => {
   current = null;
   try { localStorage.removeItem(KEY); } catch { /* noop */ }
+  try {
+    for (const k of USER_SCOPED_KEYS) localStorage.removeItem(k);
+  } catch { /* noop */ }
   // The React layer holds its own copy of the user. Without this event it
   // stayed signed in after the token was gone: /login redirects a "signed-in"
   // ghost back into the app, where every request fails with 401.

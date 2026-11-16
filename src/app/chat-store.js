@@ -59,3 +59,10 @@ export const chatStore = {
 
 export { WELCOME, STORAGE_KEY };
 export default chatStore;
+
+// The stored chat is purged when the session ends (see dropAuth). The
+// in-memory copy has to follow, or the next account on this device sees the
+// previous account's conversation until a reload.
+if (typeof window !== 'undefined') {
+  window.addEventListener('auth:cleared', () => chatStore.reset());
+}
