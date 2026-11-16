@@ -34,7 +34,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 //
 //   1. pg-pool does not retry a statement whose connection died. On a pooled
 //      deployment that turns a routine server-side close into a 500 for the
-//      user. One retry on a fresh connection turns it back into a normal
+//      user. One retry on a fresh connection turns a read back into a normal
 //      request.
 //   2. pg emits a connection-level 'error' on a *checked-out* client. With no
 //      listener, Node turns that into an uncaughtException and kills the
@@ -42,12 +42,20 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 //      API exited). A listener keeps the failure on the query promise, where
 //      the route can answer it.
 //
+// Only reads are retried. When a socket dies mid-statement the server may
+// already have committed it, so retrying a write can duplicate a report, count
+// a quota call twice or report a brand-new email as already taken. A failed
+// write surfaces to the caller instead; correctness beats one saved 500.
+//
 // Exported for tests: the real pool is only wrapped when DATABASE_URL is set,
 // so the retry/listener contract is verified against a fake pool.
+const isReadOnly = (text) => /^\s*SELECT\b/i.test(String(text));
+
 export const resilientPool = (pool, { retries = 1, delayMs = 25, log = logger } = {}) => {
   const connect = pool.connect.bind(pool);
 
   pool.query = async (text, values) => {
+    const readOnly = isReadOnly(text);
     for (let attempt = 0; attempt <= retries; attempt++) {
       let client;
       try {
@@ -73,7 +81,7 @@ export const resilientPool = (pool, { retries = 1, delayMs = 25, log = logger } 
           released = true;
           client.release?.(err);
         }
-        if (!transient || attempt === retries) throw err;
+        if (!transient || !readOnly || attempt === retries) throw err;
         log.warn({ code: err.code, attempt }, 'retrying database query after transient error');
         await sleep(delayMs * (attempt + 1));
       } finally {
@@ -88,7 +96,8 @@ export const resilientPool = (pool, { retries = 1, delayMs = 25, log = logger } 
   return pool;
 };
 
-export const getPool = async () => {  if (!pool) {
+export const getPool = async () => {
+  if (!pool) {
     const createStart = Date.now();
     if (env.DATABASE_URL && env.DATABASE_URL.length > 0) {
       pool = resilientPool(new pg.Pool({

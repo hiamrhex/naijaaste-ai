@@ -87,6 +87,26 @@ describe('resilientPool', () => {
     expect(client.releases).toEqual([undefined]);
   });
 
+  it('does not retry a write whose connection dropped', async () => {
+    // The server may have committed the statement before the socket died.
+    // Retrying an INSERT would duplicate the row (a second report ticket, a
+    // second rating) and retrying an increment would count it twice.
+    const dead = new FakeClient([transient('ECONNRESET')]);
+    const pool = fakePool([dead]);
+    const log = quietLog();
+    resilientPool(pool, { delayMs: 0, log });
+
+    await expect(pool.query('INSERT INTO reports (ticket) VALUES ($1)', ['NT-1']))
+      .rejects.toMatchObject({ code: 'ECONNRESET' });
+
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+    expect(dead.releases[0]).toBeInstanceOf(Error);
+    expect(log.warn).not.toHaveBeenCalledWith(
+      expect.anything(),
+      'retrying database query after transient error'
+    );
+  });
+
   it('gives up after the retry budget and surfaces the last error', async () => {
     const first = new FakeClient([transient('ETIMEDOUT')]);
     const second = new FakeClient([transient('ETIMEDOUT')]);
