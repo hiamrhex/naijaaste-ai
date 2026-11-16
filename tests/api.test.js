@@ -92,12 +92,12 @@ describe('API baseline', () => {
     expect(res.body.ready).toBe(true);
   });
 
-  // Metrics endpoint for SLO aggregation (check 16)
-  it('GET /metrics returns Prometheus-format metrics for SLO aggregation', async () => {
-    const res = await request(app).get('/metrics').set(auth()).expect(200);
-    expect(res.text).toContain('http_requests_total');
-    expect(res.text).toContain('http_request_duration_ms');
-    expect(res.text).toContain('llm_calls_total');
+  // Metrics endpoint for SLO aggregation (check 16). Since /metrics moved to
+  // admin-or-scrape-token access, a regular session is refused; the Prometheus
+  // format itself is asserted in metrics-access.test.js with a scrape token.
+  it('GET /metrics refuses a regular user session', async () => {
+    const res = await request(app).get('/metrics').set(auth()).expect(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 
   // Test that LLM endpoints use their own, separate bucket. Previous tests in
