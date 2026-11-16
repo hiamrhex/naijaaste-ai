@@ -1,4 +1,4 @@
-import { getPool } from '../db/pool.js';
+import { getPool, getClient } from '../db/pool.js';
 import { env } from '../env.js';
 import { logger } from '../lib/logger.js';
 
@@ -20,8 +20,7 @@ export const checkAndIncrementQuota = async (subjectId, subjectType) => {
   if (MAX_CALLS === 0) return { allowed: true, remaining: Infinity, warned: false };
 
   const { year, month } = now();
-  const pool = await getPool();
-  const db = await pool.connect();
+  const db = await getClient();
 
   try {
     await db.query('BEGIN');

@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { getPool } from '../db/pool.js';
+import { getPool, getClient } from '../db/pool.js';
 
 export const MAX_SAVED = 50;
 
@@ -86,8 +86,7 @@ export const createSavedPlace = async (userId, { name }) => {
   // nothing while corrupting names like "Mama's Kitchen".
   const clean = raw;
   return withCapLock(userId, async () => {
-    const pool = await getPool();
-    const db = await pool.connect();
+    const db = await getClient();
     try {
       await db.query('BEGIN');
       // Lock the user's row: concurrent creates for the same user queue up here

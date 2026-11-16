@@ -4,6 +4,7 @@ import { dirname, join } from 'path';
 import pg from 'pg';
 import { env } from '../env.js';
 import { logger } from '../lib/logger.js';
+import { guardClientErrors } from './client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, '../../migrations');
@@ -58,7 +59,9 @@ const applyMigrations = async (client) => {
 export const runMigrations = async (pool) => {
   // Advisory locks are per session, so the lock and the statements it protects
   // must share one connection.
-  const client = typeof pool.connect === 'function' ? await pool.connect() : pool;
+  const client = typeof pool.connect === 'function'
+    ? guardClientErrors(await pool.connect())
+    : pool;
   let locked = false;
   try {
     try {

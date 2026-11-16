@@ -2,6 +2,7 @@ import pg from 'pg';
 import { env } from '../env.js';
 import { runMigrations } from './migrate.js';
 import { seedCatalogue } from './seed.js';
+import { guardClientErrors } from './client.js';
 import { logger } from '../lib/logger.js';
 import { getDbTiming, resetDbTiming, setDbTiming } from '../lib/dbTiming.js';
 
@@ -144,14 +145,21 @@ export const getPool = async () => {
   return pool;
 };
 
+// Every checkout that runs a transaction or a long-lived statement goes
+// through here: a client without an 'error' listener turns a dropped socket
+// into a process exit (see db/client.js).
+export const getClient = async () => {
+  const pool = await getPool();
+  return guardClientErrors(await pool.connect());
+};
+
 // A transaction must run on ONE connection. `pool.query` checks out a
 // different client per call, so `BEGIN`/`COMMIT` sent through it are not a
 // transaction at all: each statement autocommits on its own session and the
 // ROLLBACK usually lands on an idle connection. Every multi-statement write
 // goes through here instead.
 export const withTransaction = async (fn) => {
-  const pool = await getPool();
-  const db = await pool.connect();
+  const db = await getClient();
   try {
     await db.query('BEGIN');
     const result = await fn(db);

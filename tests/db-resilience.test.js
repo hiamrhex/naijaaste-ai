@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { resilientPool } from '../src/db/pool.js';
+import { guardClientErrors } from '../src/db/client.js';
 
 // The pool is only wrapped when DATABASE_URL points at a real Postgres, so
 // these tests pin the contract against a fake pool: retry once on a dropped
@@ -40,6 +41,30 @@ const fakePool = (clients) => {
 };
 
 const quietLog = () => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() });
+
+describe('guardClientErrors', () => {
+  it('absorbs an error event on a checked-out client', () => {
+    // pg-pool removes its idle listener at checkout. Without one, a dropped
+    // socket becomes an uncaughtException and the process exits.
+    const client = new EventEmitter();
+    client.release = () => {};
+    guardClientErrors(client);
+
+    expect(() => client.emit('error', new Error('socket died'))).not.toThrow();
+  });
+
+  it('removes the listener when the client is released', () => {
+    const client = new EventEmitter();
+    let released = 0;
+    client.release = () => { released += 1; };
+    guardClientErrors(client);
+
+    expect(client.listenerCount('error')).toBe(1);
+    client.release();
+    expect(client.listenerCount('error')).toBe(0);
+    expect(released).toBe(1);
+  });
+});
 
 describe('resilientPool', () => {
   it('retries once on a dropped connection and returns the fresh result', async () => {
