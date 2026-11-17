@@ -122,6 +122,7 @@ export const ENDPOINTS = [
   "POST /api/v1/auth/google",
   "POST /api/v1/auth/forgot-password",
   "POST /api/v1/auth/reset-password",
+  "POST /api/v1/auth/verify-email",
   "GET  /api/v1/auth/favorites",
   "POST /api/v1/auth/favorites",
   "DELETE /api/v1/auth/favorites/:restaurant_id",

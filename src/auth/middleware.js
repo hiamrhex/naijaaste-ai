@@ -43,6 +43,12 @@ export const requireAuth = async (req, res, next) => {
   if (!user) {
     return fail(res, { status: 401, code: 'UNAUTHENTICATED', message: 'User no longer exists', requestId: req.id });
   }
+  // Valid signature is not a session. An account whose mailbox was never
+  // proven has no rights, and a token minted before migration 010 must stop
+  // working here rather than only at the routes that remember to check.
+  if (!user.email_verified) {
+    return fail(res, { status: 403, code: 'EMAIL_NOT_VERIFIED', message: 'Verify your email address to continue', requestId: req.id });
+  }
   req.user = sanitize(user);
   next();
 };

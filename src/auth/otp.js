@@ -12,10 +12,15 @@ const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 
+// A code is only valid for the flow that issued it. Purpose is part of the
+// HMAC input AND part of the storage key (migration 011), so a signup code is
+// not a password-reset code even to someone who reads both tables.
+export const PURPOSES = ['signup', 'reset'];
+
 const pepper = () => env.JWT_ACCESS_SECRET || 'otp-dev-pepper';
 
-const hashCode = (email, code) =>
-  createHmac('sha256', pepper()).update(`${email}:${code}`).digest('hex');
+const hashCode = (email, purpose, code) =>
+  createHmac('sha256', pepper()).update(`${purpose}:${email}:${code}`).digest('hex');
 
 const safeEqual = (a, b) => {
   try {
@@ -49,24 +54,25 @@ const resendError = (retryAfterMs) => {
  *
  * Returns the plaintext code — caller must deliver it (email/console) and never log it in prod.
  */
-export const issueOtp = async (email, { force = false } = {}) => {
+export const issueOtp = async (email, { force = false, purpose = 'reset' } = {}) => {
+  if (!PURPOSES.includes(purpose)) throw new Error(`unknown OTP purpose: ${purpose}`);
   const pool = await getPool();
   const now = Date.now();
   await prune(pool, now);
   const key = email.toLowerCase().trim();
   const code = String(randomInt(0, 1000000)).padStart(6, '0');
-  const codeHash = hashCode(key, code);
+  const codeHash = hashCode(key, purpose, code);
   const createdAt = new Date(now).toISOString();
   const expiresAt = new Date(now + OTP_TTL_MS).toISOString();
 
   if (force) {
     await pool.query(
-      `INSERT INTO otps (email, code_hash, expires_at, attempts, created_at)
-       VALUES ($1, $2, $3, 0, $4)
-       ON CONFLICT (email) DO UPDATE SET
+      `INSERT INTO otps (email, purpose, code_hash, expires_at, attempts, created_at)
+       VALUES ($1, $2, $3, $4, 0, $5)
+       ON CONFLICT (email, purpose) DO UPDATE SET
          code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at,
          attempts = 0, created_at = EXCLUDED.created_at`,
-      [key, codeHash, expiresAt, createdAt]
+      [key, purpose, codeHash, expiresAt, createdAt]
     );
     return code;
   }
@@ -76,26 +82,27 @@ export const issueOtp = async (email, { force = false } = {}) => {
   // overwrote the first, so the code in the earlier email was already dead.
   const cutoff = new Date(now - RESEND_COOLDOWN_MS).toISOString();
   const { rows: replaced } = await pool.query(
-    `UPDATE otps SET code_hash = $2, expires_at = $3, attempts = 0, created_at = $4
-     WHERE email = $1 AND created_at <= $5
+    `UPDATE otps SET code_hash = $3, expires_at = $4, attempts = 0, created_at = $5
+     WHERE email = $1 AND purpose = $2 AND created_at <= $6
      RETURNING email`,
-    [key, codeHash, expiresAt, createdAt, cutoff]
+    [key, purpose, codeHash, expiresAt, createdAt, cutoff]
   );
   if (replaced.length) return code;
 
-  const { rows } = await pool.query('SELECT created_at FROM otps WHERE email = $1', [key]);
+  const { rows } = await pool.query('SELECT created_at FROM otps WHERE email = $1 AND purpose = $2', [key, purpose]);
   if (rows[0]) {
     const elapsed = now - new Date(rows[0].created_at).getTime();
     throw resendError(RESEND_COOLDOWN_MS - elapsed);
   }
 
-  // First code for this address. The unique email column is the claim: if a
-  // concurrent request inserted first, this one must not send a second email.
+  // First code for this address. The (email, purpose) unique index is the
+  // claim: if a concurrent request inserted first, this one must not send a
+  // second email.
   try {
     await pool.query(
-      `INSERT INTO otps (email, code_hash, expires_at, attempts, created_at)
-       VALUES ($1, $2, $3, 0, $4)`,
-      [key, codeHash, expiresAt, createdAt]
+      `INSERT INTO otps (email, purpose, code_hash, expires_at, attempts, created_at)
+       VALUES ($1, $2, $3, $4, 0, $5)`,
+      [key, purpose, codeHash, expiresAt, createdAt]
     );
   } catch (err) {
     if (err.code === '23505') throw resendError(RESEND_COOLDOWN_MS);
@@ -114,10 +121,11 @@ export const issueOtp = async (email, { force = false } = {}) => {
  * accounts. The attempt-claim UPDATE and the HMAC comparison therefore run
  * on BOTH paths (the UPDATE matches no row when there is nothing to claim).
  */
-export const verifyOtp = async (email, code) => {
+export const verifyOtp = async (email, code, purpose = 'reset') => {
+  if (!PURPOSES.includes(purpose)) throw new Error(`unknown OTP purpose: ${purpose}`);
   const pool = await getPool();
   const key = email.toLowerCase().trim();
-  const { rows } = await pool.query('SELECT * FROM otps WHERE email = $1', [key]);
+  const { rows } = await pool.query('SELECT * FROM otps WHERE email = $1 AND purpose = $2', [key, purpose]);
   const rec = rows[0];
 
   const now = Date.now();
@@ -128,53 +136,54 @@ export const verifyOtp = async (email, code) => {
   // This runs even when no row exists — it is half of the equal-cost work.
   const { rows: claimed } = await pool.query(
     `UPDATE otps SET attempts = attempts + 1
-     WHERE email = $1 AND attempts < $2
+     WHERE email = $1 AND purpose = $2 AND attempts < $3
      RETURNING attempts, code_hash`,
-    [key, MAX_ATTEMPTS]
+    [key, purpose, MAX_ATTEMPTS]
   );
 
   if (!rec) {
     // Nothing was ever issued for this address. Do the same comparison the
     // mismatch path does, so both answers cost the same wall-clock time.
-    safeEqual(hashCode(key, '000000'), hashCode(key, '000000'));
+    safeEqual(hashCode(key, purpose, '000000'), hashCode(key, purpose, '000000'));
     return { ok: false, reason: 'missing', attemptsLeft: 0 };
   }
 
   if (now > new Date(rec.expires_at).getTime()) {
-    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
+    await pool.query('DELETE FROM otps WHERE email = $1 AND purpose = $2', [key, purpose]);
     return { ok: false, reason: 'expired', attemptsLeft: 0 };
   }
 
   if (!claimed.length) {
-    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
+    await pool.query('DELETE FROM otps WHERE email = $1 AND purpose = $2', [key, purpose]);
     return { ok: false, reason: 'max_attempts', attemptsLeft: 0 };
   }
 
   const attempts = claimed[0].attempts;
   const match = typeof code === 'string' && /^\d{6}$/.test(code)
-    && safeEqual(claimed[0].code_hash, hashCode(key, code));
+    && safeEqual(claimed[0].code_hash, hashCode(key, purpose, code));
 
   if (match) {
-    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
+    await pool.query('DELETE FROM otps WHERE email = $1 AND purpose = $2', [key, purpose]);
     return { ok: true };
   }
   if (attempts >= MAX_ATTEMPTS) {
-    await pool.query('DELETE FROM otps WHERE email = $1', [key]);
+    await pool.query('DELETE FROM otps WHERE email = $1 AND purpose = $2', [key, purpose]);
     return { ok: false, reason: 'max_attempts', attemptsLeft: 0 };
   }
   return { ok: false, reason: 'mismatch', attemptsLeft: MAX_ATTEMPTS - attempts };
 };
 
-export const clearOtp = async (email) => {
+export const clearOtp = async (email, purpose = 'reset') => {
   const pool = await getPool();
-  await pool.query('DELETE FROM otps WHERE email = $1', [email.toLowerCase().trim()]);
+  await pool.query('DELETE FROM otps WHERE email = $1 AND purpose = $2', [email.toLowerCase().trim(), purpose]);
 };
 
 // Test hook — lets unit tests drive expiry/attempts without waiting in real time.
-export const __setOtpExpiry = async (email, expiresAt) => {
+export const __setOtpExpiry = async (email, expiresAt, purpose = 'reset') => {
   const pool = await getPool();
-  await pool.query('UPDATE otps SET expires_at = $2 WHERE email = $1', [
+  await pool.query('UPDATE otps SET expires_at = $3 WHERE email = $1 AND purpose = $2', [
     email.toLowerCase().trim(),
+    purpose,
     new Date(expiresAt).toISOString(),
   ]);
 };

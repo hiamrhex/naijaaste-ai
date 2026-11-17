@@ -21,12 +21,13 @@ async function seedAdminUser() {
 
   try {
     await pool.query(
-      `INSERT INTO users (email, name, password_hash, role)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO users (email, name, password_hash, role, email_verified)
+       VALUES ($1, $2, $3, $4, true)
        ON CONFLICT (email) DO UPDATE SET
          name = EXCLUDED.name,
          password_hash = EXCLUDED.password_hash,
-         role = EXCLUDED.role`,
+         role = EXCLUDED.role,
+         email_verified = true`,
       [ADMIN_EMAIL, ADMIN_NAME, passwordHash, 'admin']
     );
 

@@ -20,25 +20,31 @@ export const escapeHtml = (value) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-export const otpHtml = ({ name, code }) => `
+export const otpHtml = ({ name, code, purpose = 'reset' }) => {
+  const intro = purpose === 'signup'
+    ? 'someone is creating a NaijaTaste AI account with this address. Confirm it with the code below:'
+    : 'someone requested a password reset for your account. Use the code below within 10 minutes:';
+  const footnote = purpose === 'signup'
+    ? 'This code expires in 10 minutes and can be used 5 times max. If you did not sign up, ignore this email — no account becomes usable without this code.'
+    : 'This code expires in 10 minutes and can be used 5 times max. If you did not request this, ignore this email — your password is unchanged.';
+  return `
 <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#080810;padding:32px 16px;color:#F9FAFB">
   <div style="max-width:420px;margin:0 auto;background:#111827;border:1px solid #1F2937;border-radius:16px;padding:32px 28px">
     <div style="font-weight:800;font-size:18px;letter-spacing:-0.3px;margin-bottom:4px">
       NaijaTaste <span style="color:#F97316">AI</span>
     </div>
     <p style="font-size:14px;color:#9CA3AF;line-height:1.6;margin:16px 0 8px">
-      Hi ${escapeHtml(name) || 'there'}, someone requested a password reset for your account.
-      Use the code below within 10 minutes:
+      Hi ${escapeHtml(name) || 'there'}, ${intro}
     </p>
     <div style="background:#0D0D1A;border:1px solid #1F2937;border-radius:12px;padding:20px;text-align:center;margin:16px 0">
       <span style="font-family:ui-monospace,'Cascadia Mono',monospace;font-size:34px;font-weight:700;letter-spacing:10px;color:#F97316">${escapeHtml(code)}</span>
     </div>
     <p style="font-size:13px;color:#6B7280;line-height:1.6;margin:0">
-      This code expires in 10 minutes and can be used 5 times max.
-      If you didn't request this, ignore this email — your password is unchanged.
+      ${footnote}
     </p>
   </div>
 </div>`;
+};
 
 const smtpConfigured = () =>
   Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
@@ -88,7 +94,7 @@ const getTransporter = () => {
  * Returns { delivered: boolean, dev_otp?: string }.
  * dev_otp is only ever set outside production.
  */
-export const sendOtpEmail = async ({ to, name, code }) => {
+export const sendOtpEmail = async ({ to, name, code, purpose = 'reset' }) => {
   const isProd = env.NODE_ENV === 'production';
   // dev_otp exists ONLY on explicit opt-in outside production — never on
   // SMTP failure alone (plan 008: misconfigured deploys must not leak codes).
@@ -107,8 +113,10 @@ export const sendOtpEmail = async ({ to, name, code }) => {
     await getTransporter().sendMail({
       from: FROM,
       to,
-      subject: 'Your NaijaTaste AI reset code',
-      html: otpHtml({ name, code }),
+      subject: purpose === 'signup'
+        ? 'Your NaijaTaste AI confirmation code'
+        : 'Your NaijaTaste AI reset code',
+      html: otpHtml({ name, code, purpose }),
     });
     return { delivered: true };
   } catch (err) {

@@ -24,8 +24,8 @@ export const createUser = async ({ email, passwordHash, name }) => {
   const target = email.toLowerCase().trim();
   try {
     const { rows } = await pool.query(
-      `INSERT INTO users (id, email, name, password_hash, role)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      `INSERT INTO users (id, email, name, password_hash, role, email_verified)
+       VALUES ($1, $2, $3, $4, $5, false) RETURNING *`,
       [id, target, name.trim(), passwordHash, isAdminEmail(email) ? 'admin' : 'user']
     );
     const user = toUser(rows[0]);
@@ -62,15 +62,15 @@ export const upsertGoogleUser = async ({ email, name, picture, sub }) => {
   if (!existing) {
     const id = randomUUID();
     const { rows } = await pool.query(
-      `INSERT INTO users (id, email, name, password_hash, google_sub, picture, role, last_login)
-       VALUES ($1, $2, $3, NULL, $4, $5, $6, now()) RETURNING *`,
+      `INSERT INTO users (id, email, name, password_hash, google_sub, picture, role, email_verified, last_login)
+       VALUES ($1, $2, $3, NULL, $4, $5, $6, true, now()) RETURNING *`,
       [id, target, (name || target.split('@')[0]).trim(), sub, picture || null,
         isAdminEmail(email) ? 'admin' : 'user']
     );
     return { user: sanitize({ ...toUser(rows[0]), favorites: [] }), created: true };
   }
   const { rows } = await pool.query(
-    `UPDATE users SET last_login = now(), google_sub = $2,
+    `UPDATE users SET last_login = now(), google_sub = $2, email_verified = true,
        picture = COALESCE(picture, $3) WHERE id = $1 RETURNING *`,
     [existing.id, sub, picture || null]
   );
@@ -148,6 +148,36 @@ export const setPasswordHash = async (userId, passwordHash) => {
   return sanitize({ ...toUser(rows[0]), favorites: await getFavorites(userId) });
 };
 
+// Mark the mailbox proven. This is only ever called after a purpose-scoped
+// signup code verified, so there is no extra WHERE guard to bypass.
+export const setEmailVerified = async (userId) => {
+  const pool = await getPool();
+  const { rows } = await pool.query(
+    'UPDATE users SET email_verified = true, updated_at = now() WHERE id = $1 RETURNING *',
+    [userId]
+  );
+  if (!rows[0]) return null;
+  return sanitize({ ...toUser(rows[0]), favorites: await getFavorites(userId) });
+};
+
+// Re-signup on an address that was never verified: whoever holds the mailbox
+// last is the owner, because nobody has proven control yet. The UPDATE ... WHERE
+// email_verified = false is the claim — if the address was verified between the
+// route's read and this write, zero rows match and the caller answers 409.
+// Every session belonging to the squatted account dies with the overwrite.
+export const replaceUnverifiedAccount = async ({ email, passwordHash, name }) => {
+  const pool = await getPool();
+  const target = email.toLowerCase().trim();
+  const { rows } = await pool.query(
+    `UPDATE users SET password_hash = $2, name = $3, updated_at = now()
+     WHERE email = $1 AND email_verified = false RETURNING *`,
+    [target, passwordHash, name.trim()]
+  );
+  if (!rows[0]) return null;
+  await revokeAllRefreshTokens(rows[0].id);
+  return sanitize({ ...toUser(rows[0]), favorites: [] });
+};
+
 const MAX_FAVORITES = 50;
 
 export const getFavorites = async (userId) => {
@@ -196,6 +226,7 @@ export const sanitize = (user) => ({
   name: user.name,
   picture: user.picture || null,
   role: user.role || (isAdminEmail(user.email) ? 'admin' : 'user'),
+  email_verified: user.email_verified === true,
   created_at: user.created_at,
   last_login: user.last_login,
   favorites: user.favorites || [],

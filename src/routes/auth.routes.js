@@ -1,6 +1,6 @@
 import { asyncRouter } from '../lib/async-router.js';
 import bcrypt from 'bcrypt';
-import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, consumeRefreshToken, updateUser, setPasswordHash, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
+import { createUser, findUserByEmail, findUserById, sanitize, storeRefreshToken, revokeRefreshToken, revokeAllRefreshTokens, consumeRefreshToken, updateUser, setPasswordHash, setEmailVerified, replaceUnverifiedAccount, getFavorites, addFavorite, removeFavorite, upsertGoogleUser, deleteUserAccount } from '../auth/store.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../auth/tokens.js';
 import { requireAuth } from '../auth/middleware.js';
 import { clientIp } from '../lib/clientIp.js';
@@ -60,6 +60,42 @@ const issueTokens = async (user, res, status = 200) => {
   return res.status(status).json({ success: true, user, accessToken });
 };
 
+// Issue a signup-purpose code and hand it to the mailer without waiting for
+// SMTP (a slow transport must not become a timing side channel). Returns the
+// plaintext code only when the caller may show it in the response (dev, no
+// SMTP). A resend inside the cooldown is not an error: the earlier code is
+// still valid, and the response must stay identical either way.
+const sendVerificationCode = async ({ email, name }, req) => {
+  let code;
+  try {
+    code = await issueOtp(email, { purpose: 'signup', force: otpShownInResponse() });
+  } catch (err) {
+    if (err.code === 'RESEND_COOLDOWN') return null;
+    throw err;
+  }
+  sendOtpEmail({ to: email, name, code, purpose: 'signup' }).catch((err) =>
+    req.log?.error({ err }, 'verification email send failed')
+  );
+  return code;
+};
+
+const OTP_FAILURES = {
+  missing: 'Invalid or expired code',
+  expired: 'Code expired — request a new one',
+  max_attempts: 'Too many attempts — request a new code',
+  mismatch: (left) => `Incorrect code — ${left} attempts left`,
+};
+
+const otpFailure = (res, result, req) => {
+  const message = OTP_FAILURES[result.reason];
+  return fail(res, {
+    status: 400,
+    code: 'INVALID_OTP',
+    message: typeof message === 'function' ? message(result.attemptsLeft) : message,
+    requestId: req.id,
+  });
+};
+
 router.post('/auth/signup', noStore, signupLimiter, async (req, res) => {
   try {
     const errors = validateSignup(req.body);
@@ -67,19 +103,39 @@ router.post('/auth/signup', noStore, signupLimiter, async (req, res) => {
       return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: errors.join('; '), requestId: req.id });
     }
     const { name, email, password } = req.body;
-    if (await findUserByEmail(email)) {
-      return fail(res, { status: 409, code: 'EMAIL_TAKEN', message: 'An account with this email already exists', requestId: req.id });
-    }
     const passwordHash = await bcrypt.hash(password, 12);
-    try {
-      const user = await createUser({ email, passwordHash, name });
-      return await issueTokens(user, res, 201);
-    } catch (err) {
-      if (err.code === 'EMAIL_TAKEN') {
+
+    // An unverified account proves nothing: nobody has shown they own the
+    // address, so the next person to sign up with it is as entitled to it as
+    // the first. Verified accounts are the real 409.
+    let user = null;
+    const existing = await findUserByEmail(email);
+    if (existing) {
+      if (existing.email_verified) {
         return fail(res, { status: 409, code: 'EMAIL_TAKEN', message: 'An account with this email already exists', requestId: req.id });
       }
-      throw err;
+      user = await replaceUnverifiedAccount({ email, passwordHash, name });
+    } else {
+      try {
+        user = await createUser({ email, passwordHash, name });
+      } catch (err) {
+        if (err.code !== 'EMAIL_TAKEN') throw err;
+        // Lost the insert race to another signup for the same address. If that
+        // row is still unverified, take it over; if it just verified, 409.
+        user = await replaceUnverifiedAccount({ email, passwordHash, name });
+      }
     }
+    if (!user) {
+      return fail(res, { status: 409, code: 'EMAIL_TAKEN', message: 'An account with this email already exists', requestId: req.id });
+    }
+
+    const code = await sendVerificationCode({ email: user.email, name: user.name }, req);
+    return res.status(201).json({
+      success: true,
+      message: 'Check your inbox for a 6-digit code to finish creating your account.',
+      user,
+      ...(code && otpShownInResponse() ? { dev_otp: code } : {}),
+    });
   } catch (err) {
     req.log?.error({ err }, 'auth signup failed');
     return fail(res, { status: 500, code: 'INTERNAL', message: 'Signup failed', requestId: req.id });
@@ -118,11 +174,56 @@ router.post('/auth/signin', noStore, signinLimiter, async (req, res) => {
       return fail(res, { status: 401, code: 'INVALID_CREDENTIALS', message: 'Invalid email or password', requestId: req.id });
     }
     await clearFailures(email, ip);
+    if (!user.email_verified) {
+      // Correct password, unproven mailbox: send a fresh code to the address on
+      // file and tell the client exactly which step is missing (403, not 401 —
+      // the credentials were right). Accounts created before migration 010 land
+      // here and can finish verification without a support ticket.
+      const code = await sendVerificationCode({ email: user.email, name: user.name }, req);
+      return fail(res, {
+        status: 403,
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Verify your email address before signing in. A new code has been sent.',
+        requestId: req.id,
+        ...(code && otpShownInResponse() ? { details: { dev_otp: code } } : {}),
+      });
+    }
     await updateUser(user.id, { last_login: new Date().toISOString() });
     return await issueTokens(sanitize(user), res);
   } catch (err) {
     req.log?.error({ err }, 'auth signin failed');
     return fail(res, { status: 500, code: 'INTERNAL', message: 'Signin failed', requestId: req.id });
+  }
+});
+
+// ─── Email verification (finishes signup) ──────────────────────────────────
+// Same OTP machinery as password reset, different purpose: a reset code can
+// never complete a signup and a signup code can never reset a password
+// (migration 011 puts purpose in the storage key and the HMAC input).
+router.post('/auth/verify-email', noStore, resetLimiter, async (req, res) => {
+  try {
+    const { email, otp } = req.body || {};
+    const errors = [];
+    if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) errors.push('valid email is required');
+    if (!otp || typeof otp !== 'string' || !/^\d{6}$/.test(otp)) errors.push('6-digit code is required');
+    if (errors.length) {
+      return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: errors.join('; '), requestId: req.id });
+    }
+
+    const result = await verifyOtp(email, otp, 'signup');
+    if (!result.ok) return otpFailure(res, result, req);
+
+    const user = await findUserByEmail(email);
+    if (!user) {
+      // A code verified but the account was deleted in between. Same generic
+      // answer as a wrong code; nothing is left to verify.
+      return fail(res, { status: 400, code: 'INVALID_OTP', message: 'Invalid or expired code', requestId: req.id });
+    }
+    const verified = await setEmailVerified(user.id);
+    return await issueTokens(verified, res);
+  } catch (err) {
+    req.log?.error({ err }, 'auth verify-email failed');
+    return fail(res, { status: 500, code: 'INTERNAL', message: 'Could not verify email', requestId: req.id });
   }
 });
 
@@ -139,6 +240,11 @@ router.post('/auth/refresh', noStore, refreshLimiter, async (req, res) => {
     const user = await findUserById(payload.sub);
     if (!user) {
       return fail(res, { status: 401, code: 'UNAUTHENTICATED', message: 'User no longer exists', requestId: req.id });
+    }
+    // A refresh cookie for an unproven mailbox is not a session either. Checked
+    // before consume so the refusal cannot be replayed into a dead family.
+    if (!user.email_verified) {
+      return fail(res, { status: 403, code: 'EMAIL_NOT_VERIFIED', message: 'Verify your email address to continue', requestId: req.id });
     }
     // Consume before issuing: two concurrent refreshes with the same cookie
     // must not both mint a new token family.
@@ -301,15 +407,9 @@ router.post('/auth/reset-password', noStore, resetLimiter, async (req, res) => {
     if (errors.length) {
       return fail(res, { status: 400, code: 'VALIDATION_ERROR', message: errors.join('; '), requestId: req.id });
     }
-    const result = await verifyOtp(email, otp);
+    const result = await verifyOtp(email, otp, 'reset');
     if (!result.ok) {
-      const messages = {
-        missing: 'Invalid or expired reset code',
-        expired: 'Reset code expired — request a new one',
-        max_attempts: 'Too many attempts — request a new code',
-        mismatch: `Incorrect code — ${result.attemptsLeft} attempts left`,
-      };
-      return fail(res, { status: 400, code: 'INVALID_OTP', message: messages[result.reason], requestId: req.id });
+      return otpFailure(res, result, req);
     }
     const user = await findUserByEmail(email);
     if (!user) {
@@ -322,6 +422,10 @@ router.post('/auth/reset-password', noStore, resetLimiter, async (req, res) => {
     }
     const passwordHash = await bcrypt.hash(new_password, 12);
     await setPasswordHash(user.id, passwordHash);
+    // Receiving the code at this address is itself proof of mailbox control, so
+    // a completed reset also verifies the account. This is the recovery path for
+    // accounts created before migration 010 that never saw a verify email.
+    await setEmailVerified(user.id);
     await revokeAllRefreshTokens(user.id); // password change kills every session
     return res.json({ success: true, message: 'Password updated — sign in with your new password.' });
   } catch (err) {
