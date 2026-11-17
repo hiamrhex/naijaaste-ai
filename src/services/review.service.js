@@ -111,19 +111,24 @@ const computePreMatchScore = (persona, restaurant) => {
 export const generateReview = async (persona, restaurant) => {
   const startTime = Date.now();
 
-  // Step 1 — Resolve restaurant from catalogue when only an id was provided.
-  // The UI sends the recommendation card (restaurant_id + display fields), and
-  // the canonical row is what the prompt and the response identity must use.
+  // Step 1 — Prefer the canonical catalogue row when it exists. The UI sends
+  // the recommendation card (restaurant_id + display fields), and the canonical
+  // row is what the prompt and the response identity should use. But a missing
+  // row is not automatically a failure: OSM-derived ids and a transient
+  // catalogue read must not block a review when the card already carries the
+  // fields the prompt needs. Only an id with no row and no display name is a
+  // genuine not-found.
   let resolvedRestaurant = restaurant;
   if (restaurant?.restaurant_id) {
     const found = await findRestaurantByCode(restaurant.restaurant_id);
-    if (!found) {
+    if (found) {
+      resolvedRestaurant = found;
+    } else if (!restaurant?.name) {
       return {
         success: false,
         error: `Restaurant with id ${restaurant.restaurant_id} not found in catalogue`
       };
     }
-    resolvedRestaurant = found;
   }
   if (!resolvedRestaurant?.name) {
     return { success: false, error: 'Restaurant not found in catalogue' };

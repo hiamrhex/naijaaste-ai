@@ -78,6 +78,18 @@ describe('generateReview', () => {
     expect(result.restaurant_name).toBe('Mama Cass');
   });
 
+  it('falls back to the display card when the catalogue has no row', async () => {
+    // OSM-derived ids and a transient catalogue read must not block a review
+    // when the card already carries the fields the prompt needs.
+    deps.findRestaurantByCode.mockResolvedValue(null);
+
+    const result = await generateReview(persona, restaurant);
+
+    expect(result.success).toBe(true);
+    expect(result.restaurant_name).toBe('Mama Cass');
+    expect(deps.callReviewLLM).toHaveBeenCalled();
+  });
+
   it('fails cleanly when the id is not in the catalogue', async () => {
     deps.findRestaurantByCode.mockResolvedValue(null);
 
