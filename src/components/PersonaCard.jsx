@@ -7,6 +7,10 @@ export function PersonaCard({ persona }) {
   if (!persona) return null;
   const budgetLevel = BUDGET_MAP[persona.budget_level?.toLowerCase()] || 1;
   const spice = SPICE_MAP[persona.spice_tolerance?.toLowerCase()] || 2;
+  // "Warm" is the recommendation service's definition: the persona has at
+  // least one recorded preference signal. It was read from persona.user_state,
+  // which no producer ever sets, so every user was labelled "Cold Start".
+  const warm = Array.isArray(persona.preference_history) && persona.preference_history.length > 0;
 
   return (
     <div className="slide-in-right" style={{
@@ -25,9 +29,9 @@ export function PersonaCard({ persona }) {
           </div>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>Your Taste Profile</span>
         </div>
-        <Tag variant={persona.user_state === "warm" ? "green" : "amber"}>
-          {persona.user_state === "warm" ? <ShieldCheck size={10} aria-hidden="true" /> : <Sparkles size={10} aria-hidden="true" />}
-          {persona.user_state === "warm" ? "Warm User" : "Cold Start"}
+        <Tag variant={warm ? "green" : "amber"}>
+          {warm ? <ShieldCheck size={10} aria-hidden="true" /> : <Sparkles size={10} aria-hidden="true" />}
+          {warm ? "Warm User" : "Cold Start"}
         </Tag>
       </div>
 
@@ -77,20 +81,20 @@ export function PersonaCard({ persona }) {
             </div>
           </div>
         )}
-        {persona.preferred_ambience && (
+        {persona.ambience_preference && (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Utensils size={13} color="var(--amber)" />
             <div>
               <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Ambience</div>
               <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-primary)", textTransform: "capitalize" }}>
-                {persona.preferred_ambience.replace(/_/g, " ")}
+                {persona.ambience_preference.replace(/_/g, " ")}
               </div>
             </div>
           </div>
         )}
-        {persona.cuisine_preferences?.length > 0 && (
+        {persona.preferred_cuisines?.length > 0 && (
           <div style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
-            {persona.cuisine_preferences.slice(0, 4).map((c) => (
+            {persona.preferred_cuisines.slice(0, 4).map((c) => (
               <Tag key={c} variant="orange">{c}</Tag>
             ))}
           </div>

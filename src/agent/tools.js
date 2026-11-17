@@ -89,6 +89,14 @@ const executeTool = async (name, args, session) => {
     case 'get_recommendations': {
       const persona = args.persona || session.extracted_persona;
       if (!persona?.city) return { error: 'Persona missing city — ask the user first' };
+      // Keep what the model extracted. It used to be thrown away after the
+      // call, so extracted_persona stayed { preference_history: [] }: the taste
+      // profile card was empty and a review could not be written in the user's
+      // voice.
+      const extracted = Object.fromEntries(
+        Object.entries(persona).filter(([, v]) => v !== undefined && v !== null && v !== '')
+      );
+      session.extracted_persona = { ...session.extracted_persona, ...extracted };
       const fullPersona = {
         persona_id: uuidv4(),
         city: persona.city,
