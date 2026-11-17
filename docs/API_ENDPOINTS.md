@@ -1,398 +1,436 @@
 # API Endpoints Reference
 
-> Last verified: 2026-10-21 against live `/health` (31 endpoints).
-> All endpoints return consistent error format: `{ error: { code, message, details?, requestId } }`.
-> Rate-limited endpoints include `Retry-After` header on 429 responses.
+> Verified 2026-11-17 against the route table in `src/app.js` (34 endpoints) and
+> the live `/health` inventory.
+>
+> **Base path.** The canonical mount is `/api/v1` (`POST /api/v1/auth/signin`,
+> …). Every route is also mounted unprefixed (`POST /auth/signin`, …) for older
+> clients. `/health`, `/health/ready` and `/metrics` are never versioned —
+> probes must keep working across API versions.
+>
+> **Errors** are always `{ error: { code, message, details?, requestId } }`.
+> Rate-limited responses add `Retry-After`.
+>
+> **Success envelopes.** Routes that use the shared responder return
+> `{ data, meta? }` (admin, recommend, ratings, saved places). Routes that predate
+> it return `{ success: true, ...fields }` (auth, chat, agent, persona, review,
+> favorites, reports). Both are shown below; the shape is part of the contract.
 
 ## Health & Status
 
 ### GET /health
-Returns API inventory and status.
+Liveness plus the endpoint inventory. Never touches the database, so it stays up
+during an outage.
 
-**Response:**
+**Response `200`:**
 ```json
 {
   "status": "ok",
-  "endpoints": 31,
-  "version": "0.0.0",
-  "timestamp": "2026-10-21T20:53:00.000Z"
+  "service": "NaijaTaste AI",
+  "version": "2.0.0",
+  "api": "/api/v1",
+  "timestamp": "2026-11-17T09:00:00.000Z",
+  "features": { "google_auth": true },
+  "endpoints": ["GET  /health", "GET  /health/ready", "... 34 entries"]
 }
 ```
+
+`endpoints` is an array of strings, not a count. `features.google_auth` is
+`false` when `GOOGLE_CLIENT_ID` is unset.
 
 ### GET /health/ready
-Database connectivity check.
+Readiness probe. Runs `SELECT 1` bounded to 2 s; answers `503` while the
+database is unreachable so a deploy gate can act.
 
-**Response:**
+**Response `200` / `503`:**
 ```json
 {
   "status": "ok",
-  "database": "connected",
-  "timestamp": "2026-10-21T20:53:00.000Z"
+  "service": "NaijaTaste AI",
+  "ready": true,
+  "db": "up",
+  "timestamp": "2026-11-17T09:00:00.000Z"
 }
 ```
+`status` is `"unavailable"`, `ready` is `false` and `db` is `"down"` on the 503
+path.
+
+### GET /metrics
+Prometheus text format (`text/plain; version=0.0.4`). Process-local counters;
+aggregate with `sum()` across instances. Requires an admin session **or**
+`Authorization: Bearer $METRICS_TOKEN` (timing-safe compare). Anonymous callers
+get `401`; a signed-in non-admin gets `403`.
 
 ## Authentication
 
+Tokens: a 15-minute access token is returned in the body. The refresh token is
+set as an `httpOnly`, `SameSite=Strict` cookie named `refreshToken` — it is
+never returned in JSON.
+
 ### POST /auth/signup → 201
-Create new user account.
-
-**Request:**
 ```json
-{
-  "name": "Ada Obi",
-  "email": "ada@example.com",
-  "password": "Str0ng!Passw0rd"
-}
+{ "name": "Ada Obi", "email": "ada@example.com", "password": "Str0ng!Passw0rd" }
 ```
+**Response:** `{ "success": true, "user": { "id", "email", "role" }, "accessToken": "…" }`
 
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": "uuid",
-    "email": "ada@example.com",
-    "role": "user"
-  },
-  "accessToken": "jwt_token"
-}
-```
-
-**Errors:**
-- `400 VALIDATION_ERROR` - Invalid input format
-- `409 EMAIL_TAKEN` - Email already registered
-- `429 RATE_LIMITED` - Too many signup attempts
+Errors: `400 VALIDATION_ERROR`, `409 EMAIL_TAKEN`, `429 RATE_LIMITED`.
 
 ### POST /auth/signin → 200
-User login.
-
-**Request:**
 ```json
-{
-  "email": "ada@example.com",
-  "password": "Str0ng!Passw0rd"
-}
+{ "email": "ada@example.com", "password": "Str0ng!Passw0rd" }
 ```
-
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": "uuid",
-    "email": "ada@example.com",
-    "role": "user"
-  },
-  "accessToken": "jwt_token"
-}
-```
-
-**Errors:**
-- `401 INVALID_CREDENTIALS` - Wrong email or password
+**Response:** same shape as signup. Errors: `401 INVALID_CREDENTIALS`,
+`429 ACCOUNT_LOCKED` (repeated failures for the same email + IP).
 
 ### POST /auth/refresh → 200
-Refresh access token.
+No request body. The browser sends the `refreshToken` cookie. The token is
+consumed before a new pair is issued, so two concurrent refreshes cannot both
+mint a family.
 
-**Request:**
-```json
-{
-  "refreshToken": "refresh_token"
-}
-```
-
-**Response:**
-```json
-{
-  "accessToken": "new_jwt_token",
-  "refreshToken": "new_refresh_token"
-}
-```
+**Response:** `{ "success": true, "user": { … }, "accessToken": "…" }` and a new
+`refreshToken` cookie. Errors: `401 NO_REFRESH_TOKEN`, `401 INVALID_REFRESH`,
+`401 UNAUTHENTICATED`.
 
 ### POST /auth/signout → 200
-User logout.
-
-**Request:**
-```json
-{
-  "refreshToken": "refresh_token"
-}
-```
+No body. Revokes the refresh token from the cookie and clears it.
+**Response:** `{ "success": true }`.
 
 ### GET /auth/me → 200
-Get current user profile.
-
-**Response:**
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "ada@example.com",
-    "role": "user"
-  }
-}
-```
+**Response:** `{ "success": true, "user": { "id", "email", "role" } }`.
 
 ### DELETE /auth/me → 200
-Delete user account.
+Deletes the account and every user-scoped row in one transaction, then clears
+the cookie. **Response:** `{ "success": true, "deleted": true }`.
 
 ### POST /auth/google → 200
-Google sign-in.
-
-**Request:**
 ```json
-{
-  "token": "google_id_token"
-}
+{ "credential": "<Google Identity Services ID token>" }
 ```
+**Response:** same as signin. Errors: `400 VALIDATION_ERROR`,
+`503 GOOGLE_NOT_CONFIGURED`, `401 GOOGLE_INVALID_TOKEN`.
 
 ### POST /auth/forgot-password → 200
-Request password reset.
-
-**Request:**
 ```json
-{
-  "email": "ada@example.com"
-}
+{ "email": "ada@example.com" }
 ```
+**Response:** `{ "success": true, "message": "If that account exists, a reset code has been sent." }`
+The body is identical for known and unknown addresses. With `DEV_OTP_ENABLED=true`
+and no SMTP, the response also contains `dev_otp`.
 
 ### POST /auth/reset-password → 200
-Reset password with token.
-
-**Request:**
 ```json
-{
-  "token": "reset_token",
-  "password": "New!Passw0rd"
-}
+{ "email": "ada@example.com", "otp": "609157", "new_password": "New!Passw0rd" }
 ```
+`otp` is the 6-digit code (10-minute TTL, 5 attempts). Success revokes every
+refresh token. Errors: `400 INVALID_OTP`, `400 VALIDATION_ERROR`.
 
 ## Discovery
 
 ### GET /nearby → 200
-Find restaurants near user location.
+Public (no auth).
 
-**Query Parameters:**
-- `lat` (required) - Latitude
-- `lng` (required) - Longitude
-- `radius` (optional) - Search radius in meters
-- `maxPrice` (optional) - Maximum price level
-- `minRating` (optional) - Minimum rating
+| Query | Required | Meaning |
+|---|---|---|
+| `lat` | yes | −90…90 |
+| `lng` | yes | −180…180 |
+| `limit` | no | 1–50, default `10` |
+| `radius_km` | no | 1–500, default `50` |
 
 **Response:**
 ```json
 {
-  "restaurants": [
+  "success": true,
+  "origin": { "lat": 6.52, "lng": 3.38 },
+  "radius_km": 25,
+  "count": 1,
+  "results": [
     {
-      "id": 1,
+      "restaurant_id": "r001",
       "name": "Restaurant Name",
       "city": "Lagos",
+      "area": "Yaba",
       "lat": 6.5244,
       "lng": 3.3792,
+      "cuisine_tags": ["nigerian"],
+      "price_tier": "low",
       "average_rating": 4.5,
-      "meta": { /* restaurant details */ }
+      "review_count": 12,
+      "spice_profile": "medium",
+      "distance_km": 1.2,
+      "directions_url": "https://www.google.com/maps/dir/?api=1&destination=6.5244,3.3792"
     }
   ]
 }
 ```
+Errors: `400 VALIDATION_ERROR` when `lat`/`lng` are missing or out of range.
 
 ### GET /restaurants/geo → 200
-Get restaurants by city and coordinates.
+Geo lookup for recommendation cards, which do not carry coordinates.
 
-**Query Parameters:**
-- `city` (required) - City name
-- `lat` (optional) - Latitude for sorting
-- `lng` (optional) - Longitude for sorting
+| Query | Required | Meaning |
+|---|---|---|
+| `ids` | yes | comma-separated restaurant ids (max 50) |
+
+**Response:**
+```json
+{
+  "success": true,
+  "geo": {
+    "r001": { "lat": 6.5244, "lng": 3.3792, "directions_url": "…" }
+  }
+}
+```
+Errors: `400 VALIDATION_ERROR` when `ids` is empty.
 
 ## Agent & Chat
 
 ### POST /agent → 200
-ReAct agent chat with restaurant recommendations.
+Authenticated ReAct agent. LLM failure never dead-ends: the route answers with
+deterministic catalogue picks and `meta.fallback: true`.
 
 **Request:**
 ```json
-{
-  "message": "Spicy amala in Yaba, tight budget",
-  "sessionId": "uuid"
-}
+{ "message": "Spicy amala in Yaba, tight budget", "session_id": "uuid (optional)" }
 ```
+`message` is 1–500 characters. Omit `session_id` to start a session.
 
 **Response:**
 ```json
 {
-  "response": "I found some great spicy amala options in Yaba...",
-  "recommendations": [/* restaurant list */],
-  "trace": [/* agent steps */]
+  "success": true,
+  "session_id": "uuid",
+  "stage": "recommend",
+  "message": "I found some great spicy amala options in Yaba…",
+  "extracted_persona": { "city": "Lagos", "preference_history": [] },
+  "recommendations": { "success": true, "recommendations": [ … ] },
+  "trace": [{ "step": 0, "tool": "search_restaurants", "ok": true, "ms": 412 }],
+  "meta": { "latency_ms": 1200, "steps": 3, "agent": true, "fallback": false, "fallback_reason": null }
 }
 ```
+Errors: `400 VALIDATION_ERROR`, `403 FORBIDDEN` (session owned by someone else),
+`504 AI_TIMEOUT`, `503 AI_UNAVAILABLE`, `502 UPSTREAM_FAILURE`.
 
 ### POST /chat → 200
-Simple chat endpoint.
+Simple chat. Anonymous callers receive a session capability and must send it as
+`Authorization: Bearer <capability>` on later calls.
 
 **Request:**
 ```json
-{
-  "message": "Hello",
-  "sessionId": "uuid"
-}
+{ "message": "Hello", "session_id": "uuid (optional)" }
 ```
+**Response:** the chat service result (`success`, `session_id`, reply fields).
+Errors: `400 VALIDATION_ERROR`, `404 SESSION_NOT_FOUND` (wrong owner).
 
 ### GET /chat/:sessionId → 200
-Get chat history.
+**Response:** `{ "success": true, "session": { … } }`.
+Errors: `400 VALIDATION_ERROR` (not a UUID), `404 SESSION_NOT_FOUND` — also for
+a session you do not own, so the endpoint never confirms existence.
 
 ### DELETE /chat/:sessionId → 200
-Delete chat session.
+**Response:** the clear result (`{ "success": true, … }`). Same 404 rule.
 
 ## Taste & Preferences
 
 ### POST /extract-persona → 200
-Extract taste preferences from chat.
-
 **Request:**
 ```json
-{
-  "message": "I like spicy food and cheap places"
-}
+{ "raw_text": "I like spicy food and cheap places" }
 ```
+`raw_text` must be at least 10 characters.
 
 **Response:**
 ```json
 {
+  "success": true,
   "persona": {
+    "persona_id": "uuid",
     "city": "Lagos",
-    "budget": "low",
-    "spice": "high",
-    "ambience": "casual"
-  }
+    "budget_level": "low",
+    "spice_tolerance": "high",
+    "ambience_preference": "casual",
+    "preferred_cuisines": [],
+    "dietary_flags": []
+  },
+  "meta": { "extracted_from": "…", "preference_history": [], "ready_for": ["recommend", "generate-review"] }
 }
 ```
 
 ### POST /update-preference → 200
-Update user preferences.
-
 **Request:**
 ```json
 {
-  "preference": {
-    "maxPrice": "medium",
-    "dietary": "vegetarian"
+  "persona": { "persona_id": "uuid", "preference_history": [] },
+  "signal": { "dimension": "spice", "value": "high", "rating": 5, "restaurant_id": "r001" }
+}
+```
+`signal.rating` is an integer 1–5. The route keeps the last 10 signals.
+
+**Response:**
+```json
+{
+  "success": true,
+  "updatedPersona": { "…": "persona with preference_history" },
+  "meta": {
+    "signals_count": 1,
+    "previous_state": "cold_start",
+    "current_state": "warm",
+    "state_transition": "cold_start → warm",
+    "latest_signal": { "…": "signal" }
   }
 }
 ```
 
 ### POST /recommend → 200
-Get restaurant recommendations based on preferences.
+Optional auth: a signed-in caller is metered against their user id, an anonymous
+caller against `persona.persona_id`.
 
 **Request:**
 ```json
 {
-  "persona": { /* taste profile */ },
-  "location": { lat, lng }
+  "persona": {
+    "persona_id": "uuid",
+    "city": "Lagos",
+    "budget_level": "low",
+    "spice_tolerance": "high",
+    "ambience_preference": "casual",
+    "preferred_cuisines": [],
+    "dietary_flags": []
+  }
 }
 ```
+All seven persona keys are required (extra keys pass through).
+
+**Response:** `{ "data": { "recommendations": [ … ] }, "meta": { … } }`.
+Errors: `404 NO_MATCHES`, `429 RATE_LIMITED` (monthly LLM quota exhausted).
 
 ### POST /generate-review → 200
-Generate AI review for restaurant.
+Only two things are required: where the persona is and which restaurant the app
+is showing. `review.service` resolves the canonical catalogue row by id and fills
+the remaining profile fields with documented defaults.
 
 **Request:**
 ```json
 {
-  "restaurantId": 1,
-  "persona": { /* taste profile */ }
+  "persona": { "city": "Lagos" },
+  "restaurant": { "restaurant_id": "r001", "google_place_id": "ChIJ… (optional)" }
 }
 ```
+**Response:** the review result (`success`, generated review fields).
+Errors: `400 VALIDATION_ERROR`, `404 RESTAURANT_NOT_FOUND`.
 
 ## Engagement
 
-### POST /ratings → 200
-Submit user rating.
-
+### POST /ratings → 201
 **Request:**
 ```json
 {
-  "restaurantId": 1,
-  "rating": 5,
-  "comment": "Great food!"
+  "restaurant_id": "r001",
+  "stars": 5,
+  "note": "Great food! (max 500 chars)",
+  "context": "saved"
 }
 ```
+`stars` is an integer 1–5. `context` is one of `saved`, `planned`, `shared`
+(default `saved`). The restaurant must exist.
+
+**Response:** `{ "data": { "id", "user_id", "restaurant_id", "stars", "note", "context", "at" } }`.
+Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (unknown restaurant).
 
 ### GET /ratings → 200
-Get user ratings.
+**Response:** `{ "data": [ { "stars": 5, "note": "…", "at": "…" } ] }` — newest
+first.
 
-### POST /reports → 200
-Submit user feedback.
-
+### POST /reports → 201
 **Request:**
 ```json
 {
   "type": "bug",
   "message": "App crashed when searching",
-  "details": { /* additional info */ }
+  "screen": "/app/map",
+  "device": "Pixel 8 / Android 15",
+  "app_version": "2.0.0",
+  "restaurant_id": "r001",
+  "screenshot": "data:image/png;base64,…"
 }
 ```
+`type` is one of `bug`, `wrong-info`, `idea`, `other`. `message` is 3–2000
+characters. `screenshot` is optional, must be an image data URL, and is capped at
+~300 KB (the route gets a 350 KB body parser; everything else is 10 KB).
 
-## Admin
-
-### GET /admin/stats → 200
-Get system statistics (admin only).
-
-**Response:**
-```json
-{
-  "users": 100,
-  "restaurants": 1000,
-  "sessions": 500,
-  "uptime": "99.9%"
-}
-```
-
-### GET /admin/reports → 200
-Get user reports (admin only).
-
-### PATCH /admin/reports/:ticket → 200
-Update report status (admin only).
+**Response:** `{ "success": true, "report": { "ticket": "NT-…", … } }` (the
+screenshot blob is not echoed). Errors: `400 VALIDATION_ERROR`,
+`413 PAYLOAD_TOO_LARGE`.
 
 ## Favorites
 
 ### GET /auth/favorites → 200
-Get user favorites.
+**Response:** `{ "success": true, "favorites": ["r001"], "items": [ { …restaurant } ] }`.
 
-### POST /auth/favorites → 200
-Add restaurant to favorites.
-
-**Request:**
+### POST /auth/favorites → 201 (added) / 200 (already present)
 ```json
-{
-  "restaurantId": 1
-}
+{ "restaurant_id": "r001" }
 ```
+**Response:** `{ "success": true, "favorites": ["r001"], "added": true }`.
+Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (unknown restaurant),
+`409 FAVORITES_FULL` (50-item cap).
 
 ### DELETE /auth/favorites/:restaurant_id → 200
-Remove restaurant from favorites.
+**Response:** `{ "success": true, "favorites": [], "removed": true }`.
+Removing something absent is still `200` with `"removed": false`.
 
 ## Saved Places
 
-### POST /auth/saved-places → 200
-Save user location.
+### GET /auth/saved-places → 200
+**Response:** `{ "success": true, "places": [ { "id", "name", "created_at" } ] }`.
 
-**Request:**
+### POST /auth/saved-places → 201
+```json
+{ "name": "Home" }
+```
+`name` is required and at most 100 characters. **Response:**
+`{ "success": true, "place": { "id", "name", "created_at" } }`.
+Errors: `400 VALIDATION_ERROR`, `409 SAVED_FULL`, `404 NOT_FOUND`.
+
+### DELETE /auth/saved-places/:id → 200
+Owner-only; a bogus id and another user's id are both `404`.
+**Response:** `{ "success": true, "removed": true, "id": "uuid" }`.
+
+## Admin
+
+All three require an authenticated user with `role = "admin"`.
+
+### GET /admin/stats → 200
+**Response:**
 ```json
 {
-  "name": "Home",
-  "lat": 6.5244,
-  "lng": 3.3792
+  "data": {
+    "users": 100,
+    "favorites": 240,
+    "ratings": 310,
+    "reports": { "open": 4, "in_review": 1, "resolved": 27 }
+  }
 }
 ```
 
-## Error Responses
+### GET /admin/reports → 200
+Optional `?status=open|in_review|resolved`. **Response:** `{ "data": [ …reports ] }`.
+Errors: `400 VALIDATION_ERROR` for an unknown status.
 
-All endpoints return consistent error format:
+### PATCH /admin/reports/:ticket → 200
+```json
+{ "status": "resolved" }
+```
+**Response:** `{ "data": { …updated report } }`.
+Errors: `400 VALIDATION_ERROR`, `404 NOT_FOUND` (unknown ticket).
+
+## Error Responses
 
 ```json
 {
   "error": {
     "code": "ERROR_CODE",
     "message": "Human-readable error message",
-    "details": { /* additional context */ },
+    "details": { "additional": "context, when present" },
     "requestId": "unique_request_id"
   }
 }
@@ -400,34 +438,35 @@ All endpoints return consistent error format:
 
 ### Common Error Codes
 
-- `VALIDATION_ERROR` - Invalid request format
-- `INVALID_CREDENTIALS` - Wrong email/password
-- `UNAUTHORIZED` - Missing or invalid token
-- `FORBIDDEN` - Insufficient permissions
-- `NOT_FOUND` - Resource doesn't exist
-- `RATE_LIMITED` - Too many requests
-- `PAYLOAD_TOO_LARGE` - Request too large
-- `UPSTREAM_FAILURE` - LLM service unavailable
-- `SERVICE_UNAVAILABLE` - Database or service down
-- `AI_UNAVAILABLE` - LLM service unavailable
-- `AI_TIMEOUT` - LLM request timed out
+- `VALIDATION_ERROR` — invalid request format
+- `INVALID_CREDENTIALS` — wrong email/password
+- `ACCOUNT_LOCKED` — too many failed sign-ins (email + IP)
+- `UNAUTHORIZED` / `UNAUTHENTICATED` — missing or invalid token
+- `FORBIDDEN` — insufficient permissions
+- `NOT_FOUND` — resource doesn't exist
+- `SESSION_NOT_FOUND` — chat session missing or not yours
+- `EMAIL_TAKEN` — signup email already registered
+- `FAVORITES_FULL` / `SAVED_FULL` — per-user list cap reached
+- `RATE_LIMITED` — too many requests
+- `PAYLOAD_TOO_LARGE` — request too large
+- `UPSTREAM_FAILURE` / `UPSTREAM_AUTH` — LLM request failed
+- `AI_UNAVAILABLE` / `AI_TIMEOUT` — LLM unavailable or too slow
+- `SERVICE_UNAVAILABLE` — database or service down
 
 ## Rate Limiting
 
-Endpoints have different rate limits:
-
 | Endpoint | Limit | Window |
-|----------|-------|--------|
+|---|---|---|
 | `/auth/signup` | 25 | 15 minutes |
 | `/auth/signin` | 50 | 15 minutes |
 | `/auth/refresh` | 60 | 15 minutes |
 | `/auth/google` | 10 | 15 minutes |
 | `/auth/forgot-password` | 10 | 15 minutes |
 | `/auth/reset-password` | 20 | 15 minutes |
-| LLM endpoints | 10 | minute |
+| LLM endpoints (POST `/agent`, `/chat`, `/extract-persona`, `/update-preference`, `/recommend`, `/generate-review`) | 10 | minute |
 | General API | 600 | 15 minutes |
 
 Rate-limited responses include:
 - `429` status code
 - `Retry-After` header
-- `RateLimit` headers showing limits
+- `RateLimit` headers showing the limit, remaining and reset

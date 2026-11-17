@@ -82,7 +82,7 @@ flowchart LP["Landing / (static)"] --> APP["SPA /app (Vite 8, BrowserRouter /app
   AG -->|"functionDeclarations"| TL["4 typed tools (whitelist dispatcher)"]
   TL --> DB[("Neon Postgres (prod)\npg-mem (tests)")]
   R --> DB
-  AG --> GM[("Gemini gemini-3.8-flash")]
+  AG --> GM[("Gemini gemini-3.5-flash-lite\n→ 3.5-flash → 3.6-flash")]
   AUTH["/auth routes"] --> MW
   AUTH -.->|"HMAC OTP"| SM[("SMTP (nodemailer)\n + explicit dev fallback")]
 ```
@@ -155,10 +155,10 @@ flowchart TB
 | Validation | zod 3.25 + `validate()` middleware | One contract language, client-safe errors |
 | Auth | jsonwebtoken 9 (HS256), bcrypt 6 (cost 12), google-auth-library | Proven primitives, no auth SaaS bill |
 | Data | `pg` 8 + Neon; pg-mem (dev-only) for tests | Same-SQL guarantee without Docker in CI |
-| Agent | `@google/genai`, `gemini-3.8-flash` (env-overridable) | Cheap + fast; isolated behind `runAgent` |
+| Agent | `@google/genai`, `gemini-3.5-flash-lite` → `3.5-flash` → `3.6-flash` chain (env-overridable) | Fast default; slow models are skipped automatically |
 | Email | nodemailer 10 over SMTP | Any relay works; explicit dev fallback |
 | Frontend | React 19, Vite 8, react-router-dom 7, Leaflet, lucide icons | Lazy routes, real URLs, offline-capable map |
-| Landing | Zero-dependency HTML/CSS/JS (28,875 bytes total) | Loads in milliseconds, nothing to break |
+| Landing | Zero-dependency HTML/CSS/JS (30,011 bytes total) | Loads in milliseconds, nothing to break |
 | Tests | Vitest 5 + supertest + Playwright, ESLint 10 | Same runner for unit + HTTP contract + e2e |
 | Build | Vite 8 with PWA plugin | Fast builds, service worker support, offline capability |
 
@@ -174,7 +174,7 @@ npm test                  # 466 tests, ~2 min, no Docker needed (pg-mem)
 npm run db:migrate         # needs DATABASE_URL_DIRECT; safe no-op without a DB
 npm start                  # API on :3000  (second terminal:)
 npm run dev                # SPA on :5173, app at /app
-curl http://127.0.0.1:3000/health   # 31 endpoints inventoried
+curl http://127.0.0.1:3000/health   # 34 endpoints inventoried
 ```
 
 No Gemini key? The API still boots; LLM routes return a clean 502 and the
@@ -218,30 +218,44 @@ npm run dev                # Frontend dev server
 
 | Variable | Default | Fails boot if missing? | Description |
 |---|---|---|---|
-| `GEMINI_MODEL` | `gemini-3.5-flash` | No | LLM model to use |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | No | First model in the fallback chain |
+| `GEMINI_ATTEMPT_TIMEOUT_MS` | `20000` | No | Per-model timeout before trying the next |
+| `GEMINI_TOTAL_TIMEOUT_MS` | `35000` | No | Whole-chain budget |
+| `LLM_MONTHLY_MAX` | `100` | No | Monthly LLM calls per user/persona (0 disables the quota) |
 | `PORT` | `3000` | No | API server port |
 | `NODE_ENV` | `development` | No | Environment mode |
 | `LOG_LEVEL` | `info` | No | Logging verbosity |
 | `RATE_LIMIT_API_MAX` | `600` / 15 min | No | General API rate limit |
 | `RATE_LIMIT_LLM_MAX` | `10` / min, both mounts | No | LLM endpoint rate limit |
-| `TRUST_PROXY` | `1` | No | Enable proxy trust (Vercel) |
-| `CORS_ORIGIN` | `http://localhost:5173` | No | Development frontend origin |
+| `AUTH_RATE_LIMIT_SIGNUP_MAX` | `25` / 15 min | No | Signup limit |
+| `AUTH_RATE_LIMIT_SIGNIN_MAX` | `50` / 15 min | No | Signin limit |
+| `AUTH_RATE_LIMIT_REFRESH_MAX` | `60` / 15 min | No | Refresh limit |
+| `AUTH_RATE_LIMIT_GOOGLE_MAX` | `10` / 15 min | No | Google sign-in limit |
+| `AUTH_RATE_LIMIT_FORGOT_MAX` | `10` / 15 min | No | Forgot-password limit |
+| `AUTH_RATE_LIMIT_RESET_MAX` | `20` / 15 min | No | Reset-password limit |
+| `TRUST_PROXY` | `1` | No | Proxy hops trusted (Vercel) |
+| `CORS_ORIGIN` | unset in dev (any origin, warning logged) | **Yes in production** | Comma-separated allowed origins |
+| `GOOGLE_PLACES_API_KEY` | unset | No | Reserved for Places enrichment; no code path reads it yet |
+| `SENTRY_DSN` | unset | No | Error reporting |
+| `METRICS_TOKEN` | unset | No | Bearer token accepted by `/metrics` |
 
 </details>
 
 ## API summary
 
-31 endpoints (live count from `/health`). Full reference with request/response examples: [`docs/API.md`](docs/API.md).
+34 endpoints (live count from `/health`). Full reference with request/response examples: [`docs/API_ENDPOINTS.md`](docs/API_ENDPOINTS.md).
 
-**Note:** The canonical API paths use `/api/*` prefix (not `/api/v1/*`) as documented in the API reference.
+**Note:** The canonical mount is `/api/v1/*`. Every route is also served unprefixed for older clients; `/health`, `/health/ready` and `/metrics` are never versioned.
 
 <details>
 <summary>Endpoints by area (click to expand)</summary>
 
+Paths are relative to the canonical `/api/v1` mount unless marked otherwise.
+
 | Area | Endpoints |
 |---|---|
-| Health | `GET /health` · `GET /health/ready` (DB probe, 2s bounded) |
-| Auth | `POST /auth/signup` · `POST /auth/signin` · `POST /auth/refresh` · `POST /auth/signout` · `GET /auth/me` · `DELETE /auth/me` · `POST /auth/google` · `POST /auth/forgot-password` · `POST /auth/reset-password` · `GET/POST /auth/favorites` · `DELETE /auth/favorites/:restaurant_id` · `POST /auth/saved-places` |
+| Health | `GET /health` · `GET /health/ready` (DB probe, 2s bounded) · `GET /metrics` (admin or `METRICS_TOKEN`) |
+| Auth | `POST /auth/signup` · `POST /auth/signin` · `POST /auth/refresh` · `POST /auth/signout` · `GET /auth/me` · `DELETE /auth/me` · `POST /auth/google` · `POST /auth/forgot-password` · `POST /auth/reset-password` · `GET/POST /auth/favorites` · `DELETE /auth/favorites/:restaurant_id` · `GET/POST /auth/saved-places` · `DELETE /auth/saved-places/:id` |
 | Discovery | `GET /nearby` · `GET /restaurants/geo` |
 | Agent + chat | `POST /agent` · `POST /chat` · `GET /chat/:sessionId` · `DELETE /chat/:sessionId` |
 | Taste | `POST /extract-persona` · `POST /update-preference` · `POST /recommend` · `POST /generate-review` |
@@ -288,7 +302,7 @@ Only measured numbers, with method. Full ledger: [`docs/EVIDENCE.md`](docs/EVIDE
 | `GET /health` local (no DB) | 1,687–1,939 rps across c=10→200; p97.5 13→154ms | autocannon, 15s/step, laptop |
 | `GET /nearby` local → Neon (remote) | 3 rps at c=10; p97.5 7.3s; collapse at c=50 | autocannon, same setup; bottleneck: pool `max: 3` + ~180ms RTT |
 | Full test suite | green in CI (badge above is the source of truth) | vitest wall time ~40s locally |
-| Landing weight | 28,875 bytes (3 files) | `stat` on `index.html` + `public/landing.*` |
+| Landing weight | 30,011 bytes (3 files) | `stat` on `index.html` + `public/landing.*` |
 | Catalogue | 60 curated seed rows; 210 rows live in Neon | JSON count; SQL count during restore drill |
 | Neon restore | dump 36.5s → isolated DB → restore 30.8s → counts identical | `pg_dump`/`pg_restore` drill, 2026-10-16 |
 
@@ -309,7 +323,7 @@ Reliability built in: 20s LLM timeout · exponential backoff · circuit breaker 
 ## Deployment
 
 1. **Neon** (free, no card): create project → `npm run db:migrate` with the direct URL → runtime uses the pooled URL.
-2. **Vercel**: import repo (Vite preset, `dist/`). `vercel.json` routes `/` → landing, `/app/*` → SPA, `/api/*` → function (60s budget). Set the env table with `NODE_ENV=production` — **the function refuses to boot without `GEMINI_API_KEY`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`, `DATABASE_URL`** (`src/env.js:40-54`).
+2. **Vercel**: import repo (Vite preset, `dist/`). `vercel.json` routes `/` → landing, `/app/*` → SPA, `/api/*` → function (60s budget). Set the env table with `NODE_ENV=production` — **the function refuses to boot without `GEMINI_API_KEY`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`, `DATABASE_URL`** (see `src/env.js`).
 3. **Secrets**: repo secrets `DATABASE_URL` + `DATABASE_URL_DIRECT` power the daily OSM refresh (`.github/workflows/refresh.yml`, manual trigger included).
 4. **Post-launch verify**: `/health` 200 · `/health/ready` 200 · `/` 200 · `/app/login` 200 · one signup → nearby → sign-out round-trip.
 

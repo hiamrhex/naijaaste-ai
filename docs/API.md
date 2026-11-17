@@ -1,10 +1,13 @@
 # API reference
 
-> Last verified: 2026-10-21 against `src/routes/` + live `/health` (31 endpoints).
+> Last verified: 2026-11-17 against `src/routes/` + the `/health` inventory (34 endpoints).
 > Full endpoint table in [README](../README.md#api-summary).
 > All errors: `{ error: { code, message, details?, requestId } }`. All 429s add `Retry-After`.
 
-Conventions: canonical `/api/*` (not `/api/v1/*`). The `/api/v1/*` paths return 404 errors due to a routing issue. The bare unprefixed mount (`GET /nearby`) exists only when running `src/server.js` directly; on the deployment it returns `404` (verified 2026-10-21, evidence IQ-28).
+Conventions: canonical base path is `/api/v1` (`POST /api/v1/auth/signin`, …).
+Every route is also mounted unprefixed (`POST /auth/signin`, `GET /nearby`, …)
+for older clients; both mounts run identical handlers. `/health`,
+`/health/ready` and `/metrics` are never versioned.
 `POST /agent` and LLM routes cost model calls — guarded at 10/min per client.
 
 ## Auth
