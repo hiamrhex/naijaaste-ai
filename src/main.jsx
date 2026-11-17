@@ -6,15 +6,18 @@ import { router } from './app/router.jsx'
 import { AuthProvider } from './app/AuthContext.jsx'
 import { ThemeProvider } from './app/ThemeContext.jsx'
 import { LanguageProvider } from './app/LanguageContext.jsx'
+import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthProvider>
-      <ThemeProvider>
-        <LanguageProvider>
-          <RouterProvider router={router} />
-        </LanguageProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <RouterProvider router={router} />
+          </LanguageProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )

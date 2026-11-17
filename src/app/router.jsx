@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { PublicLayout, AppLayout } from './Shell.jsx';
 import { RequireAuth, GuestOnly, AdminOnly } from './guards.jsx';
 import { SessionExpiryRoot } from './SessionExpiry.jsx';
+import { RouteErrorScreen } from '../components/ErrorBoundary.jsx';
 
 const homeRoute = {
   lazy: async () => ({ Component: (await import('../screens/HomeScreen.jsx')).default }),
@@ -62,6 +63,10 @@ const errorRoute = (which) => ({
 export const router = createBrowserRouter([
   {
     element: <SessionExpiryRoot />,
+    // A render error inside any route replaces the tree; without this the
+    // router's own default error screen (dev-only, blank in production) is
+    // all the user would see.
+    errorElement: <RouteErrorScreen />,
     children: [
       {
         element: <PublicLayout />,
