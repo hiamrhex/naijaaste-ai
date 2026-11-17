@@ -29,7 +29,7 @@ Shipped:
 - Saved data: favourites (50 cap, atomic), saved places (memory-first, 50 cap),
   1–5 star ratings with notes, feedback reports with tickets and admin triage.
 - Frontend: React 19 + Vite, lazy routes, PWA/service worker, offline page,
-  dark/light themes, English/Yoruba/Igbo/Hausa copy.
+  dark/light themes, English + Nigerian Pidgin copy.
 - Operations: structured logs with request ids, `/health/ready` DB probe,
   admin-only `/metrics`, migrations under an advisory lock, secret scan and a
   docs-drift gate in CI.
