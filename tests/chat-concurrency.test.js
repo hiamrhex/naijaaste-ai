@@ -25,6 +25,8 @@ vi.mock('../src/services/llm.service.js', () => ({
   withTimeout: (p) => p,
 }));
 
+import { verifiedToken } from './helpers/session.js';
+
 let app;
 let token;
 
@@ -44,13 +46,7 @@ const postChat = (message, sessionId) =>
 
 beforeAll(async () => {
   ({ app } = await import('../src/app.js'));
-  const res = await request(app).post('/auth/signup').send({
-    name: 'Concurrency Tester',
-    email: `chat-race-${Date.now()}@example.com`,
-    password: 'Str0ng!Passw0rd',
-  });
-  token = res.body.accessToken;
-});
+  token = await verifiedToken(app, `chat-race-${Date.now()}@example.com`, { name: 'Concurrency Tester' });});
 
 beforeEach(() => {
   mocks.llm.mockReset();

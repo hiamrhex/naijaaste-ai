@@ -28,6 +28,8 @@ vi.mock('../src/services/llm.service.js', () => ({
   withTimeout: (p) => p,
 }));
 
+import { verifiedToken } from './helpers/session.js';
+
 let app;
 let serverless;
 let tokenA;
@@ -35,10 +37,7 @@ let tokenB;
 
 const stamp = Date.now();
 
-const signup = async (name, email) => {
-  const res = await request(app).post('/auth/signup').send({ name, email, password: 'Str0ng!Passw0rd' });
-  return res.body.accessToken;
-};
+const signup = async (name, email) => verifiedToken(app, email, { name });
 
 beforeAll(async () => {
   ({ app } = await import('../src/app.js'));

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
+import { signupVerified } from './helpers/session.js';
 import { app } from '../src/app.js';
 
 const unique = Date.now();
@@ -19,9 +20,9 @@ beforeAll(() => {
 
 describe('Password reset flow (OTP)', () => {
   it('POST /auth/signup sets up the account', async () => {
-    const res = await request(app).post('/auth/signup').send(CREDS).expect(201);
-    accessToken = res.body.accessToken;
-    resetEmail = res.body.user.email;
+    const session = await signupVerified(app, CREDS.email, { name: CREDS.name });
+    accessToken = session.accessToken;
+    resetEmail = session.user.email;
   });
 
   it('POST /auth/forgot-password rejects invalid email with 400', async () => {

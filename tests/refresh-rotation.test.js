@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
+import { signupVerified } from './helpers/session.js';
 import { app } from '../src/app.js';
 
 // Refresh rotation used to be check-then-act: hasRefreshToken() followed by
@@ -14,13 +15,10 @@ const CREDS = {
   password: 'supersecret123',
 };
 
-const refreshCookie = (res) =>
-  (res.headers['set-cookie'] || []).find((c) => c.startsWith('refreshToken='));
-
 describe('refresh token rotation', () => {
   it('lets exactly one of two concurrent refreshes succeed', async () => {
-    const signup = await request(app).post('/auth/signup').send(CREDS).expect(201);
-    const cookie = refreshCookie(signup);
+    const session = await signupVerified(app, CREDS.email, { name: CREDS.name });
+    const cookie = session.cookie;
     expect(cookie).toBeTruthy();
 
     const [first, second] = await Promise.all([
@@ -37,8 +35,8 @@ describe('refresh token rotation', () => {
 
   it('rejects a replay of an already-rotated cookie', async () => {
     const creds = { ...CREDS, email: `replay-${unique}@example.com` };
-    const signup = await request(app).post('/auth/signup').send(creds).expect(201);
-    const cookie = refreshCookie(signup);
+    const session = await signupVerified(app, creds.email, { name: creds.name });
+    const cookie = session.cookie;
 
     await request(app).post('/auth/refresh').set('Cookie', cookie).expect(200);
     const replay = await request(app).post('/auth/refresh').set('Cookie', cookie).expect(401);

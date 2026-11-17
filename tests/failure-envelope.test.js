@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
+import { verifiedToken } from './helpers/session.js';
 import { app } from '../src/app.js';
 
 // Every rejection must use the canonical failure envelope, including the
@@ -14,12 +15,7 @@ describe('failure envelope consistency', () => {
   let token;
 
   beforeAll(async () => {
-    const res = await request(app).post('/auth/signup').send({
-      name: 'Envelope User',
-      email: `envelope${Date.now()}@example.com`,
-      password: 'Str0ng!Passw0rd',
-    });
-    token = res.body.accessToken;
+    token = await verifiedToken(app, `envelope${Date.now()}@example.com`, { name: 'Envelope User' });
   });
 
   it('requireAuth 401 carries requestId and no legacy success flag', async () => {

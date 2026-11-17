@@ -14,16 +14,13 @@ vi.mock('../src/agent/agent.js', () => ({
   runAgent: async () => ({ text: 'mocked reply', trace: [] }),
 }));
 
+import { verifiedToken } from './helpers/session.js';
+
 const { app } = await import('../src/app.js');
 
 const stamp = Date.now();
 
-const signup = async () => {
-  const res = await request(app)
-    .post('/auth/signup')
-    .send({ name: 'Quota Tester', email: `agentquota${stamp}@example.com`, password: 'Str0ng!Passw0rd' });
-  return res.body.accessToken;
-};
+const signup = async () => verifiedToken(app, `agentquota${stamp}@example.com`, { name: 'Quota Tester' });
 
 const auth = (t) => ({ Authorization: `Bearer ${t}` });
 

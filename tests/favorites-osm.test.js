@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { getPool } from '../src/db/pool.js';
+import { verifiedToken } from './helpers/session.js';
 
 // Rows imported from OSM have osm_id set and code NULL. A favourite may be
 // saved by either id (findRestaurantByCode accepts both), but the list lookup
@@ -20,12 +21,7 @@ beforeAll(async () => {
     [OSM_ID]
   );
 
-  const res = await request(app).post('/auth/signup').send({
-    name: 'OSM Favourite User',
-    email: `osm-fav-${Date.now()}@example.com`,
-    password: 'supersecret123',
-  }).expect(201);
-  token = res.body.accessToken;
+  token = await verifiedToken(app, `osm-fav-${Date.now()}@example.com`, { name: 'OSM Favourite User' });
 });
 
 const auth = (req) => req.set('Authorization', `Bearer ${token}`);

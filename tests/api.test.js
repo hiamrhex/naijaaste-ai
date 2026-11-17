@@ -7,6 +7,8 @@ const PREV = {
   CORS_ORIGIN: process.env.CORS_ORIGIN,
 };
 
+import { verifiedToken } from './helpers/session.js';
+
 let app;
 let token;
 
@@ -17,12 +19,7 @@ beforeAll(async () => {
   process.env.CORS_ORIGIN = 'https://allowed.example';
   ({ app } = await import('../src/app.js'));
 
-  const res = await request(app).post('/auth/signup').send({
-    name: 'Test User',
-    email: `test${Date.now()}@example.com`,
-    password: 'Str0ng!Passw0rd',
-  });
-  token = res.body.accessToken;
+  token = await verifiedToken(app, `test${Date.now()}@example.com`, { name: 'Test User' });
 });
 
 afterAll(() => {

@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, extname } from 'path';
 import request from 'supertest';
+import { verifiedToken } from './helpers/session.js';
 import { app } from '../src/app.js';
 import { escapeHtml, otpHtml } from '../src/services/email.service.js';
 
@@ -61,12 +62,7 @@ describe('XSS guards (item 3)', () => {
     // Markup is legitimate message text (React escapes it on render); the
     // contract that matters is the response stays JSON with nosniff,
     // whether the LLM answers (200) or is down (502/503).
-    const signup = await request(app).post('/auth/signup').send({
-      name: 'Test User',
-      email: `test${Date.now()}@example.com`,
-      password: 'Str0ng!Passw0rd!',
-    });
-    const token = signup.body.accessToken;
+    const token = await verifiedToken(app, `test${Date.now()}@example.com`, { name: 'Test User', password: 'Str0ng!Passw0rd!' });
     expect(token).toBeTruthy();
 
     const res = await request(app)

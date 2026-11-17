@@ -38,10 +38,18 @@ describe('serverless entry (api/index.js)', () => {
 
   it('both prefixes surfacing the same bug shape: saved-places reachable on both', async () => {
     // Regression: /api/v1/auth/saved-places previously returned 404 on Vercel.
+    const email = `dual${Date.now()}@example.com`;
     const light = await request(handler)
       .post('/api/auth/signup')
-      .send({ name: 'Dual Path', email: `dual${Date.now()}@example.com`, password: 'Str0ng!Passw0rd' });
-    const token = light.body?.accessToken;
+      .send({ name: 'Dual Path', email, password: 'Str0ng!Passw0rd' })
+      .expect(201);
+    const otp = light.body?.dev_otp;
+    expect(otp).toMatch(/^\d{6}$/);
+    const session = await request(handler)
+      .post('/api/auth/verify-email')
+      .send({ email, otp })
+      .expect(200);
+    const token = session.body.accessToken;
     expect(token).toBeTruthy();
     const res1 = await request(handler)
       .post('/api/auth/saved-places')

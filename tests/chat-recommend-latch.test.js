@@ -37,6 +37,8 @@ vi.mock('../src/services/recommend.service.js', () => ({
   getRecommendations: mocks.getRecommendations,
 }));
 
+import { signupVerified } from './helpers/session.js';
+
 let app;
 let token;
 let userId;
@@ -60,15 +62,9 @@ const picks = {
 
 beforeAll(async () => {
   ({ app } = await import('../src/app.js'));
-  const res = await request(app)
-    .post('/auth/signup')
-    .send({
-      name: 'Latch Tester',
-      email: `latch${Date.now()}@example.com`,
-      password: 'Str0ng!Passw0rd',
-    });
-  token = res.body.accessToken;
-  userId = res.body.user.id;
+  const session = await signupVerified(app, `latch${Date.now()}@example.com`, { name: 'Latch Tester' });
+  token = session.accessToken;
+  userId = session.user.id;
 });
 
 beforeEach(() => {

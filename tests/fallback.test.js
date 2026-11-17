@@ -14,13 +14,9 @@ vi.mock('../src/agent/agent.js', () => ({
 
 import { app } from '../src/app.js';
 import { deterministicAgentReply, extractHints } from '../src/services/fallback.service.js';
+import { verifiedToken } from './helpers/session.js';
 
-const signup = async (email) => {
-  const res = await request(app)
-    .post('/auth/signup')
-    .send({ name: 'Fallback Probe', email, password: 'Str0ng!Passw0rd' });
-  return res.body.accessToken;
-};
+const signup = async (email) => verifiedToken(app, email, { name: 'Fallback Probe' });
 
 describe('deterministic fallback when the model fails', () => {
   it('extracts city/budget/spice hints from the user message without a model', () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
+import { signupVerified, verifiedToken } from './helpers/session.js';
 import { app } from '../src/app.js';
 import { MAX_SAVED } from '../src/saved_places/store.js';
 
@@ -26,10 +27,9 @@ let mineId = '';
 beforeAll(async () => {
   process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'test-access-secret-0123456789abcdef';
   process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-fedcba9876543210';
-  const res = await request(app).post('/auth/signup').send(CREDS).expect(201);
-  token = res.body.accessToken;
-  const res2 = await request(app).post('/auth/signup').send(OTHER).expect(201);
-  otherToken = res2.body.accessToken;
+  const session = await signupVerified(app, CREDS.email, { name: CREDS.name });
+  token = session.accessToken;
+  otherToken = await verifiedToken(app, OTHER.email, { name: OTHER.name });
 });
 
 describe('saved_places save-anything (RED)', () => {
@@ -153,8 +153,7 @@ describe('saved_places 50-cap (DB-enforced, parallel bursts)', () => {
       email: `cap-${unique}@example.com`,
       password: 'supersecret123',
     };
-    const signed = await request(app).post('/auth/signup').send(capUser).expect(201);
-    const capToken = signed.body.accessToken;
+    const capToken = await verifiedToken(app, capUser.email, { name: capUser.name });
     for (let i = 0; i < MAX_SAVED - 1; i++) {
       await request(app)
         .post('/auth/saved-places')

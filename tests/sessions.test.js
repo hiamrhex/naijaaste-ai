@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
+import { verifiedToken } from './helpers/session.js';
 import { randomUUID } from 'crypto';
 
 // Several agent turns in this file; the LLM limiter (10/min) would answer
@@ -20,10 +21,7 @@ vi.mock('../src/agent/agent.js', () => ({
 
 const stamp = Date.now();
 
-const signup = async (name, email) => {
-  const res = await request(app).post('/auth/signup').send({ name, email, password: 'Str0ng!Passw0rd' });
-  return res.body.accessToken;
-};
+const signup = async (name, email) => verifiedToken(app, email, { name });
 
 const tokenA = await signup('Owner A', `owner${stamp}@example.com`);
 const tokenB = await signup('Intruder B', `intruder${stamp}@example.com`);

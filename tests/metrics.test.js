@@ -8,6 +8,7 @@ import {
   renderMetrics,
   resetMetrics,
 } from '../src/lib/metrics.js';
+import { verifiedToken } from './helpers/session.js';
 
 describe('metrics rendering', () => {
   beforeEach(() => resetMetrics());
@@ -41,12 +42,7 @@ describe('GET /metrics', () => {
   let token;
 
   beforeAll(async () => {
-    const res = await request(app).post('/auth/signup').send({
-      name: 'Metrics User',
-      email: `metrics${Date.now()}@example.com`,
-      password: 'Str0ng!Passw0rd',
-    });
-    token = res.body.accessToken;
+    token = await verifiedToken(app, `metrics${Date.now()}@example.com`, { name: 'Metrics User' });
   });
 
   beforeEach(() => resetMetrics());

@@ -10,7 +10,7 @@ const tokens = vi.hoisted(() => ({ verifyAccessToken: vi.fn() }));
 
 vi.mock('../src/auth/store.js', () => ({
   findUserById: store.findUserById,
-  sanitize: (user) => ({ id: user.id, email: user.email, role: user.role }),
+  sanitize: (user) => ({ id: user.id, email: user.email, role: user.role, email_verified: user.email_verified }),
 }));
 
 vi.mock('../src/auth/tokens.js', () => ({
@@ -101,12 +101,23 @@ describe('requireAuth', () => {
 
   it('attaches the sanitized user and continues on success', async () => {
     tokens.verifyAccessToken.mockReturnValue({ sub: 'user-1' });
-    store.findUserById.mockResolvedValue({ id: 'user-1', email: 'a@b.c', role: 'user', password_hash: 'secret' });
+    store.findUserById.mockResolvedValue({ id: 'user-1', email: 'a@b.c', role: 'user', email_verified: true, password_hash: 'secret' });
 
     const { req, res, next } = await run();
 
     expect(res.statusCode).toBeNull();
-    expect(req.user).toEqual({ id: 'user-1', email: 'a@b.c', role: 'user' });
+    expect(req.user).toEqual({ id: 'user-1', email: 'a@b.c', role: 'user', email_verified: true });
     expect(next).toHaveBeenCalledWith();
+  });
+
+  it('answers 403 EMAIL_NOT_VERIFIED for a valid token on an unproven mailbox', async () => {
+    tokens.verifyAccessToken.mockReturnValue({ sub: 'user-1' });
+    store.findUserById.mockResolvedValue({ id: 'user-1', email: 'a@b.c', role: 'user', email_verified: false });
+
+    const { res, next } = await run();
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.error.code).toBe('EMAIL_NOT_VERIFIED');
+    expect(next).not.toHaveBeenCalled();
   });
 });

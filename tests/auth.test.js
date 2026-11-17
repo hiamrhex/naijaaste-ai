@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
+import { signupVerified } from './helpers/session.js';
 
 const unique = Date.now();
 const CREDS = {
@@ -11,6 +12,7 @@ const CREDS = {
 
 let accessToken = '';
 let refreshCookie = '';
+let signupCode = '';
 
 beforeAll(() => {
   // Ensure JWT secrets exist even if .env is missing keys
@@ -19,12 +21,25 @@ beforeAll(() => {
 });
 
 describe('Auth system', () => {
-  it('POST /auth/signup creates account and returns access token', async () => {
+  it('POST /auth/signup creates an unverified account and returns no session', async () => {
     const res = await request(app).post('/auth/signup').send(CREDS).expect(201);
     expect(res.body.success).toBe(true);
     expect(res.body.user.email).toBe(CREDS.email);
     expect(res.body.user).not.toHaveProperty('password_hash');
-    expect(typeof res.body.accessToken).toBe('string');
+    expect(res.body.user.email_verified).toBe(false);
+    expect(res.body.accessToken).toBeUndefined();
+    expect(res.headers['set-cookie']).toBeUndefined();
+    expect(res.body.dev_otp).toMatch(/^\d{6}$/);
+    signupCode = res.body.dev_otp;
+  });
+
+  it('POST /auth/verify-email proves the mailbox and mints the session', async () => {
+    const res = await request(app)
+      .post('/auth/verify-email')
+      .send({ email: CREDS.email, otp: signupCode })
+      .expect(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.user.email_verified).toBe(true);
     accessToken = res.body.accessToken;
     const setCookie = res.headers['set-cookie'] || [];
     refreshCookie = setCookie.find((c) => c.startsWith('refreshToken=')) || '';
@@ -153,10 +168,7 @@ describe('Auth system', () => {
   });
 
   it('DELETE /auth/me erases the account and kills the session', async () => {
-    const r = await request(app).post('/auth/signup').send({
-      name: 'Gone Soon', email: `gone${Date.now()}@example.com`, password: 'Str0ng!Passw0rd',
-    }).expect(201);
-    const tok = r.body.accessToken;
+    const { accessToken: tok } = await signupVerified(app, `gone${Date.now()}@example.com`, { name: 'Gone Soon' });
     await request(app).delete('/auth/me')
       .set('Authorization', `Bearer ${tok}`)
       .expect(200);

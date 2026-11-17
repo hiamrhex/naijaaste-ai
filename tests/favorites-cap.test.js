@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { getPool } from '../src/db/pool.js';
+import { signupVerified } from './helpers/session.js';
 
 // The favourites cap must hold at 50. The concurrent proof lives in
 // tests/favorites-lock.test.js: the test database (pg-mem) ignores FOR UPDATE,
@@ -16,9 +17,9 @@ let userId = '';
 const auth = (req) => req.set('Authorization', `Bearer ${token}`);
 
 beforeAll(async () => {
-  const res = await request(app).post('/auth/signup').send(CREDS).expect(201);
-  token = res.body.accessToken;
-  userId = res.body.user.id;
+  const session = await signupVerified(app, CREDS.email, { name: CREDS.name });
+  token = session.accessToken;
+  userId = session.user.id;
 });
 
 describe('favourites cap', () => {

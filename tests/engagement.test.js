@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
+import { signupVerified } from './helpers/session.js';
 
 const PREV = { ADMIN_EMAILS: process.env.ADMIN_EMAILS };
 
@@ -7,10 +8,7 @@ let app;
 let userToken;
 let adminToken;
 
-const signup = async (name, email, password = 'Str0ng!Passw0rd') => { // secret-scan: allow — throwaway test-account fixture, never a real credential
-  const res = await request(app).post('/auth/signup').send({ name, email, password });
-  return res.body;
-};
+const signup = async (name, email) => signupVerified(app, email, { name });
 
 beforeAll(async () => {
   const stamp = Date.now();

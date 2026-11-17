@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
+import { signupVerified } from './helpers/session.js';
 
 // ─── Auth + OTP contract ─────────────────────────────────────────────────────
 // The reset journey has to work end to end (request → code → new password →
@@ -26,9 +27,6 @@ const requestCode = (mail) =>
 const resetWith = (mail, otp, newPassword = NEW_PASS) =>
   request(app).post('/auth/reset-password').send({ email: mail, otp, new_password: newPassword });
 
-const cookieOf = (res) => (res.headers['set-cookie'] || [])
-  .find((c) => c.startsWith('refreshToken='))?.split(';')[0] || '';
-
 beforeAll(() => {
   process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'test-access-secret-0123456789abcdef';
   process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-fedcba9876543210';
@@ -51,8 +49,9 @@ describe('password reset journey', () => {
 
   it('a password change revokes every refresh session', async () => {
     const mail = email('revoke');
-    const created = await signup(mail).expect(201);
-    const cookie = cookieOf(created);
+    // A real session now requires a verified mailbox: sign up, redeem the
+    // signup code, then keep the refresh cookie.
+    const { cookie } = await signupVerified(app, mail, { name: 'OTP Tester' });
 
     const fp = await requestCode(mail).expect(200);
     await resetWith(mail, fp.body.dev_otp).expect(200);
@@ -194,7 +193,7 @@ describe('brute-force lockout', () => {
 
   it('a successful sign-in clears the counter', async () => {
     const mail = email('unlock');
-    await signup(mail).expect(201);
+    await signupVerified(app, mail, { name: 'OTP Tester' });
     for (let i = 0; i < 3; i += 1) {
       await request(app).post('/auth/signin').send({ email: mail, password: 'wrong-password' }).expect(401);
     }

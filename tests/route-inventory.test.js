@@ -26,6 +26,7 @@ const PUBLIC_ROUTES = new Map([
   ['POST /auth/google', 'Google ID token exchange'],
   ['POST /auth/forgot-password', 'returns an identical body for known and unknown emails'],
   ['POST /auth/reset-password', 'consumes an emailed OTP'],
+  ['POST /auth/verify-email', 'consumes the emailed signup OTP that mints the first session'],
 
   // Public catalogue reads: no user data, no writes, no rate-limit bypass
   // (the LLM limiter covers /nearby through the shared limiters).

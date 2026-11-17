@@ -8,6 +8,8 @@ import request from 'supertest';
 const ADMIN_EMAIL = 'metrics-admin@example.com';
 const SCRAPE_TOKEN = 'scrape-token-0123456789abcdef';
 
+import { verifiedToken } from './helpers/session.js';
+
 vi.hoisted(() => {
   process.env.ADMIN_EMAILS = 'metrics-admin@example.com';
   process.env.METRICS_TOKEN = 'scrape-token-0123456789abcdef';
@@ -19,19 +21,8 @@ let adminToken = '';
 let userToken = '';
 
 beforeAll(async () => {
-  const admin = await request(app).post('/auth/signup').send({
-    name: 'Metrics Admin',
-    email: ADMIN_EMAIL,
-    password: 'Str0ng!Passw0rd',
-  });
-  adminToken = admin.body.accessToken;
-
-  const user = await request(app).post('/auth/signup').send({
-    name: 'Metrics User',
-    email: `metrics-user-${Date.now()}@example.com`,
-    password: 'Str0ng!Passw0rd',
-  });
-  userToken = user.body.accessToken;
+  adminToken = await verifiedToken(app, ADMIN_EMAIL, { name: 'Metrics Admin' });
+  userToken = await verifiedToken(app, `metrics-user-${Date.now()}@example.com`, { name: 'Metrics User' });
 });
 
 describe('GET /metrics access', () => {
