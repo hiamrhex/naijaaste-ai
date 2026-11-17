@@ -157,8 +157,32 @@ describe('chat session ownership (independent review D-1 / IQ-26)', () => {
     });
   }
 
-  it('the Vercel serverless entry enforces the same rules on /api/chat/:id', async () => {
+  it('an authenticated caller cannot claim an anonymous session through /agent', async () => {
+    // /chat refuses to continue an anonymous session without its capability.
+    // /agent used to accept the same session id with any user token and hand
+    // ownership to that user, after which GET /chat/:id returned the whole
+    // transcript.
     const created = await request(app)
+      .post('/api/v1/chat')
+      .send({ message: 'anonymous secret' })
+      .expect(200);
+    const sid = created.body.session_id;
+    const capability = created.body.session_capability;
+
+    const claim = await request(app)
+      .post('/api/v1/agent')
+      .set(auth(tokenB))
+      .send({ message: 'continue please', session_id: sid });
+
+    expect(claim.status).toBe(403);
+    expect(claim.body.error.code).toBe('FORBIDDEN');
+
+    // Untouched: the capability holder still owns it, the intruder still cannot read it.
+    await request(app).get(`/api/v1/chat/${sid}`).set(auth(capability)).expect(200);
+    await request(app).get(`/api/v1/chat/${sid}`).set(auth(tokenB)).expect(404);
+  });
+
+  it('the Vercel serverless entry enforces the same rules on /api/chat/:id', async () => {    const created = await request(app)
       .post('/api/v1/chat')
       .set(auth(tokenA))
       .send({ message: 'through the function entry' })

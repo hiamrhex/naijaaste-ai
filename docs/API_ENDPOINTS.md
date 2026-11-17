@@ -207,7 +207,8 @@ deterministic catalogue picks and `meta.fallback: true`.
   "meta": { "latency_ms": 1200, "steps": 3, "agent": true, "fallback": false, "fallback_reason": null }
 }
 ```
-Errors: `400 VALIDATION_ERROR`, `403 FORBIDDEN` (session owned by someone else),
+Errors: `400 VALIDATION_ERROR`, `403 FORBIDDEN` (session owned by someone else —
+including an anonymous session, whose capability this route cannot verify),
 `504 AI_TIMEOUT`, `503 AI_UNAVAILABLE`, `502 UPSTREAM_FAILURE`.
 
 ### POST /chat → 200

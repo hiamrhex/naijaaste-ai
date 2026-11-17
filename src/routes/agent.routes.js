@@ -35,6 +35,17 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
         requestId: req.id,
       });
     }
+    // An anonymous session belongs to the holder of its capability, and this
+    // route only accepts a user access token — it cannot prove the capability.
+    // Claiming the session anyway (the old "claim-on-first-agent-use") let any
+    // signed-in caller who saw the id read the transcript through GET /chat/:id.
+    if (existing && !existing.user_id) {
+      return fail(res, {
+        status: 403, code: 'FORBIDDEN',
+        message: 'Session belongs to an anonymous caller',
+        requestId: req.id,
+      });
+    }
     const session = existing || {
       session_id: sessionId,
       user_id: req.user.id,
@@ -45,9 +56,6 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
       created_at: new Date().toISOString(),
       last_active: new Date().toISOString(),
     };
-    // Claim-on-first-agent-use: anonymous sessions gain an owner the first
-    // time an authenticated caller uses them via /agent.
-    if (!session.user_id) session.user_id = req.user.id;
 
     const startTime = Date.now();
     let text;
