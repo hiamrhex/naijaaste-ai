@@ -445,8 +445,8 @@ Track these security metrics:
 # Install OWASP ZAP for security testing
 docker run -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:5173
 
-# Run security tests with npm
-npm run test:security
+# Run the security-relevant suites with npm
+npx vitest run tests/auth-limits.test.js tests/limits.test.js tests/limits-llm.test.js
 ```
 
 ### Dependency Scanning

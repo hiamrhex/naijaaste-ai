@@ -157,15 +157,15 @@ The project uses Vitest for testing:
 # Run all tests
 npm test
 
-# Run tests with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test tests/auth.test.js
+# Run a specific test file
+npx vitest run tests/auth.test.js
 
 # Run tests in watch mode
-npm run test:watch
+npx vitest
 ```
+
+Coverage collection is not configured in this repository (no coverage provider is
+installed); `npm test` is the gate CI runs.
 
 ### Linting and Formatting
 
@@ -174,11 +174,11 @@ npm run test:watch
 npm run lint
 
 # Fix linting issues
-npm run lint:fix
-
-# Format code
-npm run format
+npx eslint . --fix
 ```
+
+ESLint is the only formatter configured. There is no Prettier step, so run
+`npx eslint . --fix` rather than expecting a separate format command.
 
 ## Common Development Tasks
 
@@ -198,10 +198,11 @@ npm run format
 
 ### Database Changes
 
-1. Create migration file: `npm run db:migrate:create --add-table-name`
+1. Create migration file: `npm run generate-migration add_table_name`
 2. Write migration SQL
 3. Run migration: `npm run db:migrate`
-4. Update TypeScript types if applicable
+
+The application is plain JavaScript; there is no type-generation step.
 
 ## Troubleshooting
 

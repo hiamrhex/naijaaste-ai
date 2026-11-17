@@ -464,8 +464,8 @@ jobs:
           node-version: '24'
       - name: Install dependencies
         run: npm ci
-      - name: Run performance tests
-        run: npm run test:performance
+      - name: Run the test suite
+        run: npm test
 ```
 
 ### Performance Budgets

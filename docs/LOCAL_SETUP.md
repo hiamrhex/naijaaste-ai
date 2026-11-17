@@ -149,16 +149,13 @@ naijataste-ai/
 # Lint code
 npm run lint
 
-# Type check
-npm run typecheck
-
 # Build for production
 npm run build
 
 # Preview production build
 npm run preview
 
-# Generate SQL schema
+# Run pending database migrations
 npm run db:migrate
 
 # Run security scan
