@@ -19,6 +19,8 @@ const STALE = [
   '20 files',
   '27 endpoints',
   '31 endpoints',
+  '466 tests',
+  '466 passing',
   '28,863',
   '28,875',
   '17–24s',
