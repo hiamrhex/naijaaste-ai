@@ -209,7 +209,8 @@ deterministic catalogue picks and `meta.fallback: true`.
 ```
 Errors: `400 VALIDATION_ERROR`, `403 FORBIDDEN` (session owned by someone else —
 including an anonymous session, whose capability this route cannot verify),
-`504 AI_TIMEOUT`, `503 AI_UNAVAILABLE`, `502 UPSTREAM_FAILURE`.
+`429 LLM_QUOTA_EXCEEDED` (monthly cap, one unit per turn), `504 AI_TIMEOUT`,
+`503 AI_UNAVAILABLE`, `502 UPSTREAM_FAILURE`.
 
 ### POST /chat → 200
 Simple chat. Anonymous callers receive a session capability and must send it as
@@ -302,7 +303,7 @@ caller against `persona.persona_id`.
 All seven persona keys are required (extra keys pass through).
 
 **Response:** `{ "data": { "recommendations": [ … ] }, "meta": { … } }`.
-Errors: `404 NO_MATCHES`, `429 RATE_LIMITED` (monthly LLM quota exhausted).
+Errors: `404 NO_MATCHES`, `429 LLM_QUOTA_EXCEEDED` (monthly LLM quota exhausted).
 
 ### POST /generate-review → 200
 Only two things are required: where the persona is and which restaurant the app
@@ -475,3 +476,9 @@ Rate-limited responses include:
 - `429` status code
 - `Retry-After` header
 - `RateLimit` headers showing the limit, remaining and reset
+
+Monthly quota (`LLM_MONTHLY_MAX`, default 100): `/chat`, `/agent` and
+`/recommend` charge one unit per call or turn (a free-tier API-key burn guard).
+`/extract-persona` and `/generate-review` have no monthly subject and are
+bounded only by the 10/min limiter — a known gap, recorded in
+[`EVIDENCE.md`](EVIDENCE.md).

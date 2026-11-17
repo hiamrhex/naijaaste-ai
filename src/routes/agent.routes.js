@@ -4,6 +4,7 @@ import { requireAuth } from '../auth/middleware.js';
 import { getSession, saveSession } from '../services/chat.service.js';
 import { deterministicAgentReply, picksFromAnswer, buildFallbackPersona } from '../services/fallback.service.js';
 import { getDeterministicRecommendations } from '../services/recommend.service.js';
+import { checkAndIncrementQuota } from '../services/llm-quota.service.js';
 import { ApiError } from '../lib/errors.js';
 import { fail } from '../lib/respond.js';
 import { validate } from '../middleware/validate.js';
@@ -58,6 +59,24 @@ router.post('/agent', requireAuth, validate(chatBodySchema), async (req, res) =>
     };
 
     const startTime = Date.now();
+
+    // Monthly LLM quota. /agent is the most expensive model surface (the loop
+    // can make up to MAX_STEPS calls per turn) and was the one LLM route with
+    // no monthly cap at all: an authenticated caller was bounded only by the
+    // 10/min limiter. One turn charges one unit, the same rule /chat uses for
+    // a turn that also ranks recommendations. Charged after the ownership
+    // checks so a rejected turn costs nothing.
+    const quota = await checkAndIncrementQuota(req.user.id, 'user');
+    if (!quota.allowed) {
+      return fail(res, {
+        status: 429,
+        code: 'LLM_QUOTA_EXCEEDED',
+        message: quota.error,
+        requestId: req.id,
+        retryAfterSec: quota.retryAfterSec,
+      });
+    }
+
     let text;
     let trace;
     let fallback = null;
