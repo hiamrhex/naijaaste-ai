@@ -351,12 +351,16 @@ first.
   "device": "Pixel 8 / Android 15",
   "app_version": "2.0.0",
   "restaurant_id": "r001",
+  "request_id": "the X-Request-Id of the request that failed (optional)",
   "screenshot": "data:image/png;base64,…"
 }
 ```
 `type` is one of `bug`, `wrong-info`, `idea`, `other`. `message` is 3–2000
-characters. `screenshot` is optional, must be an image data URL, and is capped at
-~300 KB (the route gets a 350 KB body parser; everything else is 10 KB).
+characters. `request_id` is optional and, when it matches
+`^[A-Za-z0-9-]{8,64}$`, is stored as the report's `request_id`; otherwise the
+submission's own request id is used. `screenshot` is optional, must be an image
+data URL, and is capped at ~300 KB (the route gets a 350 KB body parser;
+everything else is 10 KB).
 
 **Response:** `{ "success": true, "report": { "ticket": "NT-…", … } }` (the
 screenshot blob is not echoed). Errors: `400 VALIDATION_ERROR`,

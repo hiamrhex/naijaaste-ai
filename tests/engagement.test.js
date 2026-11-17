@@ -80,8 +80,29 @@ describe('reports (D)', () => {
     expect(res.body.data).not.toHaveProperty('screenshot');
   });
 
-  it('accepts a screenshot larger than the global 10KB body limit', async () => {
-    // The route allows a 300KB data URL, but the global parser rejected
+  it('records the request id the client reported, not just the submission id', async () => {
+    // The feedback form says "the last request ID attaches automatically".
+    // It never sent it, so admins only saw the report request's own id.
+    const failed = 'client-req-1234';
+    const res = await request(app).post('/reports')
+      .set(auth(userToken))
+      .send({ type: 'bug', message: 'Search failed', request_id: failed })
+      .expect(201);
+
+    expect(res.body.data.request_id).toBe(failed);
+  });
+
+  it('ignores a malformed client request id and records its own', async () => {
+    const res = await request(app).post('/reports')
+      .set(auth(userToken))
+      .send({ type: 'bug', message: 'Search failed', request_id: '<script>' })
+      .expect(201);
+
+    expect(res.body.data.request_id).toMatch(/^[A-Za-z0-9-]{8,64}$/);
+    expect(res.body.data.request_id).not.toBe('<script>');
+  });
+
+  it('accepts a screenshot larger than the global 10KB body limit', async () => {    // The route allows a 300KB data URL, but the global parser rejected
     // anything over 10KB first, so every screenshot report answered 413 and the
     // documented 350KB budget for /reports was unreachable.
     const screenshot = `data:image/png;base64,${'A'.repeat(120 * 1024)}`;

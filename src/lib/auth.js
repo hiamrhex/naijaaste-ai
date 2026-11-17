@@ -199,7 +199,13 @@ export const postReport = async ({ type, message, screen, device, app_version, r
   const res = await authFetch('/reports', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type, message, screen, device, app_version, restaurant_id, screenshot }),
+    // The form promises the last request id is attached. It is the id of the
+    // failing request the user saw, which is what support can look up — the
+    // submission's own id tells them nothing about the failure.
+    body: JSON.stringify({
+      type, message, screen, device, app_version, restaurant_id, screenshot,
+      request_id: getLastRequestId() || undefined,
+    }),
   });
   const data = await readJson(res, { fallbackMessage: 'Could not send report.' });
   return data.data;
