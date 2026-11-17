@@ -7,6 +7,11 @@
 > (`EVIDENCE.md`, IDs `T19-01…T19-20`). Tests/lint/build/secret-scan re-run
 > green today (T19-16). Live site probed for the first time while booted
 > (T19-01…T19-07). **Result: 58/75 = 77%** — three rows drop from the prior 81%.
+>
+> **Update 2026-11-17:** rows **9** and **25** were fixed after this snapshot.
+> Live probes now return `GET /api/v1/nearby` → 200 and `GET /api/nearby` → 200,
+> and `/health` advertises 34 endpoints (`EVIDENCE.md` F21-08, F21-17). The
+> 2026-10-19 scores are left in place as a historical record.
 
 ## Re-score table (2026-10-19, fresh evidence only)
 

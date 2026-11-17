@@ -27,7 +27,11 @@
 
 ### WP-02: Fix Canonical `/api/v1/*` Contract (Reliability / Architecture)
 
-**Goal:** `/api/v1/*` paths work on production (currently 404 — AUDIT F1, INDEPENDENT D-7).
+**Status (2026-11-17): DONE.** Live probes: `GET /api/v1/nearby` → 200,
+`GET /api/nearby` → 200 (legacy), bare `/nearby` → 404 (direct-server mount
+only). See `EVIDENCE.md` F21-08 and F21-17.
+
+**Goal:** `/api/v1/*` paths work on production (was 404 — AUDIT F1, INDEPENDENT D-7).
 
 **Why:** Documented API contract broken for external clients, uptime checks, partners. SPA works via undocumented `/api/*`.
 
@@ -35,7 +39,7 @@
 - `GET /api/v1/auth/me` → 200 (authenticated) or 401
 - `GET /api/v1/nearby` → 200
 - `POST /api/v1/chat` → 200
-- All 27 ENDPOINTS from `app.js:86-119` reachable at `/api/v1/*`
+- All 34 ENDPOINTS from `app.js` reachable at `/api/v1/*`
 - Legacy `/api/*` still works (SPA unchanged)
 
 **Risk:** Medium. Touches `api/index.js` prefix stripping logic and `vercel.json` rewrites.
@@ -45,6 +49,9 @@
 ---
 
 ### WP-03: Chat Session Auth & Ownership (Security — HIGH)
+
+**Status (2026-11-17): DONE.** `tests/chat-ownership.test.js` covers every mount;
+`EVIDENCE.md` IR-01 records the live matrix.
 
 **Goal:** `GET/DELETE /api/v1/chat/:sessionId` require auth or capability; ownership enforced (INDEPENDENT D-1).
 

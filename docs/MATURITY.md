@@ -52,8 +52,9 @@ Areas that were **fixed with proof** during the review, not just scored:
 
 1. **No monitoring/error tracking on a now-live system.** The outage risk
    flipped from "everybody sees it" to "nobody knows" — worse with real users.
-2. **Canonical `/api/v1/*` contract 404s live** — any external client or
-   monitor built on the documented API fails silently.
+2. **Canonical `/api/v1/*` contract — RESOLVED 2026-11-17.** Live
+   `GET /api/v1/nearby` → 200 and legacy `GET /api/nearby` → 200; the
+   documented contract now matches production (`EVIDENCE.md` F21-08, F21-17).
 3. **No SLO measurement/alerting machinery** — targets in docs, nothing runs.
 4. **saved-places is a dead-end surface** — no delete/edit; the 50-cap is
    exceedable by burst (defence missing) and permanent once legitimately full.

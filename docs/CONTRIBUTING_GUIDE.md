@@ -51,11 +51,14 @@ This guide helps you contribute documentation improvements to NaijaTaste AI.
 
 ## Common Issues to Fix
 
-1. **Test count mismatch**: README shows 156 tests, actual is 93
-2. **API path confusion**: Documentation mentions `/api/v1/*` but actual paths use `/api/*`
-3. **Deployment status**: README says "API function not yet serving" but it's live
-4. **Environment defaults**: Missing default values table
-5. **Error format**: Inconsistent error response documentation
+1. **Docs drift**: run `npm run check:docs` before opening a PR — it fails on
+   stale counts, broken links and `npm run` commands that do not exist.
+2. **API paths**: canonical is `/api/v1/*`; the unprefixed mount is legacy and
+   is not reachable through Vercel (only when running `src/server.js`).
+3. **Environment defaults**: the README table is the source of truth; add any
+   new variable there in the same PR.
+4. **Error format**: always `{ error: { code, message, details?, requestId } }`
+   — never hand-roll a response body.
 
 ## Contributing Process
 

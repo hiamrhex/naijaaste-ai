@@ -386,6 +386,7 @@ supersedes Unverified #1 (live API) and #2 (prod DB present in `.env`).
 | F21-14 | Pre-push gates | `npm run lint` · `check:docs` · `check:ng-data` · `scan:secrets` · `test:all` | clean · OK · 4 files clean · 231 files clean · 29 files / 175 tests passed |
 | F21-15 | Data gate has every required file | `git cat-file -e HEAD:data/ng/dishes.json` | present from `da850bd` (was missing on `HEAD` before this push — CI would have failed) |
 | F21-16 | Sentry armed? | `SENTRY_DSN` unset in local `.env`; Vercel env not inspected | **NOT ARMED** — code is live but no events are sent until `SENTRY_DSN` is set in the Vercel project |
+| F21-17 | Canonical contract + inventory re-verified | `GET /health`, `GET /api/v1/nearby?lat=6.52&lng=3.38&limit=1`, `GET /api/nearby?…`, bare `GET /nearby?…`, `GET /metrics` | `/health` 200 `version=2.0.0`, **34** endpoints; `/api/v1/nearby` **200**; `/api/nearby` **200**; bare `/nearby` **404** (Vercel rewrite only); `/metrics` **401** anonymous. Probes 2026-11-17 against `https://naijataste-ai.vercel.app` |
 
 ---
 

@@ -62,7 +62,7 @@
 ## What "Done" Means (Success Criteria)
 
 1. **Monitoring armed:** Sentry DSN set in Vercel; uptime check on `/health` with alert to human; SLO burn alerts defined.
-2. **Canonical contract live:** `/api/v1/*` paths work on production (currently 404 — F1 in AUDIT).
+2. **Canonical contract live:** `/api/v1/*` paths work on production — **DONE 2026-11-17** (live `GET /api/v1/nearby` → 200; legacy `/api/nearby` → 200).
 3. **SLO machinery running:** p95 latency and AI success rate computed continuously; burn alert at 50% budget.
 4. **Chat session auth fixed:** GET/DELETE `/chat/:id` require auth or capability; ownership enforced (D-1).
 5. **Document headers live:** CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy on `/`, `/app/*`, `/sw.js`, `/offline.html` (D-2).
