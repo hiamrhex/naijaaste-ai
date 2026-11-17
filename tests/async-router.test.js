@@ -43,6 +43,21 @@ describe('asyncRouter', () => {
   it('leaves successful handlers untouched', async () => {
     await request(buildApp()).get('/fine').expect(200, { ok: true });
   });
+
+  it('keeps guard names visible on the route stack', () => {
+    // Express exposes middleware as handler.name, and the route-inventory gate
+    // proves every user-scoped route carries requireAuth/requireAdmin by
+    // reading those names. An anonymous wrapper made every guard invisible and
+    // the gate passed vacuously.
+    const requireAuth = async (_req, _res, next) => next();
+    const router = asyncRouter();
+    router.get('/private', requireAuth, async (_req, res) => res.json({ ok: true }));
+
+    const layer = router.stack.find((l) => l.route?.path === '/private');
+    const names = layer.route.stack.map((h) => h.name);
+
+    expect(names).toContain('requireAuth');
+  });
 });
 
 describe('route modules use the wrapper', () => {

@@ -101,6 +101,12 @@ const canonical = (method, path) => {
 
 const inventory = [...new Set(allRoutes.map((r) => canonical(r.method, r.path)))];
 
+// Middleware names that authenticate the caller. `requireMetricsAccess`
+// delegates to requireAuth/requireAdmin (or accepts a scrape token), and is
+// mounted directly on app.js rather than through a router.
+const AUTH_GUARDS = ['requireAuth', 'requireAdmin', 'requireMetricsAccess'];
+const isGuarded = (handlers) => handlers.some((h) => AUTH_GUARDS.includes(h));
+
 describe('route inventory (item 2)', () => {
   it('finds the routes it is supposed to guard', () => {
     // A silent change in how the tree is walked must not make this gate
@@ -116,7 +122,7 @@ describe('route inventory (item 2)', () => {
     // requireAdmin (including guards registered with router.use(path, guard)).
     const isAuthenticated = (key) => {
       const route = allRoutes.find((r) => canonical(r.method, r.path) === key);
-      return !!route && route.handlers.some((h) => ['requireAuth', 'requireAdmin'].includes(h));
+      return !!route && isGuarded(route.handlers);
     };
     const unclassified = inventory.filter(
       (key) =>
@@ -137,7 +143,7 @@ describe('route inventory (item 2)', () => {
     for (const key of PUBLIC_ROUTES.keys()) {
       const route = allRoutes.find((r) => canonical(r.method, r.path) === key);
       expect(route, `allow-list entry ${key} has no matching route`).toBeTruthy();
-      const guarded = route.handlers.some((h) => ['requireAuth', 'requireAdmin'].includes(h));
+      const guarded = isGuarded(route.handlers);
       expect(guarded, `${key} is allow-listed as public but carries an auth guard`).toBe(false);
     }
   });
@@ -175,7 +181,7 @@ describe('route inventory (item 2)', () => {
     );
     for (const route of userScoped) {
       expect(
-        route.handlers.some((h) => ['requireAuth', 'requireAdmin'].includes(h)),
+        isGuarded(route.handlers),
         `${route.method} ${route.path} has no requireAuth/requireAdmin middleware`
       ).toBe(true);
     }
