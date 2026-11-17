@@ -15,10 +15,15 @@ const isUpstreamFailure = (err) =>
   (typeof err?.status === 'number' && err.status >= 400) ||
   err?.code === 'LLM_QUOTA_EXCEEDED';
 
-// Monthly quota subject from owner
+const hashCapability = (capability) =>
+  createHash('sha256').update(String(capability)).digest('hex');
+
+// Monthly quota subject from owner. The capability is a bearer secret — the
+// session store only ever keeps its SHA-256 — so the quota row must not keep
+// the raw string either, or a reader of llm_quota could impersonate the caller.
 const quotaSubjectFromOwner = (owner) => {
   if (owner.userId) return { id: owner.userId, type: 'user' };
-  if (owner.capability) return { id: owner.capability, type: 'capability' };
+  if (owner.capability) return { id: hashCapability(owner.capability), type: 'capability' };
   return null;
 };
 
@@ -37,9 +42,6 @@ const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 // GET/DELETE /chat/:id accept the owning user's access token OR the
 // session's capability. Anyone else gets 404 — never 403/401, because
 // "forbidden" would confirm that a session id exists.
-const hashCapability = (capability) =>
-  createHash('sha256').update(String(capability)).digest('hex');
-
 export const newCapability = () => randomBytes(32).toString('base64url');
 
 const capabilityMatches = (expectedHash, presented) => {
@@ -226,7 +228,8 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
     session.extracted_persona
   )}`;
 
-  const quotaSubject = quotaSubjectFromOwner(owner);
+  const quotaSubject = quotaSubjectFromOwner(owner)
+    || (capability ? { id: hashCapability(capability), type: 'capability' } : null);
   let llmResponse;
   try {
     llmResponse = await callLLMJson(combinedPrompt, 1500, { quotaSubject });
@@ -296,7 +299,7 @@ export const processChat = async (sessionId, userMessage, owner = {}) => {
     };
 
     try {
-      const result = await getRecommendations(fullPersona);
+      const result = await getRecommendations(fullPersona, { quotaSubject });
       if (Array.isArray(result?.recommendations) && result.recommendations.length > 0) {
         recommendations = result;
         session.recommendations = result;

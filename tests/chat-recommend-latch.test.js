@@ -7,6 +7,7 @@ process.env.RATE_LIMIT_API_MAX = '5000';
 
 const mocks = vi.hoisted(() => ({
   getRecommendations: vi.fn(),
+  llmCalls: [],
   llmReply: {
     message: 'Ready to recommend',
     stage: 'recommend',
@@ -17,7 +18,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../src/services/llm.service.js', () => ({
-  callLLMJson: async () => mocks.llmReply,
+  callLLMJson: async (...args) => {
+    mocks.llmCalls.push(args);
+    return mocks.llmReply;
+  },
   callLLM: async () => '{}',
   callPersonaLLM: async () => ({}),
   callReviewLLM: async () => ({}),
@@ -35,6 +39,7 @@ vi.mock('../src/services/recommend.service.js', () => ({
 
 let app;
 let token;
+let userId;
 
 const picks = {
   success: true,
@@ -63,10 +68,12 @@ beforeAll(async () => {
       password: 'Str0ng!Passw0rd',
     });
   token = res.body.accessToken;
+  userId = res.body.user.id;
 });
 
 beforeEach(() => {
   mocks.getRecommendations.mockReset();
+  mocks.llmCalls.length = 0;
 });
 
 const postChat = (message, sessionId) =>
@@ -112,5 +119,37 @@ describe('chat recommendation latch', () => {
 
     expect(res.body.meta.after_hard_filter).toBe(7);
     expect(res.body.meta.candidates_sent_to_llm).toBe(5);
+  });
+
+  it('meters the nested recommendation call with the caller quota subject', async () => {
+    // A chat turn can make two model calls (chat + recommendation). The second
+    // one used to go out with no subject, so it never counted toward the
+    // monthly quota even though the service comment says one increment per call.
+    mocks.getRecommendations.mockResolvedValue(picks);
+
+    await postChat('I want jollof');
+
+    const [, options] = mocks.getRecommendations.mock.calls[0];
+    expect(options.quotaSubject).toEqual({ id: userId, type: 'user' });
+  });
+
+  it('meters the first anonymous turn and never stores the raw capability', async () => {
+    // The capability is minted during the creation turn, so deriving the quota
+    // subject from `owner` alone left every anonymous first turn unmetered:
+    // create session → one free model call → discard → repeat.
+    mocks.getRecommendations.mockResolvedValue(picks);
+
+    const res = await request(app)
+      .post('/api/v1/chat')
+      .send({ message: 'hello' });
+
+    expect(res.status).toBe(200);
+    const raw = res.body.session_capability;
+    expect(typeof raw).toBe('string');
+
+    const [, , options] = mocks.llmCalls[0];
+    expect(options.quotaSubject.type).toBe('capability');
+    expect(options.quotaSubject.id).toMatch(/^[0-9a-f]{64}$/);
+    expect(options.quotaSubject.id).not.toBe(raw);
   });
 });
