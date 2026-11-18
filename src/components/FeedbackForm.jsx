@@ -10,7 +10,7 @@ const TYPES = [
   { value: 'idea', label: 'Idea' },
   { value: 'other', label: 'Other' },
 ];
-const APP_VERSION = '0.0.0';
+const APP_VERSION = __APP_VERSION__;
 
 export function FeedbackForm() {
   const { user } = useAuth();

@@ -78,6 +78,11 @@ export default defineConfig([
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
+    // FeedbackForm uses __APP_VERSION__ injected by Vite define.
+    files: ['src/components/FeedbackForm.jsx'],
+    languageOptions: { globals: { __APP_VERSION__: 'readonly', ...globals.browser } },
+  },
+  {
     // Browser specs: the assertions run inside the page, so the DOM globals
     // are legitimately referenced from the test file itself.
     files: ['tests/e2e/**/*.spec.js', 'tests/visual/**/*.spec.js'],

@@ -1,11 +1,15 @@
 import express from "express";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const APP_VERSION = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8")).version;
 import { personaRoutes } from "./routes/persona.routes.js";
 import { recommendRoutes } from "./routes/recommend.routes.js";
 import { reviewRoutes } from "./routes/review.routes.js";
@@ -241,7 +245,7 @@ app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     service: "NaijaTaste AI",
-    version: "2.0.0",
+    version: APP_VERSION,
     api: "/api/v1",
     timestamp: new Date().toISOString(),
     features: { google_auth: googleAuthEnabled() },

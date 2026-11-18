@@ -1,13 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // Bump when the navigation/offline behaviour changes so old precaches are
 // dropped on activate (see public/sw.js + its tests).
 const SW_CACHE_VERSION = 'v2';
+const APP_VERSION = JSON.parse(readFileSync('./package.json', 'utf8')).version;
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   plugins: [
     react({
       // Enable React 18 features
